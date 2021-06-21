@@ -4,9 +4,9 @@
 2. `tar -xzvf <prometheus-version>.tar.gz`
 3. Edit `prometheus.yml` file:
 ````
-  scrape_configs:
-  - job_name: 'beacon-chain'
-    scrape_interval: 5s
-    static_configs:
-      - targets: ['localhost:8080']
+scrape_configs:
+- job_name: 'beacon-chain'
+  scrape_interval: 5s
+  static_configs:
+    - targets: ['localhost:8080']
 ````
