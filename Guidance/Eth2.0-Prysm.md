@@ -37,6 +37,6 @@ log-file: '/home/newdisk/prysm/prysm.log'
 http-web3provider: '/home/newdisk/blockchain/geth.ipc'
 
 monitoring-host: 127.0.0.1
-monitoring-port: 8081
+monitoring-port: 8080
 ````
 
