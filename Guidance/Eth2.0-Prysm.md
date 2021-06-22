@@ -43,7 +43,7 @@ monitoring-port: 8080
 
 1. Create a file `prysm.service` in `/etc/systemd/system`
 
-   ````
+   ````bash
    [Unit]
    Description=Prysm Beacon Chain Client
    After=network.target
@@ -60,4 +60,12 @@ monitoring-port: 8080
    WantedBy=default.target
    ````
 2. 重新加载systemd服务列表，并启动prysm。service
+   ````bash
+   # Ensure the target service are executable
+   sudo chmod +x prysm.service
    
+   # Reload systemd service files to include new service
+   sudo systemctl daemon-reload
+   
+   # Start the prysm.service
+   sudo systemctl start prysm.service
