@@ -113,7 +113,7 @@ sudo geth --datadir "/home/newdisk/Eth-Vis/Ethereum/database" --ethash.dagdir "/
 
    ````bash
    # Ensure the target service are executable
-   sudo chmod +x 
+   sudo chmod +x geth.service
    
    # Reload systemd service files to include new service
    sudo systemctl daemon-reload
