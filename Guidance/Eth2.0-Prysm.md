@@ -41,3 +41,23 @@ monitoring-port: 8080
 ````
 ## 将Prysm设置成为systemd的一项服务运行在后台
 
+1. Create a file `prysm.service` in `/etc/systemd/system`
+
+   ````
+   [Unit]
+   Description=Prysm Beacon Chain Client
+   After=network.target
+   Wants=geth.service
+
+   [Service]
+   Type=simple
+   User=root
+   Restart=always
+   RestartSec=10
+   ExecStart=/bin/bash /home/newdisk/Eth-Vis/Prysm/start.sh
+
+   [Install]
+   WantedBy=default.target
+   ````
+2. 重新加载systemd服务列表，并启动prysm。service
+   
