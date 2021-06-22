@@ -95,18 +95,18 @@ sudo geth --datadir "/home/newdisk/Eth-Vis/Ethereum/database" --ethash.dagdir "/
 1. Create a file `geth.service` in `/etc/systemd/system`
 
    ````bash
-  [Unit]
-  Description=Ethereum Go Client
+   [Unit]
+   Description=Ethereum Go Client
+   
+   [Service]
+   Type=simple
+   User=root
+   Restart=always
+   RestartSec=10
+   ExecStart=/bin/bash /home/newdisk/Eth-Vis/Ethereum/start.sh
 
-  [Service]
-  Type=simple
-  User=root
-  Restart=always
-  RestartSec=10
-  ExecStart=/bin/bash /home/newdisk/Eth-Vis/Ethereum/start.sh
-
-  [Install]
-  WantedBy=default.target
+   [Install]
+   WantedBy=default.target
    ````
 
 2. Ensure the target service are executable
