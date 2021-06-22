@@ -39,4 +39,5 @@ http-web3provider: '/home/newdisk/blockchain/geth.ipc'
 monitoring-host: 127.0.0.1
 monitoring-port: 8080
 ````
+## 将Prysm设置成为systemd的一项服务运行在后台
 
