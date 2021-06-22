@@ -30,7 +30,7 @@ Run the follwing command to run `Geth`, entering JavaScript console and trying t
 Add some configurations flags inside the command
 
 ````bash
-geth --mainnet --networkid 1 --datadir "/home/chen/node/database" --identity "Node-1" --ipcpath "/home/chen/node/database/geth.ipc" --port "8545" --verbosity 3 --syncmode "fast" console
+sudo geth --datadir "/home/newdisk/Eth-Vis/Ethereum/database" --ethash.dagdir "/home/newdisk/Eth-Vis/Ethereum/database/ethash" --identity "Eth-Fudan" --ipcpath "/home/newdisk/Eth-Vis/Ethereum/geth.ipc" --port "9090" --verbosity 3 --syncmode "fast" 2>/home/newdisk/Eth-Vis/Ethereum/geth.log
 ````
 
 * `--datadir` Where your data (blocks, transactions) are stored
@@ -83,7 +83,7 @@ Until now, You can run Geth and keep synchronized with the latest blocks.
 #### Export current Geth configuration file
 
 ````bash
-geth --mainnet --networkid 1 --datadir "/home/chen/node/database" --identity "Node-1" --ipcpath "/home/chen/node/database/geth.ipc" --port "8545" --verbosity 3 --syncmode "fast" dumpconfig > config.toml
+sudo geth --datadir "/home/newdisk/Eth-Vis/Ethereum/database" --ethash.dagdir "/home/newdisk/Eth-Vis/Ethereum/database/ethash" --identity "Eth-Fudan" --ipcpath "/home/newdisk/Eth-Vis/Ethereum/geth.ipc" --port "9090" --verbosity 3 --syncmode "fast" dumpconfig > config.toml
 ````
 
 #### Start Geth with `Toml`configurations
@@ -95,18 +95,18 @@ geth --mainnet --networkid 1 --datadir "/home/chen/node/database" --identity "No
 1. Create a file `geth.service` in `/etc/systemd/system`
 
    ````bash
-   [Unit]
-   Description=Ethereum Go Client
-   
-   [Service]
-   Type=simple
-   User=chen
-   Restart=always
-   RestartSec=30
-   ExecStart=/bin/bash /home/newdisk/blockchain/start.sh
-   
-   [Install]
-   WantedBy=default.target
+  [Unit]
+  Description=Ethereum Go Client
+
+  [Service]
+  Type=simple
+  User=root
+  Restart=always
+  RestartSec=10
+  ExecStart=/bin/bash /home/newdisk/Eth-Vis/Ethereum/start.sh
+
+  [Install]
+  WantedBy=default.target
    ````
 
 2. Ensure the target service are executable
