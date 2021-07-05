@@ -1,5 +1,7 @@
+Prometheus中的监控数据有四种数据类型：次数(Counter)，当前值(Gauge)，累计值(Histogram)，总值(Summary)。我们能从Prysm传递给Prometheus的metrics里读取到的数据有如下：
 
-aggregated_attestations_in_pool_total
+* aggregated_attestations_in_pool_total：
+* 
 
 attestation_cache_hit
 
