@@ -1,0 +1,36 @@
+.DS_Store
+node_modules
+dist
+dist-ssr
+
+# virtual environment name
+venv
+
+# data folder
+server/data/
+
+.ipynb_checkpoints
+*.ftr
+*.pkl
+*.csv
+*.pyc
+
+# local env files
+.env.local
+.env.*.local
+*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
