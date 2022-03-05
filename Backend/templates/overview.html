@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>overview</title>
+        <script src="https://d3js.org/d3.v6.min.js">
+	</script>
+
+</head>
+<body style="margin-left: 100px;">
+    <svg id="mainsvg" width="4200" height="3600"  class="svgs" :style="background-color: #ffffff;"></svg>
+    <button type="button" id="GHOST" onclick="GHOST()">Head</button>
+    <button type="button" id="CASPER" onclick="Casper()">Checkpoint</button>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+	<style>
+		.circle1 {
+	   fill: #AFEEEE;
+	   fill-opacity: 0.2;
+	   stroke: #000000;
+	   stroke-width: 1px;
+	}
+	   .circle2 {
+	   fill: #ADD8E6;
+	   fill-opacity: 0.4;
+	   stroke: #000000;
+	   stroke-width: 1px;
+	}
+	.circle3 {
+	   fill: #87CECB;
+	   fill-opacity: 0.6;
+	   stroke: #000000;
+	   stroke-width: 1px;
+	}
+	.leaf0 {
+	   fill: #FF99CC;
+	   fill-opacity: 0.95;
+	   stroke: #000000;
+	   stroke-width:1.2px;
+	}
+	.leaf1 {
+		   fill: #90EE90;
+		   fill-opacity: 0.95;
+		   stroke: #000000;
+		   stroke-width:1.2px;
+	   }
+	   text{
+	   font: "Times New Roman";
+	   font-size: 45px;
+	   style:"bold";
+	   }
+
+	   .tooltip{
+		   position:absolute;
+		   width:auto;
+		   height:auto;
+		   background-color: white;
+		   font-size: 25px;
+		   text-align: center;
+	   }
+
+	   .tooltip1{
+		   position:absolute;
+		   width:auto;
+		   height:auto;
+		   background-color: white;
+		   font-size: 40px;
+		   text-align: center;
+	   }
+	</style>
+	<style>
+		.tooltip2{
+				position:absolute;
+				width:auto;
+				height:auto;
+				background-color: white;
+				font-size: 45px;
+				text-align: left;
+				white-space: pre;
+			}
+
+			.text1{
+
+				white-space: pre;
+			}
+		.tooltip3{
+			position:absolute;
+		    width:auto;
+			height:auto;
+			background-color: white;
+			font-size: 25px;
+			text-align: center;
+		}
+		</style>
+    <script >
+        let svg = d3.select('svg');
+    const width = (+svg.attr('width')-200)/2;
+    const height = (+svg.attr('height')-400)/2;
+    const margin = { top: 100, right: 90, bottom: 60, left: 90 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const g = svg.append('g').attr('id', 'maingroup')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    var justified = {{justify | safe}};
+    console.log(justified);
+    var epochs = {{epoch | safe}};
+    console.log(epochs);
+    //设置矩阵的行列
+    var r=12,c=15;
+
+//设置坐标轴
+const xscale = d3.scaleLinear()
+        .domain([0,c])
+        .range([0, innerWidth]);
+
+const yscale = d3.scaleLinear().
+        domain([0,r]).
+        range([0, innerHeight]);
+const yaxis = d3.axisLeft(yscale)
+        .ticks(r)
+        .tickSize(10)
+        .tickPadding(10);
+const xaxis = d3.axisBottom(xscale)
+        .ticks(c)
+        .tickSize(-10)
+        .tickPadding(-50);
+g.append('g').call(yaxis)
+        .attr('id' ,'yaxis');
+
+g.append('g').call(xaxis)
+        .attr('id', 'xaxis');
+
+
+
+function Casper(){
+//添加pie
+    var pies = []
+    for(let i = 0; i < epochs.length; i++){
+        var temp = []
+        temp.push(epochs[i]['target_correct_balance'])
+        temp.push(epochs[i]['attesting_balance'] - epochs[i]['target_correct_balance'])
+        var pie = d3.pie()(temp)
+        pies = pies.concat(pie)
+        }
+     var draw = d3.select('g').selectAll('path').data(pies).enter()
+                 .append('path')
+                 .attr('d', d3.arc().innerRadius(0).outerRadius(50))
+                 .attr('fill', function(d){
+                     return d.index==1?"#E3170D":"#00FF7F";
+                    })
+                 .attr("transform",function(d,i){
+                 console.log(i)
+                 console.log(Math.floor(i/2)%c+1)
+                     return `translate(${xscale(Math.floor(i/2)%c+1)},${yscale(Math.floor(Math.floor(i/2)/c)+1)})`;
+                    })
+
+  }
+
+function GHOST(){
+//添加pie
+    var pies = []
+    for(let i = 0; i < epochs.length; i++){
+        var temp = []
+        temp.push(epochs[i]['head_correct_balance'])
+        temp.push(epochs[i]['attesting_balance'] - epochs[i]['head_correct_balance'])
+        var pie = d3.pie()(temp)
+        pies = pies.concat(pie)
+        }
+    console.log(pies)
+    var draw = d3.select('g').selectAll('path').data(pies).enter()
+                 .append('path')
+                 .attr('d', d3.arc().innerRadius(0).outerRadius(50))
+                 .attr('fill', function(d){
+                     return d.index==1?"#E3170D":"yellow";
+                    })
+                 .attr("transform",function(d,i){
+                 console.log(i)
+                 console.log(Math.floor(i/2)%c+1)
+                     return `translate(${xscale(Math.floor(i/2)%c+1)},${yscale(Math.floor(Math.floor(i/2)/c)+1)})`;
+                    })
+}
+/*
+var cs = d3.select('g').selectAll("circle").data(epochs)
+           .enter()
+           .append("circle")
+           .attr("r",5)
+           .attr("fill","red")
+           .attr("cx",function(d,i){
+           console.log(i)
+                return xscale(i%c+1);
+                })
+           .attr("cy",function(d,i){
+                return yscale(Math.floor(i/c)+1);
+                })
+
+*/
+		      d3.select("GHOST")
+		          .on("click",function(){
+				     d3.select("svg").select("g").selectAll("path").remove();
+				     d3.select("svg")
+				       .append("g").call(GHOST());})
+              d3.select("Casper")
+		          .on("click",function(){
+				     svg.selectAll("path").remove();
+				     d3.select("svg")
+				       .append("g").call(Casper());})
+
+</script>
+
+</body>
+</html>
