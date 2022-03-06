@@ -1,12 +1,12 @@
 from flask import Flask, render_template,request
 from flask_sqlalchemy import SQLAlchemy
-import string
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
-import random
-import json
 import psycopg2
 import requests
+import string
+import random
+import json
 
 url = 'http://10.192.9.11:9091/api/v1/query'
 headers = {
@@ -123,4 +123,4 @@ def index():
     return "Hello World"
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=12346, debug=True)

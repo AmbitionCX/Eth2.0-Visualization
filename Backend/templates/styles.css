@@ -1,0 +1,95 @@
+.button {
+  appearance: none;
+  background-color: #2ea44f;
+  border: 1px solid rgba(27, 31, 35, .15);
+  border-radius: 6px;
+  box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+  font-size: 56px;
+  font-weight: 1200;
+  line-height: 80px;
+  padding: 24px 64px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.circle1 {
+	fill: #AFEEEE;
+	fill-opacity: 0.2;
+	stroke: #000000;
+	stroke-width: 1px;
+}
+.circle2 {
+	fill: #ADD8E6;
+	fill-opacity: 0.4;
+	stroke: #000000;
+	stroke-width: 1px;
+}
+.circle3 {
+	fill: #87CECB;
+	fill-opacity: 0.6;
+	stroke: #000000;
+	stroke-width: 1px;
+}
+.leaf0 {
+	fill: #FF99CC;
+	fill-opacity: 0.95;
+	stroke: #000000;
+	stroke-width: 1.2px;
+}
+.leaf1 {
+	fill: #90EE90;
+	fill-opacity: 0.95;
+	stroke: #000000;
+	stroke-width: 1.2px;
+}
+text{
+	font: "Times New Roman";
+	font-size: 45px;
+	font-weight: bold;
+}
+.tooltip{
+	position:absolute;
+	width:auto;
+	height:auto;
+	background-color: white;
+	font-size: 25px;
+	text-align: center;
+}
+.tooltip1{
+	position:absolute;
+    width:auto;
+    height:auto;
+	background-color: white;
+	font-size: 40px;
+	text-align: center;
+}
+.tooltip2{
+	position:absolute;
+	width:auto;
+	height:auto;
+	background-color: white;
+	font-size: 45px;
+	text-align: left;
+	white-space: pre;
+}
+.text1{
+	white-space: pre;
+}
+.tooltip3{
+	position:absolute;
+	width:auto;
+	height:auto;
+	background-color: white;
+	font-size: 25px;
+	text-align: center;
+}
