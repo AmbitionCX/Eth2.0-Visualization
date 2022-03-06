@@ -13,13 +13,13 @@
     <button type="button" id="CASPER" onclick="Casper()">Checkpoint</button>
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 	<style>
-		.circle1 {
+	.circle1 {
 	   fill: #AFEEEE;
 	   fill-opacity: 0.2;
 	   stroke: #000000;
 	   stroke-width: 1px;
 	}
-	   .circle2 {
+	.circle2 {
 	   fill: #ADD8E6;
 	   fill-opacity: 0.4;
 	   stroke: #000000;
@@ -35,64 +35,61 @@
 	   fill: #FF99CC;
 	   fill-opacity: 0.95;
 	   stroke: #000000;
-	   stroke-width:1.2px;
+	   stroke-width: 1.2px;
 	}
 	.leaf1 {
-		   fill: #90EE90;
-		   fill-opacity: 0.95;
-		   stroke: #000000;
-		   stroke-width:1.2px;
-	   }
-	   text{
+		fill: #90EE90;
+		fill-opacity: 0.95;
+		stroke: #000000;
+		stroke-width: 1.2px;
+	}
+	text{
 	   font: "Times New Roman";
 	   font-size: 45px;
-	   style:"bold";
-	   }
+	   font-weight: bold;
+	}
 
-	   .tooltip{
-		   position:absolute;
-		   width:auto;
-		   height:auto;
-		   background-color: white;
-		   font-size: 25px;
-		   text-align: center;
-	   }
-
-	   .tooltip1{
-		   position:absolute;
-		   width:auto;
-		   height:auto;
-		   background-color: white;
-		   font-size: 40px;
-		   text-align: center;
-	   }
+	.tooltip{
+		position:absolute;
+		width:auto;
+		height:auto;
+		background-color: white;
+		font-size: 25px;
+		text-align: center;
+	}
+	.tooltip1{
+		position:absolute;
+	    width:auto;
+	    height:auto;
+		background-color: white;
+		font-size: 40px;
+		text-align: center;
+	}
 	</style>
 	<style>
-		.tooltip2{
-				position:absolute;
-				width:auto;
-				height:auto;
-				background-color: white;
-				font-size: 45px;
-				text-align: left;
-				white-space: pre;
-			}
-
-			.text1{
-
-				white-space: pre;
-			}
-		.tooltip3{
-			position:absolute;
-		    width:auto;
-			height:auto;
-			background-color: white;
-			font-size: 25px;
-			text-align: center;
-		}
-		</style>
+	.tooltip2{
+		position:absolute;
+		width:auto;
+		height:auto;
+		background-color: white;
+		font-size: 45px;
+		text-align: left;
+		white-space: pre;
+	}
+	.text1{
+		white-space: pre;
+	}
+	.tooltip3{
+		position:absolute;
+		width:auto;
+		height:auto;
+		background-color: white;
+		font-size: 25px;
+		text-align: center;
+	}
+	</style>
     <script >
-        let svg = d3.select('svg');
+    let svg = d3.select('svg');
     const width = (+svg.attr('width')-200)/2;
     const height = (+svg.attr('height')-400)/2;
     const margin = { top: 100, right: 90, bottom: 60, left: 90 };
@@ -105,10 +102,8 @@
     console.log(justified);
     var epochs = {{epoch | safe}};
     console.log(epochs);
-    //设置矩阵的行列
     var r=12,c=15;
 
-//设置坐标轴
 const xscale = d3.scaleLinear()
         .domain([0,c])
         .range([0, innerWidth]);

@@ -7,7 +7,6 @@ import random
 import json
 import psycopg2
 import requests
-import json
 
 url = 'http://10.192.9.11:9091/api/v1/query'
 headers = {
@@ -39,8 +38,8 @@ class Block(db.Model):
     proposer = db.Column('f_proposer', db.Integer)
     # status = db.Column('status',db.String)
     # root = db.Column('f_root',db.Unicode)
-   # ats_included = db.relationship('Attestation', backref = 'inclusion')
-    #ats_targeted = db.relationship('Attestation', backref = 'target')
+    # ats_included = db.relationship('Attestation', backref = 'inclusion')
+    # ats_targeted = db.relationship('Attestation', backref = 'target')
 
 class Attestation(db.Model):
     __tablename__ = 't_attestations'

@@ -13,6 +13,8 @@ This project is created using Python 3.8.5. It is recommended to use virtualenv 
 For example, 
 
 ``` 
+$ apt install python3.8-venv
+
 # Create a new virtualenv named "venv"
 $ python -m venv venv
 
