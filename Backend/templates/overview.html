@@ -6,120 +6,94 @@
     <script src="https://d3js.org/d3.v6.min.js"></script>
 </head>
 <body style="margin-left: 100px;">
-<svg id="mainsvg" width="4200" height="3600"  class="svgs" :style="background-color: #ffffff;"></svg>
-<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-<button type="button" id="GHOST" onclick="GHOST()" class="button" style="margin-right:100px;">GHOST</button>
-<button type="button" id="CASPER" onclick="Casper()" class="button">CASPER</button>
-<style>
-.button {
-  appearance: none;
-  background-color: #2ea44f;
-  border: 1px solid rgba(27, 31, 35, .15);
-  border-radius: 6px;
-  box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
-  box-sizing: border-box;
-  color: #fff;
-  cursor: pointer;
-  display: inline-block;
-  font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
-  font-size: 56px;
-  font-weight: 1200;
-  line-height: 80px;
-  padding: 24px 64px;
-  position: relative;
-  text-align: center;
-  text-decoration: none;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  vertical-align: middle;
-  white-space: nowrap;
-}
-.circle1 {
-	fill: #AFEEEE;
-	fill-opacity: 0.2;
-	stroke: #000000;
-	stroke-width: 1px;
-}
-.circle2 {
-	fill: #ADD8E6;
-	fill-opacity: 0.4;
-	stroke: #000000;
-	stroke-width: 1px;
-}
-.circle3 {
-	fill: #87CECB;
-	fill-opacity: 0.6;
-	stroke: #000000;
-	stroke-width: 1px;
-}
-.leaf0 {
-	fill: #FF99CC;
-	fill-opacity: 0.95;
-	stroke: #000000;
-	stroke-width: 1.2px;
-}
-.leaf1 {
-	fill: #90EE90;
-	fill-opacity: 0.95;
-	stroke: #000000;
-	stroke-width: 1.2px;
-}
-text{
-	font: "Times New Roman";
-	font-size: 45px;
-	font-weight: bold;
-}
-.tooltip{
-	position:absolute;
-	width:auto;
-	height:auto;
-	background-color: white;
-	font-size: 25px;
-	text-align: center;
-}
-.tooltip1{
-	position:absolute;
-    width:auto;
-    height:auto;
-	background-color: white;
-	font-size: 40px;
-	text-align: center;
-}
-.tooltip2{
-	position:absolute;
-	width:auto;
-	height:auto;
-	background-color: white;
-	font-size: 45px;
-	text-align: left;
-	white-space: pre;
-}
-.text1{
-	white-space: pre;
-}
-.tooltip3{
-	position:absolute;
-	width:auto;
-	height:auto;
-	background-color: white;
-	font-size: 25px;
-	text-align: center;
-}
-</style>
-<script >
-let svg = d3.select('svg');
-const width = (+svg.attr('width')-200)/2;
-const height = (+svg.attr('height')-400)/2;
-const margin = { top: 100, right: 90, bottom: 60, left: 90 };
-const innerWidth = width - margin.left - margin.right;
-const innerHeight = height - margin.top - margin.bottom;
-const g = svg.append('g').attr('id', 'maingroup')
-    .attr('transform', `translate(${margin.left},${margin.top})`);
+    <svg id="mainsvg" width="4200" height="3600"  class="svgs" :style="background-color: #ffffff;"></svg>
+    <button type="button" id="GHOST" onclick="GHOST()">Head</button>
+    <button type="button" id="CASPER" onclick="Casper()">Checkpoint</button>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+	<style>
+		.circle1 {
+	   fill: #AFEEEE;
+	   fill-opacity: 0.2;
+	   stroke: #000000;
+	   stroke-width: 1px;
+	}
+	   .circle2 {
+	   fill: #ADD8E6;
+	   fill-opacity: 0.4;
+	   stroke: #000000;
+	   stroke-width: 1px;
+	}
+	.circle3 {
+	   fill: #87CECB;
+	   fill-opacity: 0.6;
+	   stroke: #000000;
+	   stroke-width: 1px;
+	}
+	.leaf0 {
+	   fill: #FF99CC;
+	   fill-opacity: 0.95;
+	   stroke: #000000;
+	   stroke-width:1.2px;
+	}
 
-var justified = {{justify | safe}};
-var epochs = {{epoch | safe}};
-var r=12,c=15;
+	   .tooltip{
+		   position:absolute;
+		   width:auto;
+		   height:auto;
+		   background-color: white;
+		   font-size: 25px;
+		   text-align: center;
+	   }
+
+	   .tooltip1{
+		   position:absolute;
+		   width:auto;
+		   height:auto;
+		   background-color: white;
+		   font-size: 40px;
+		   text-align: center;
+	   }
+	</style>
+	<style>
+		.tooltip2{
+				position:absolute;
+				width:auto;
+				height:auto;
+				background-color: white;
+				font-size: 45px;
+				text-align: left;
+				white-space: pre;
+			}
+
+			.text1{
+
+				white-space: pre;
+			}
+		.tooltip3{
+			position:absolute;
+		    width:auto;
+			height:auto;
+			background-color: white;
+			font-size: 25px;
+			text-align: center;
+		}
+		</style>
+    <script >
+        let svg = d3.select('svg');
+    const width = (+svg.attr('width')-200)/2;
+    const height = (+svg.attr('height')-400)/2;
+    const margin = { top: 100, right: 90, bottom: 60, left: 90 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const g = svg.append('g').attr('id', 'maingroup')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    var justified = eval('{{justify, safe}}');
+    console.log(justified);
+    var epochs = eval('{{epoch |safe}}');
+    console.log(epochs);
+    //设置矩阵的行列
+    var r=12,c=15;
 
 const xscale = d3.scaleLinear()
     .domain([0,c])
@@ -174,7 +148,8 @@ function GHOST(){
         temp.push(epochs[i]['attesting_balance'] - epochs[i]['head_correct_balance'])
         var pie = d3.pie()(temp)
         pies = pies.concat(pie)
-    }
+        }
+    // console.log(pies)
     var draw = d3.select('g').selectAll('path').data(pies).enter()
     .append('path')
     .attr('d', d3.arc().innerRadius(0).outerRadius(50))

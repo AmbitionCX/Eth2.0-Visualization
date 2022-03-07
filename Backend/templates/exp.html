@@ -9,10 +9,11 @@
 <body>
     <svg id="mainsvg" width="4200" height="3600"  class="svgs" :style="background-color: #ffffff;"></svg>
 <script type="text/javascript">
-var temp={{attestation |safe}}
-console.log(temp)
 
-
+var attestations = eval('{{data |safe}}');
+console.log(attestations);
+var vali = eval('{{val_error |safe}}');
+console.log(vali);
 </script>
 </body>
 </html>
