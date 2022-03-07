@@ -7,10 +7,34 @@
 </head>
 <body style="margin-left: 100px;">
 <svg id="mainsvg" width="4200" height="3600"  class="svgs" :style="background-color: #ffffff;"></svg>
-<button type="button" id="GHOST" onclick="GHOST()">Head</button>
-<button type="button" id="CASPER" onclick="Casper()">Checkpoint</button>
+<button type="button" id="GHOST" onclick="GHOST()" class="button">Head</button>
+<button type="button" id="CASPER" onclick="Casper()" class="button">Checkpoint</button>
 <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 <style>
+.button {
+    appearance: none;
+    background-color: #2ea44f;
+    border: 1px solid rgba(27, 31, 35, .15);
+    border-radius: 6px;
+    box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+    font-size: 56px;
+    font-weight: 1200;
+    line-height: 80px;
+    padding: 24px 64px;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    vertical-align: middle;
+    white-space: nowrap;
+}
 .circle1 {
 	fill: #AFEEEE;
 	fill-opacity: 0.2;
@@ -81,19 +105,22 @@ const margin = { top: 100, right: 90, bottom: 60, left: 90 };
 const innerWidth = width - margin.left - margin.right;
 const innerHeight = height - margin.top - margin.bottom;
 const g = svg.append('g').attr('id', 'maingroup')
-.attr('transform', `translate(${margin.left},${margin.top})`);
+    .attr('transform', `translate(${margin.left},${margin.top})`);
 
-var justified = eval('{{justify, safe}}');
-console.log(justified);
-var epochs = eval('{{epoch |safe}}');
-console.log(epochs);
+// https://color.adobe.com/create/color-wheel
+const color = ["#54FA48", "#2B5EAC", "#FABA3C", "#5597FA"];
+// light green; deep blue; egg yellow; light blue;
+
+const justified = eval('{{justify | safe}}');
+// console.log(justified);
+const epochs = eval('{{epoch | safe}}');
+// console.log(epochs);
 // row and column
-var r=12,c=15;
+const r=12,c=15;
 
 const xscale = d3.scaleLinear()
     .domain([0,c])
     .range([0, innerWidth]);
-
 const yscale = d3.scaleLinear()
     .domain([0,r])
     .range([0, innerHeight]);
@@ -107,53 +134,59 @@ const xaxis = d3.axisBottom(xscale)
     .tickPadding(-50);
 g.append('g').call(yaxis)
     .attr('id' ,'yaxis');
-
 g.append('g').call(xaxis)
     .attr('id', 'xaxis');
 
-function Casper(){
-    var pies = []
-    console.log(1);
+function Casper(){  
+    let radius = 60;
+    let pies_data = [];
     for(let i = 0; i < epochs.length; i++){
-        var temp = []
-        temp.push(epochs[i]['target_correct_balance'])
-        temp.push(epochs[i]['attesting_balance'] - epochs[i]['target_correct_balance'])
-        var pie = d3.pie()(temp)
-        pies = pies.concat(pie)
+        let balance = [];
+        balance.push(epochs[i]['target_correct_balance']);
+        balance.push((epochs[i]['attesting_balance'] - epochs[i]['target_correct_balance'])*3);
+        balance.push((epochs[i]['active_balance'] - epochs[i]['attesting_balance'])*3);
+        var a_pie = d3.pie()
+            .startAngle(-60 * (Math.PI/180))
+            .endAngle(60 * (Math.PI/180))
+            .padAngle(0) // some space between slices
+            .sort(null)(balance); //do not order by size
+        pies_data = pies_data.concat(a_pie);
     }
-    console.log(pies);
-    var draw = d3.select('g').selectAll('path').data(pies).enter()
-    .append('path')
-    .attr('d', d3.arc().innerRadius(0).outerRadius(50))
-    .attr('fill', function(d){
-        return d.index==1?"#E3170D":"#00FF7F";
-    })
-    .attr("transform",function(d,i){
-        console.log(i)
-        console.log(Math.floor(i/2)%c+1)
-        return `translate(${xscale(Math.floor(i/2)%c+1)},${yscale(Math.floor(Math.floor(i/2)/c)+1)})`;
-    })
+    // console.log(pies_data);
+
+    var draw = d3.select('g').selectAll('path').data(pies_data).enter()
+        .append('path') //create the SVG element inside the body
+        .attr('d', d3.arc().innerRadius(0).outerRadius(radius)) // generate the arcs
+        .attr("fill", function(d) { return color[d.index]; })
+        .attr("transform", function(d, i) {
+            return `translate(${xscale(Math.floor(i/3)%c+1)},${yscale(Math.floor(Math.floor(i/3)/c)+1)})`;
+        });
 }
 
 function GHOST(){
-    var pies = []
+    let radius = 60;
+    let pies_data = [];
     for(let i = 0; i < epochs.length; i++){
-        var temp = []
-        temp.push(epochs[i]['head_correct_balance'])
-        temp.push(epochs[i]['attesting_balance'] - epochs[i]['head_correct_balance'])
-        var pie = d3.pie()(temp)
-        pies = pies.concat(pie)
-        }
-    // console.log(pies)
-    var draw = d3.select('g').selectAll('path').data(pies).enter()
-    .append('path')
-    .attr('d', d3.arc().innerRadius(0).outerRadius(50))
-    .attr('fill', function(d){
-        return d.index==1?"#E3170D":"yellow";
-    })
-    .attr("transform",function(d,i){
-        return `translate(${xscale(Math.floor(i/2)%c+1)},${yscale(Math.floor(Math.floor(i/2)/c)+1)})`;
-    })
+        let balance = [];
+        balance.push(epochs[i]['head_correct_balance']);
+        balance.push((epochs[i]['attesting_balance'] - epochs[i]['head_correct_balance'])*3);
+        balance.push((epochs[i]['active_balance'] - epochs[i]['attesting_balance'])*3);
+        var a_pie = d3.pie()
+            .startAngle(-60 * (Math.PI/180))
+            .endAngle(60 * (Math.PI/180))
+            .padAngle(0)
+            .sort(null)(balance);
+        pies_data = pies_data.concat(a_pie);
+    }
+    console.log(pies_data);
+
+    var draw = d3.select('g').selectAll('path').data(pies_data).enter()
+        .append('path')
+        .attr('d', d3.arc().innerRadius(0).outerRadius(radius))
+        .attr("fill", function(d) { return color[d.index]; })
+        .attr("transform", function(d, i) {
+            return `translate(${xscale(Math.floor(i/3)%c+1)},${yscale(Math.floor(Math.floor(i/3)/c)+1)})`;
+        });
 }
 /*
 var cs = d3.select('g').selectAll("circle").data(epochs)
@@ -169,6 +202,11 @@ var cs = d3.select('g').selectAll("circle").data(epochs)
         return yscale(Math.floor(i/c)+1);
     })
 */
+d3.select("#xaxis")
+.style('font-size', 40)
+d3.select("#yaxis")
+.style('font-size', 40)
+
 d3.select("GHOST")
 .on("click",function(){
 	d3.select("svg").select("g").selectAll("path").remove();
