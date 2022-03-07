@@ -99,7 +99,7 @@ def overview():
 
 @app.route('/validator/<int:index>',methods=['GET'])
 def validator(index):
-    ats = Attestation.query.filter(Attestation.inclusion_slot.in_(range(index*32,(index+1)*32))).order_by(Attestation.inclusion_slot,Attestation.inclusion_index).all()
+    ats = Attestation.query.filter(Attestation.inclusion_slot.in_(range(index*32,(index+1)*32))).order_by(Attestation.inclusion_slot,Attestation.slot,Attestation.committee_index).all()
     
     # val为选定epoch中，投否定票或missed（没有投票）的参与者集合
 
@@ -119,7 +119,7 @@ def validator(index):
             j += 1
         val = list(set(val)-set(val_correct))
     val = list(set(val))
-
+    print(len(val))
     records = []
     for i in range(index-1, index-3,-1):
         record = {}
@@ -139,6 +139,7 @@ def validator(index):
         record['validator'] = validators
         print(record)
         records.append(record)
+        json.dump(records, open('epoch100.json', "w"))
     return render_template('exp.html', data = json.dumps(records), val_error = json.dumps(val))
 
 
@@ -146,20 +147,33 @@ def validator(index):
 def slot(index):
     slots = []
     for s in range(index*32,(index+1)*32):
-        ats = Attestation.query.filter_by(inclusion_slot=s).all()
+        ats = Attestation.query.filter_by(inclusion_slot=s).order_by(Attestation.slot, Attestation.committee_index).all()
+        
         temp = {}
         temp['at_number'] = 0
-        temp['block'] = ats[0].block_root
-        for t in ats:
-            bits = ''
-            for m in temp.aggregation_bits:
-                bits = bits + bin(m[0])[2:].zfill(8)
-            root = ''
-            for m in t.beacon_block_root:
-                root = root + bin(m[0])[2:].zfill(8)
-            temp['at_number'] += len(t.aggregation_indices)
+        committee_prev = ats[0].committee_index
+        ats_no = set()
+        for a in ats:
+            if committee_prev != a.committee_index:
+                temp['at_number'] += len(ats_no)
+                ats_no = set()
+                committee_prev = a.committee_index
+            ats_no = ats_no|set(a.aggregation_indices)
+        temp['at_number'] += len(ats_no)
+      
+        blocks = Attestation.query.filter_by(slot = s).all()
+        blocks.sort(key=lambda x:x.blocks())
+        temp['block_number'] = 1
+        block_prev = blocks[0].blocks()
+        for b in blocks:
+            if block_prev != b.blocks():
+                temp['block_number'] += 1
+                block_prev = b.blocks()
+        temp['block_number'] -= 1   
+       
+        slots.append(temp)
 
-    i = 0
+    '''i = 0
     attest = []
     temp = ats.filter_by(inclusion_index=i).first()
     while temp:
@@ -180,8 +194,8 @@ def slot(index):
         
         attest.append(s)
         i = i + 1
-        temp = ats.filter_by(inclusion_index=i).first()
-    return render_template('slot.html', attestation = json.dumps(attest))
+        temp = ats.filter_by(inclusion_index=i).first()'''
+    return render_template('slot.html', slots = json.dumps(slots))
 
 
 @app.route('/index')
