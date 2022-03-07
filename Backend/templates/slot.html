@@ -7,10 +7,34 @@
 </head>
 <body style="margin-left: 100px;">
   <svg id="mainsvg" width="4200" height="3600"  class="svgs" :style="background-color: #ffffff;"></svg>
-  <button type="button" id="GHOST" onclick="GHOST()">Head</button>
-  <button type="button" id="CASPER" onclick="Casper()">Checkpoint</button>
+  <button type="button" id="GHOST" onclick="GHOST()" class="button">Head</button>
+  <button type="button" id="CASPER" onclick="Casper()" class="button">Checkpoint</button>
   <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 	<style>
+	.button {
+		appearance: none;
+		background-color: #2ea44f;
+		border: 1px solid rgba(27, 31, 35, .15);
+		border-radius: 6px;
+		box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
+		box-sizing: border-box;
+		color: #fff;
+		cursor: pointer;
+		display: inline-block;
+		font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+		font-size: 56px;
+		font-weight: 1200;
+		line-height: 80px;
+		padding: 24px 64px;
+		position: relative;
+		text-align: center;
+		text-decoration: none;
+		user-select: none;
+		-webkit-user-select: none;
+		touch-action: manipulation;
+		vertical-align: middle;
+		white-space: nowrap;
+	}
 	.circle1 {
 	  fill: #AFEEEE;
   	fill-opacity: 0.2;

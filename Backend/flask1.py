@@ -159,10 +159,6 @@ def slot(index):
                 root = root + bin(m[0])[2:].zfill(8)
             temp['at_number'] += len(t.aggregation_indices)
 
-        
-
-
-    
     i = 0
     attest = []
     temp = ats.filter_by(inclusion_index=i).first()
