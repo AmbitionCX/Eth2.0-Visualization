@@ -70,7 +70,7 @@ class Attestation(db.Model):
             root = root + bin(m[0])[2:].zfill(8)
         return root
     def committee(self):
-        return Committee.query.filter_by(slot = self.slot, index = self.committee_index).first().committee
+        return Committee.query.filter_by(slot = self.slot, index = self.committee_index).first()
 
 
 class Validator(db.Model):
@@ -102,16 +102,22 @@ def validator(index):
     ats = Attestation.query.filter(Attestation.inclusion_slot.in_(range(index*32,(index+1)*32))).order_by(Attestation.inclusion_slot,Attestation.inclusion_index).all()
     
     # val为选定epoch中，投否定票或missed（没有投票）的参与者集合
-    val = []
-    print(list(set(ats[-16].committee()) - set(ats[-16].aggregation_indices)))
+
+    # print(list(set(ats[-16].committee()) - set(ats[-16].aggregation_indices)))
+    com = ats[0].committee()
+    val = com.committee
     for a in ats:
-        val = val + list(set(a.committee()) - set(a.aggregation_indices))
+        if a.committee_index != com.index:
+            com = a.committee()
+            val = val + com.committee
         # print(list(set(a.committee()) - set(a.aggregation_indices)))
         j = 0
+        val_correct = []
         while j < len(a.aggregation_indices):
-            if a.bits()[j] == '0':
-                val.append(a.aggregation_indices[j])
+            if a.bits()[j] == '1':
+                val_correct.append(a.aggregation_indices[j])
             j += 1
+        val = list(set(val)-set(val_correct))
     val = list(set(val))
 
     records = []
@@ -187,4 +193,4 @@ def index():
     return "Hello World"
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=12346, debug=True)
+    app.run(debug=True)
