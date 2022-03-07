@@ -72,16 +72,14 @@ class Attestation(db.Model):
     def committee(self):
         return Committee.query.filter_by(slot = self.slot, index = self.committee_index).first()
 
-
 class Validator(db.Model):
     __tablename__ = 't_validator_epoch_summaries'
     val = db.Column('f_validator_index', db.Integer, primary_key = True)
     epoch = db.Column('f_epoch', db.Integer)
-    
 
 @app.route('/overview')
 def overview():
-    data = Epoch.query.order_by(-Epoch.epoch).limit(180)
+    data = Epoch.query.order_by(-Epoch.epoch).limit(225)
     epochs = []
     for d in data[::-1]:
         s = {}
@@ -141,7 +139,6 @@ def validator(index):
         records.append(record)
     return render_template('exp.html', data = json.dumps(records), val_error = json.dumps(val))
 
-
 @app.route('/slot/<int:index>',methods=['GET'])
 def slot(index):
     slots = []
@@ -183,10 +180,9 @@ def slot(index):
         temp = ats.filter_by(inclusion_index=i).first()
     return render_template('slot.html', attestation = json.dumps(attest))
 
-
 @app.route('/index')
 def index():
     return "Hello World"
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=12346, debug=True)
