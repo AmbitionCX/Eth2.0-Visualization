@@ -120,7 +120,7 @@ const xaxis = d3.axisBottom(xscale)
   .tickPadding(45)
   .tickFormat(function(d,i){return i < 32 ? ("slot " + i):"";});
   
-
+console.log(xscale(2));
 g.append('g').call(xaxis)
   .attr('id', 'xaxis')
   .selectAll('text')

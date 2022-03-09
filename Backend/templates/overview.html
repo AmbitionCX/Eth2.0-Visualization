@@ -114,7 +114,7 @@ const color = ["#54FA48", "#2B5EAC", "#FABA3C", "#5597FA"];
 const justified = eval('{{justify | safe}}');
 // console.log(justified);
 const epochs = eval('{{epoch | safe}}');
-// console.log(epochs);
+console.log(epochs);
 // row and column
 const r=15,c=15;
 
@@ -156,13 +156,26 @@ function Casper(){
     }
     // console.log(pies_data);
 
-    var draw = d3.select('g').selectAll('path').data(pies_data).enter()
+    var [a,b] = d3.extent(epochs, function(d,i){return d['attesting_balance'] - d['target_correct_balance'];})
+
+    console.log()
+    var draw1 = d3.select('g').selectAll('rect').data(epochs).enter()
+                  .append('rect')
+                  .attr('fill', function(d,i){return d3.interpolateReds((d['attesting_balance'] - d['target_correct_balance']-a)/(b-a) )})
+                  .attr('width', innerWidth/15-20)
+                  .attr('height', innerHeight/15-20)
+                  .attr("transform", function(d, i) { // bug: d and i lack number 0 and 1 in pies_data
+            return `translate(${xscale(Math.floor((i)%c))+10},${yscale(Math.floor((i)/c))+10})`;
+                  })
+
+
+   /* var draw = d3.select('g').selectAll('path').data(pies_data).enter()
         .append('path') //create the SVG element inside the body
         .attr('d', d3.arc().innerRadius(0).outerRadius(radius)) // generate the arcs
         .attr("fill", function(d) { return color[d.index]; })
         .attr("transform", function(d, i) { // bug: d and i lack number 0 and 1 in pies_data
             return `translate(${xscale(Math.floor((i-2)/3)%c+1)},${yscale(Math.floor(Math.floor((i-2)/3)/c)+1)})`;
-        });
+        });*/
 }
 
 function GHOST(){

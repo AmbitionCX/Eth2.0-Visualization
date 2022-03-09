@@ -1,5 +1,6 @@
 from flask import Flask, render_template,request
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 import string
 from sqlalchemy import ForeignKey, create_engine
 from sqlalchemy.engine import URL
@@ -17,6 +18,7 @@ headers = {
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@10.192.9.11'
 db = SQLAlchemy(app)
+CORS(app)
 
 def str_to_array(str):
     str = str.lstrip('<')
@@ -37,6 +39,7 @@ class Block(db.Model):
     slot = db.Column('f_slot',db.Integer, primary_key = True)
     epoch = db.Column('epoch',db.Integer)
     proposer = db.Column('f_proposer', db.Integer)
+    # canonical = db.Column('f_canonical', db.String)
     # status = db.Column('status',db.String)
     # root = db.Column('f_root',db.Unicode)
     # ats_included = db.relationship('Attestation', backref = 'inclusion')
@@ -93,7 +96,7 @@ def overview():
     justified = eval(requests.get(url = url, params = param, headers = headers).json()['data']['result'][0]['value'][1])
     param = {'query':'beacon_finalized_epoch'}
     finalized = eval(requests.get(url = url, params = param, headers = headers).json()['data']['result'][0]['value'][1])
-    return render_template('overview.html',epoch = json.dumps(epochs),justify=json.dumps(justified))
+    return json.dumps(epochs)
 
 @app.route('/validator/<int:index>',methods=['GET'])
 def validator(index):
@@ -194,9 +197,9 @@ def slot(index):
         temp = ats.filter_by(inclusion_index=i).first()'''
     return render_template('slot.html', slots = json.dumps(slots))
 
-@app.route('/index')
+@app.route('/',methods=['GET'])
 def index():
-    return "Hello World"
+    return "Hello Vue"
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=12346, debug=True)
+    app.run(debug=True)
