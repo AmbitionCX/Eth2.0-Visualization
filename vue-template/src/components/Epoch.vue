@@ -1,8 +1,7 @@
-  <template>
-<div>
-  <svg id = "mainsvg" style = 'width:4200px; height:3600px'>
-   
-  </svg>
+<template>
+  <div>
+    <svg id = "Epoch" style = 'width:2000px; height:1750px'> 
+    </svg>
     <button id = 'ghost' style = 'appearance: none;
     background-color: #2ea44f;
     border: 1px solid rgba(27, 31, 35, .15);
@@ -27,7 +26,7 @@
     white-space: nowrap'
     @click = 'GHOST()'>Head</button>
 
-      <button id = 'casper' style = 'appearance: none;
+    <button id = 'casper' style = 'appearance: none;
     background-color: #2ea44f;
     border: 1px solid rgba(27, 31, 35, .15);
     border-radius: 6px;
@@ -50,9 +49,7 @@
     vertical-align: middle;
     white-space: nowrap'
     @click = 'Casper()'>Checkpoint</button>
-
-</div>
-
+  </div>
 </template>
 
 <script>
@@ -61,6 +58,7 @@ import * as d3 from 'd3'
 
 export default {
   name:'Epoch',
+
   data(){
 
     return {
@@ -168,18 +166,11 @@ export default {
                   console.log(c)
             return `translate(${xscale(Math.floor((i)%c))+10},${yscale(Math.floor((i)/c))+10})`;
                   })
-                  .on("click", function(){
+                  .on("click", function(){                   
                     var temp = d3.select(this).data();
-                    that.msg = temp[0].epoch;
-                    //console.log(d['epoch'])
-                     console.log(that.msg)
-                  })
-         
-  },
-
-  passData(){
-    console.log(1);
-  }
+                    that.$emit('details',temp[0].epoch);
+                  })     
+   }
   },
   created(){
     this.getEpoch();

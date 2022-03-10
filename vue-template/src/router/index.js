@@ -32,11 +32,15 @@ const routes = [
   },{
     path: '/epoch',
     name:'Epoch',
-    component: () => import('../views/Epoch.vue')
+    component: () => import('../components/Epoch.vue')
   },{
     path: '/overview',
     name:'Overview',
-    component: () => import('../views/Overview.vue')
+    component: () => import('../components/Overview.vue')
+  },{
+    path: '/slot',
+    name:'Slot',
+    component: () => import('../components/Slot.vue')
   }
 ]
 

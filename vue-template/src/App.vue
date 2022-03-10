@@ -1,17 +1,34 @@
 <template>
-<div>
-  <Epoch/>
-  <Overview/>
-</div>
+  <div>
+    <div>
+      <Epoch @details='Details'/> 
+    </div>
+    <div>
+      <Slot v-if='details_display > 0' v-bind:msg = "details_display"/>
+    </div>
+  </div>
 </template>
 <script>
 import Epoch from "./components/Epoch.vue"
-import Overview from "./components/Overview.vue"
+//import Overview from "./components/Overview.vue"
+import Slot from "./components/Slot.vue"
 export default {
     name:'App',
     components:{
       Epoch,
-      Overview
+      //Overview,
+      Slot
+    },
+ 
+    data(){
+      return{
+      details_display: 0
+      }
+    },
+    methods:{
+      Details(data){
+        this.details_display = data;
+      }
     }
   }
 </script>

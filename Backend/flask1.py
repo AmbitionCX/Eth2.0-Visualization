@@ -9,6 +9,7 @@ import requests
 import string
 import random
 import json
+import simplejson
 
 url = 'http://10.192.9.11:9091/api/v1/query'
 headers = {
@@ -161,12 +162,27 @@ def validator(index):
         json.dump(records, open('epoch100.json', "w"))
     return render_template('exp.html', data = json.dumps(records), val_error = json.dumps(val))
 
-@app.route('/slot/<int:index>',methods=['GET','POST'])
-def slot(index):
+@app.route('/get_filtered_list', methods=['GET','POST'])
+def get_filtered_list():
+    post_data = request.data.decode()
+    index = 100
+    if post_data != "":
+        index = simplejson.loads(post_data)['epoch']
+    ats = Attestation.query.filter_by(inclusion_slot=index*32).all()
+    slots = []
+    for a in ats:
+        temp={}
+        temp['inclusion_slot'] = a.inclusion_slot
+        temp['slot'] = a.slot
+        slots.append(temp)
+    return json.dumps(slots)
+
+@app.route('/slot/<int:index>',methods=['GET'])
+def slot1(index):
     slots = []
     for s in range(index*32,(index+1)*32):
         ats = Attestation.query.filter_by(inclusion_slot=s).order_by(Attestation.slot, Attestation.committee_index).all()
-        
+        print(len(ats))
         temp = {}
         temp['at_number'] = 0
         committee_prev = ats[0].committee_index
@@ -187,37 +203,15 @@ def slot(index):
             if block_prev != b.blocks():
                 temp['block_number'] += 1
                 block_prev = b.blocks()
-        temp['block_number'] -= 1   
-       
+        temp['block_number'] -= 1       
         slots.append(temp)
-
-    '''i = 0
-    attest = []
-    temp = ats.filter_by(inclusion_index=i).first()
-    while temp:
-        s = {}
-        s['inclusion_slot'] = temp.inclusion_slot
-        s['inclusion_index'] = temp.inclusion_index
-        s['committee_index'] = temp.committee_index
-        s['slot'] = temp.slot
-        bits = ''
-        for m in temp.aggregation_bits:
-            bits = bits + bin(m[0])[2:].zfill(8)
-        s['aggregation_bits'] = bits
-        s['aggregation_indices'] = temp.aggregation_indices
-        root = ''
-        for m in temp.beacon_block_root:
-            root = root + bin(m[0])[2:].zfill(8)
-        s['beacon_block_root'] = root
-        
-        attest.append(s)
-        i = i + 1
-        temp = ats.filter_by(inclusion_index=i).first()'''
-    return render_template('slot.html', slots = json.dumps(slots))
+    return json.dumps(slots)
 
 @app.route('/',methods=['GET'])
 def index():
     return "Hello Vue"
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
