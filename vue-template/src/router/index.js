@@ -33,6 +33,10 @@ const routes = [
     path: '/epoch',
     name:'Epoch',
     component: () => import('../views/Epoch.vue')
+  },{
+    path: '/overview',
+    name:'Overview',
+    component: () => import('../views/Overview.vue')
   }
 ]
 

@@ -1,12 +1,17 @@
 <template>
+<div>
   <Epoch/>
+  <Overview/>
+</div>
 </template>
 <script>
 import Epoch from "./components/Epoch.vue"
+import Overview from "./components/Overview.vue"
 export default {
     name:'App',
     components:{
-      Epoch
+      Epoch,
+      Overview
     }
   }
 </script>

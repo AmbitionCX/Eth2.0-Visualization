@@ -80,8 +80,26 @@ class Validator(db.Model):
     val = db.Column('f_validator_index', db.Integer, primary_key = True)
     epoch = db.Column('f_epoch', db.Integer)
 
-@app.route('/overview')
-def overview():
+@app.route('/Overview')
+def Overview():
+    data = Epoch.query.order_by(-Epoch.epoch).limit(225)
+    epochs = []
+    for d in data[::-1]:
+        s = {}
+        s['epoch'] = d.epoch
+        s['active_balance'] = d.active_balance
+        s['attesting_balance'] = d.attesting_balance
+        s['target_correct_balance'] = d.target_correct_balance
+        s['head_correct_balance'] = d.head_correct_balance
+        epochs.append(s)
+    param = {'query':'beacon_current_justified_epoch'}
+    justified = eval(requests.get(url = url, params = param, headers = headers).json()['data']['result'][0]['value'][1])
+    param = {'query':'beacon_finalized_epoch'}
+    finalized = eval(requests.get(url = url, params = param, headers = headers).json()['data']['result'][0]['value'][1])
+    return json.dumps(epochs)
+
+@app.route('/EpochView')
+def EpochView():
     data = Epoch.query.order_by(-Epoch.epoch).limit(225)
     epochs = []
     for d in data[::-1]:
@@ -143,7 +161,7 @@ def validator(index):
         json.dump(records, open('epoch100.json', "w"))
     return render_template('exp.html', data = json.dumps(records), val_error = json.dumps(val))
 
-@app.route('/slot/<int:index>',methods=['GET'])
+@app.route('/slot/<int:index>',methods=['GET','POST'])
 def slot(index):
     slots = []
     for s in range(index*32,(index+1)*32):

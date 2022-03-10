@@ -1,9 +1,9 @@
   <template>
 <div>
   <svg id = "mainsvg" style = 'width:4200px; height:3600px'>
-
+   
   </svg>
-      <button id = 'ghost' style = 'appearance: none;
+    <button id = 'ghost' style = 'appearance: none;
     background-color: #2ea44f;
     border: 1px solid rgba(27, 31, 35, .15);
     border-radius: 6px;
@@ -25,7 +25,32 @@
     touch-action: manipulation;
     vertical-align: middle;
     white-space: nowrap'
-    @click = 'Casper()'>Head</button>
+    @click = 'GHOST()'>Head</button>
+
+      <button id = 'casper' style = 'appearance: none;
+    background-color: #2ea44f;
+    border: 1px solid rgba(27, 31, 35, .15);
+    border-radius: 6px;
+    box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+    font-size: 56px;
+    font-weight: 1200;
+    line-height: 80px;
+    padding: 24px 64px;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    vertical-align: middle;
+    white-space: nowrap'
+    @click = 'Casper()'>Checkpoint</button>
+
 </div>
 
 </template>
@@ -49,7 +74,8 @@ export default {
         left:90
       },
       r:15,
-      c:15
+      c:15,
+      msg:0
     };
   },
   mounted(){
@@ -65,7 +91,7 @@ export default {
   },
   methods:{
      getEpoch(){
-       const path = 'http://127.0.0.1:5000/overview';
+       const path = 'http://127.0.0.1:5000/EpochView';
        axios
          .get(path)
          .then(res => {
@@ -75,6 +101,7 @@ export default {
            console.error(error);
          });
      },
+
      Scale(){
       const g = d3.select('svg').append('g').attr('id', 'maingroup')
                    .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
@@ -98,9 +125,11 @@ export default {
   g.append('g').call(xaxis)
     .attr('id', 'xaxis');
   },
-  Casper(){
+
+  GHOST(){
+    d3.select('g').selectAll('rect').remove()
     const c = this.c;
-    var [a,b] = d3.extent(this.epochs, function(d){return d['attesting_balance'] - d['target_correct_balance'];})
+    var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['head_correct_balance'];})
     const xscale = d3.scaleLinear()
                        .domain([0,this.c])
                        .range([0, this.innerWidth]);
@@ -109,13 +138,47 @@ export default {
           .range([0, this.innerHeight]);
     d3.select('g').selectAll('rect').data(this.epochs).enter()
                   .append('rect')
-                  .attr('fill', function(d){return d3.interpolateReds((d['attesting_balance'] - d['target_correct_balance']-a)/(b-a) )})
+                  .attr('fill', function(d){return d3.interpolateReds((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
                   .attr('width', this.innerWidth/15-20)
                   .attr('height', this.innerHeight/15-20)
                   .attr("transform", function(d, i) { // bug: d and i lack number 0 and 1 in pies_data
                   console.log(c)
             return `translate(${xscale(Math.floor((i)%c))+10},${yscale(Math.floor((i)/c))+10})`;
                   })
+  },
+
+
+  Casper(){
+    let that = this;
+    d3.select('g').selectAll('rect').remove()
+    const c = this.c;
+    var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['target_correct_balance'];})
+    const xscale = d3.scaleLinear()
+                       .domain([0,this.c])
+                       .range([0, this.innerWidth]);
+    const yscale = d3.scaleLinear()
+          .domain([0,this.r])
+          .range([0, this.innerHeight]);
+    d3.select('g').selectAll('rect').data(this.epochs).enter()
+                  .append('rect')
+                  .attr('fill', function(d){return d3.interpolateReds((d['active_balance'] - d['target_correct_balance']-a)/(b-a) )})
+                  .attr('width', this.innerWidth/15-20)
+                  .attr('height', this.innerHeight/15-20)
+                  .attr("transform", function(d, i) {
+                  console.log(c)
+            return `translate(${xscale(Math.floor((i)%c))+10},${yscale(Math.floor((i)/c))+10})`;
+                  })
+                  .on("click", function(){
+                    var temp = d3.select(this).data();
+                    that.msg = temp[0].epoch;
+                    //console.log(d['epoch'])
+                     console.log(that.msg)
+                  })
+         
+  },
+
+  passData(){
+    console.log(1);
   }
   },
   created(){
