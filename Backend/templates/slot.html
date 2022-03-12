@@ -100,45 +100,45 @@
     let svg = d3.select('svg');
     const width = (+svg.attr('width')-200)/2;
     const height = (+svg.attr('height')-400)/2;
-    const margin = { top: 100, right: 10, bottom: 60, left: 10 };
+    const margin = { top: 500, right: 10, bottom: 60, left: 10 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
     const g = svg.append('g').attr('id', 'maingroup')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    var attestations = eval('{{attestation |safe}}');
-    console.log(attestations);
 
 //设置坐标轴
 const xscale = d3.scaleLinear()
-  .domain([0,32])
+  .domain([-1,33])
   .range([0, innerWidth]);
 
 const xaxis = d3.axisBottom(xscale)
   .ticks(32)
   .tickSize(-10)
   .tickPadding(45)
-  .tickFormat(function(d,i){return i < 32 ? ("slot " + i):"";});
+  .tickFormat(function(d,i){return (i < 33 & i > 0)? ("slot " + (i-1)):"";});
   
 console.log(xscale(2));
 g.append('g').call(xaxis)
   .attr('id', 'xaxis')
   .selectAll('text')
-  .attr('transform',`translate(${innerWidth/64},${0})`)
+  .attr('transform',`translate(${innerWidth/68},${0})`)
   .attr('font-size', '14px');
 
 const slot_total = eval('{{slots | safe}}');
 console.log(slot_total)
+const links = eval('{{links | safe}}');
+console.log(links)
 
 var [a,b] = d3.extent(slot_total, function(d,i){return d.at_number;})
 console.log([a,b]);
-var distribute = d3.scaleLinear().domain([a,b]).range([10, innerWidth/32]);
+var distribute = d3.scaleLinear().domain([a,b]).range([10, innerWidth/34]);
 
 var draw = d3.select('g').append('g')
   .selectAll('rect').data(slot_total).enter()
   .append('rect')
   .attr('transform',function(d,i){
-	return `translate(${xscale(i)+innerWidth/64-distribute(d.at_number)/2}, ${-distribute(d.at_number)/2})`;
+	return `translate(${xscale(i)+innerWidth/68-distribute(d.at_number)/2}, ${-distribute(d.at_number)/2})`;
   })
   .attr('width', function(d){return distribute(d.at_number);} )//长宽待定
   .attr('height', function(d){return distribute(d.at_number);})
@@ -151,7 +151,7 @@ for(let j = 0; j < slot_total.length; j++){
 	for(let k=1; k <= slot_total[j]['block_number']; k++){
 		d3.select('g').append('g')
         .attr('transform',function(d){
-        return `translate(${xscale(j)+innerWidth/64-ex_block/2},${k*(ex_block+10)+30})`;
+        return `translate(${xscale(j)+innerWidth/68-ex_block/2},${k*(ex_block+10)+30})`;
         })
         .append('rect')
 		.attr('width', ex_block)
@@ -160,10 +160,26 @@ for(let j = 0; j < slot_total.length; j++){
 		.attr('opacity',0.9)
 	}
 }
-var forked_blocks = d3.select('g').append('g')
-  					  .selectAll('rect').data(slot_total).enter()
-					  .append('rect')
-					  .attr('transform',)
+
+var [e,f] = d3.extent(links, function(d){return d.value;})
+console.log([e,f]);
+var thickness = d3.scaleLinear().domain([e,f]).range([1, 20]);
+
+function arc(d) {
+   const x1 = xscale(d.source)+innerWidth/68;
+   const x2 = xscale(d.target)+innerWidth/68;
+   const r = Math.abs(x2 - x1) / 2;
+   return `m${x1},${0}A${r},${r} 0,1,1 ${x2},${0}`;
+ }
+
+const path = d3.select('g').append('g').attr('id','inclusion_delay').attr('fill','none')
+    .selectAll("path")
+    .data(links).enter()
+    .append("path")      
+	.attr("d", arc)
+	.attr("stroke-width", function(d){return thickness(d.value);})
+    .attr("stroke", "blue")
+
 </script>
 
 </body>

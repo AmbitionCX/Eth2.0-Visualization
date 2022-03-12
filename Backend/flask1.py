@@ -81,6 +81,30 @@ class Validator(db.Model):
     val = db.Column('f_validator_index', db.Integer, primary_key = True)
     epoch = db.Column('f_epoch', db.Integer)
 
+class Vote(db.Model):
+    __tablename__ = 'c_main_table'
+    slot = db.Column('f_slot', db.Integer, primary_key = True)
+    epoch = db.Column('f_epoch', db.Integer)
+    committee_index = db.Column('f_committee_index', db.String)
+    casper_y = db.Column('f_casper_y', db.String)
+    casper_y_balance = db.Column('f_casper_y_balance', db.BigInteger)
+    casper_n = db.Column('f_casper_n', db.String)
+    casper_n_balance = db.Column('f_casper_n_balance', db.BigInteger)
+    not_vote = db.Column('f_not_vote', db.String)
+    not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
+    ghost_selection = db.Column('f_ghost_selection', db.String)
+
+@app.route('/Vali/<int:index>', methods=['GET'])
+def Vali(index):
+    ats = Vote.query.filter(Vote.epoch == index).order_by(Vote.slot).all()
+    val = []
+    for a in ats:
+        val = val + a.casper_n + a.not_note
+    
+    return ""
+
+
+
 @app.route('/Overview')
 def Overview():
     data = Epoch.query.order_by(-Epoch.epoch).limit(225)
@@ -180,6 +204,7 @@ def get_filtered_list():
 @app.route('/slot/<int:index>',methods=['GET'])
 def slot1(index):
     slots = []
+    links_temp = []
     for s in range(index*32,(index+1)*32):
         ats = Attestation.query.filter_by(inclusion_slot=s).order_by(Attestation.slot, Attestation.committee_index).all()
         print(len(ats))
@@ -188,13 +213,39 @@ def slot1(index):
         committee_prev = ats[0].committee_index
         ats_no = set()
         for a in ats:
+            link = {}
+            if a.slot < index*32 :
+                link['source'] = -1
+            else:
+                link['source'] = a.slot%32
+            link['target'] = a.inclusion_slot%32
             if committee_prev != a.committee_index:
                 temp['at_number'] += len(ats_no)
                 ats_no = set()
                 committee_prev = a.committee_index
             ats_no = ats_no|set(a.aggregation_indices)
+            links_temp.append(link)
         temp['at_number'] += len(ats_no)
-      
+
+        if len(links_temp) > 0:
+            l = {
+                'source': links_temp[0]['source'],
+                'target': links_temp[0]['target']
+            }
+            counter = 0
+            links = []
+            for li in links_temp:
+                if li != l:
+                    t = {}
+                    t['source'] = l['source']
+                    t['target'] = l['target']
+                    t['value'] = counter
+                    links.append(t)
+                    counter = 1
+                    l = li
+                else:
+                    counter += 1
+
         blocks = Attestation.query.filter_by(slot = s).all()
         blocks.sort(key=lambda x:x.blocks())
         temp['block_number'] = 1
@@ -205,7 +256,7 @@ def slot1(index):
                 block_prev = b.blocks()
         temp['block_number'] -= 1       
         slots.append(temp)
-    return json.dumps(slots)
+    return render_template('slot.html',slots = json.dumps(slots), links = json.dumps(links))
 
 @app.route('/',methods=['GET'])
 def index():
