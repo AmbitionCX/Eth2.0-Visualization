@@ -7,9 +7,11 @@ from sqlalchemy.engine import URL
 import psycopg2
 import requests
 import string
-import random
+import math
 import json
 import simplejson
+import datetime
+import numpy as np
 
 url = 'http://10.192.9.11:9091/api/v1/query'
 headers = {
@@ -37,14 +39,8 @@ class Epoch(db.Model):
  
 class Block(db.Model):
     __tablename__ = 't_blocks'
-    slot = db.Column('f_slot',db.Integer, primary_key = True)
-    epoch = db.Column('epoch',db.Integer)
-    proposer = db.Column('f_proposer', db.Integer)
-    # canonical = db.Column('f_canonical', db.String)
-    # status = db.Column('status',db.String)
-    # root = db.Column('f_root',db.Unicode)
-    # ats_included = db.relationship('Attestation', backref = 'inclusion')
-    # ats_targeted = db.relationship('Attestation', backref = 'target')
+    slot = db.Column('f_slot',db.Integer,primary_key = True)
+    deposit = db.Column('f_eth1_deposit_count',db.Integer,primary_key = True)
 
 class Committee(db.Model):
     __tablename__ = 't_beacon_committees'
@@ -63,6 +59,7 @@ class Attestation(db.Model):
     beacon_block_root = db.Column('f_beacon_block_root', db.Integer)
     source_epoch = db.Column('f_source_epoch', db.Integer)
     target_epoch = db.Column('f_target_epoch', db.Integer)
+    target_correct = db.Column('f_target_correct', db.String)
     def bits(self):
         bits = ''
         for m in self.aggregation_bits:
@@ -94,34 +91,72 @@ class Vote(db.Model):
     not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
     ghost_selection = db.Column('f_ghost_selection', db.String)
 
-@app.route('/Vali/<int:index>', methods=['GET'])
-def Vali(index):
-    ats = Vote.query.filter(Vote.epoch == index).order_by(Vote.slot).all()
-    val = []
-    for a in ats:
-        val = val + a.casper_n + a.not_note
-    
-    return ""
-
-
 
 @app.route('/Overview')
 def Overview():
-    data = Epoch.query.order_by(-Epoch.epoch).limit(225)
-    epochs = []
-    for d in data[::-1]:
+    #新表
+    # data1= c_block_status.query.order_by(-c_block_status.slot).limit(60000*32)
+    # data2 = data1[::-1] 
+    # canonical = []
+  
+        
+    # for i in range(math.ceil(len(data2)/8160)):
+    #     count = 0
+    #     for d in data2[8160*i:8160*(i+1):1]:
+    #         if not d.canonical == True:
+    #             count+=1
+            
+    #     canonical.append(count) 
+
+    data2= Block.query.order_by(Block.slot).limit(32*225*100).all()
+    print("data_loaded")
+    canonical = []
+    deposit = []
+    dayData1 = []
+
+    counter = 0
+    prev = 0
+    for i in data2:
+        if math.floor((i.slot)/7200) != prev:
+            canonical.append(counter)
+            counter = 0
+            prev = math.floor((i.slot)/7200)
+        counter += 1
+    canonical.append(counter)
+    print("1")
+    
+    deposit = []
+    for i in range(math.ceil((data2[-1].slot)/32)):
+        deposit.append([])
+    
+    for i in data2:
+        
+        deposit[math.floor((i.slot)/32)].append(i.deposit)
+    deposit1 = []
+    for i in range(len(deposit)):
+        deposit1.append([])
+        deposit1[i] = sum(deposit[i])
+    print('2')
+
+    deposits = []
+   
+    for j in range(math.ceil(len(deposit1)/225)):
+        deposits.append([])
+        for i in deposit1[j*225:(j+1)*225]:
+            deposits[j].append(i)
+
+    print('3')
+    for i in range(len(canonical)):
         s = {}
-        s['epoch'] = d.epoch
-        s['active_balance'] = d.active_balance
-        s['attesting_balance'] = d.attesting_balance
-        s['target_correct_balance'] = d.target_correct_balance
-        s['head_correct_balance'] = d.head_correct_balance
-        epochs.append(s)
-    param = {'query':'beacon_current_justified_epoch'}
-    justified = eval(requests.get(url = url, params = param, headers = headers).json()['data']['result'][0]['value'][1])
-    param = {'query':'beacon_finalized_epoch'}
-    finalized = eval(requests.get(url = url, params = param, headers = headers).json()['data']['result'][0]['value'][1])
-    return json.dumps(epochs)
+        add_day=datetime.timedelta(i)
+        first_day = datetime.datetime(2020,12,1)
+        s['day'] = datetime.datetime.strftime(first_day+add_day,'%Y-%m-%d')
+        s['canonical'] =8160-canonical[i]
+        s['deposits'] = deposits[i]
+        dayData1.append(s)
+    print('4')
+    return json.dumps(dayData1)
+
 
 @app.route('/EpochView')
 def EpochView():
@@ -141,12 +176,49 @@ def EpochView():
     finalized = eval(requests.get(url = url, params = param, headers = headers).json()['data']['result'][0]['value'][1])
     return json.dumps(epochs)
 
-@app.route('/validator/<int:index>',methods=['GET'])
+
+@app.route('/validator/<int:index>', methods=['GET'])
 def validator(index):
+    ats = Vote.query.filter(Vote.epoch == index).order_by(Vote.slot).all()
+    val = []
+    for a in ats:
+        val = val + a.casper_n + a.not_note
+    
+    val_error = []
+    for v in val:
+        tmp = {}
+        tmp['validator_index'] = v
+        tmp['vote'] = 1
+        val_error.append(tmp)
+
+    casper = []
+    for s in range(index, index - 10 ,-1):
+        cas = {}
+        cas['epoch'] = s
+        cas['validator'] = val_error
+        temp = Vote.query.filter(Vote.epoch == s).all()
+        for t in temp:
+            for i in range(0, len(val_error)):
+                v = cas['validator'][i]['validator_index']
+                if v in t.casper_n:
+                    cas['validator'][i]['vote'] = 0
+                else:
+                    if v in t.not_voted:
+                        cas['validator'][i]['vote'] = -1
+                    else:
+                        if v in t.casper_y:
+                            continue
+                        else:
+                            cas['validator'][i]['vote'] = -1
+        casper.append(cas)
+    return json.dumps(casper)
+
+
+@app.route('/Vali/<int:index>',methods=['GET'])
+def Vali(index):
     ats = Attestation.query.filter(Attestation.inclusion_slot.in_(range(index*32,(index+1)*32))).order_by(Attestation.inclusion_slot,Attestation.slot,Attestation.committee_index).all()
     
     # val为选定epoch中，投否定票或missed（没有投票）的参与者集合
-
     # print(list(set(ats[-16].committee()) - set(ats[-16].aggregation_indices)))
     com = ats[0].committee()
     val = com.committee
@@ -186,23 +258,9 @@ def validator(index):
         json.dump(records, open('epoch100.json', "w"))
     return render_template('exp.html', data = json.dumps(records), val_error = json.dumps(val))
 
-@app.route('/get_filtered_list', methods=['GET','POST'])
-def get_filtered_list():
-    post_data = request.data.decode()
-    index = 100
-    if post_data != "":
-        index = simplejson.loads(post_data)['epoch']
-    ats = Attestation.query.filter_by(inclusion_slot=index*32).all()
-    slots = []
-    for a in ats:
-        temp={}
-        temp['inclusion_slot'] = a.inclusion_slot
-        temp['slot'] = a.slot
-        slots.append(temp)
-    return json.dumps(slots)
 
 @app.route('/slot/<int:index>',methods=['GET'])
-def slot1(index):
+def slot(index):
     slots = []
     links_temp = []
     for s in range(index*32,(index+1)*32):
@@ -210,22 +268,23 @@ def slot1(index):
         print(len(ats))
         temp = {}
         temp['at_number'] = 0
-        committee_prev = ats[0].committee_index
-        ats_no = set()
-        for a in ats:
-            link = {}
-            if a.slot < index*32 :
-                link['source'] = -1
-            else:
-                link['source'] = a.slot%32
-            link['target'] = a.inclusion_slot%32
-            if committee_prev != a.committee_index:
-                temp['at_number'] += len(ats_no)
-                ats_no = set()
-                committee_prev = a.committee_index
-            ats_no = ats_no|set(a.aggregation_indices)
-            links_temp.append(link)
-        temp['at_number'] += len(ats_no)
+        if len(ats) > 0:
+            committee_prev = ats[0].committee_index
+            ats_no = set()
+            for a in ats:
+                link = {}
+                if a.slot < index*32 :
+                    link['source'] = -1
+                else:
+                    link['source'] = a.slot%32
+                link['target'] = a.inclusion_slot%32
+                if committee_prev != a.committee_index:
+                    temp['at_number'] += len(ats_no)
+                    ats_no = set()
+                    committee_prev = a.committee_index
+                ats_no = ats_no|set(a.aggregation_indices)
+                links_temp.append(link)
+            temp['at_number'] += len(ats_no)
 
         if len(links_temp) > 0:
             l = {
@@ -246,22 +305,54 @@ def slot1(index):
                 else:
                     counter += 1
 
-        blocks = Attestation.query.filter_by(slot = s).all()
-        blocks.sort(key=lambda x:x.blocks())
-        temp['block_number'] = 1
-        block_prev = blocks[0].blocks()
-        for b in blocks:
-            if block_prev != b.blocks():
-                temp['block_number'] += 1
-                block_prev = b.blocks()
-        temp['block_number'] -= 1       
         slots.append(temp)
-    return render_template('slot.html',slots = json.dumps(slots), links = json.dumps(links))
+    return json.dumps(slots), json.dumps(links)
 
+
+@app.route('/block')
+def block():
+    s = 0
+    temp = {} # 删除
+    votes = Vote.query.filter_by(slot = s).first()
+    # 以下tab
+    if votes:
+        blocks = votes.ghost_selection
+    if len(blocks) > 0:
+        blocks.sort(key=lambda x:(-x['canonical'],x['root']))
+        temp['block_header'] = 0
+        temp['ex_blocks'] = []
+        block_prev = blocks[0]['root']
+        balance = 0
+        for b in blocks:
+            if b['canonical'] == True:
+                temp['block_header'] += b['balance']
+            else:
+                if block_prev != b['root']:
+                    if balance != 0:
+                        temp['ex_blocks'].append(balance)
+                    block_prev = b['root']
+                    balance = 0
+                balance += b['balance']
+    return ""
+    
 @app.route('/',methods=['GET'])
 def index():
     return "Hello Vue"
 
+@app.route('/get_filtered_list', methods=['GET','POST'])
+def get_filtered_list():
+    post_data = request.data.decode()
+    index = 100
+    if post_data != "":
+        index = simplejson.loads(post_data)['epoch']
+    ats = Attestation.query.filter_by(inclusion_slot=index*32).all()
+    slots = []
+    for a in ats:
+        temp={}
+        temp['inclusion_slot'] = a.inclusion_slot
+        temp['slot'] = a.slot
+        slots.append(temp)
+    return json.dumps(slots)
 
 
 if __name__ == '__main__':

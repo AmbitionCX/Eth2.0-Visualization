@@ -16,6 +16,7 @@ export default {
 
     return {
       slots:[],
+      links:[],
       width: 2000,
       height: 1750,
       margin:{
@@ -53,7 +54,8 @@ export default {
        axios
          .get(path)
          .then(res => {
-           this.slots=res.data;
+           this.slots=res.data[0];
+           this.links = res.data[1]
          })
          .catch(error => {
            console.error(error);
@@ -122,6 +124,29 @@ export default {
           .attr('opacity',0.9)
         }
 }
+     },
+     arc(lines){
+       const xscale = d3.scaleLinear()
+                       .domain([0,this.c])
+                       .range([0, this.innerWidth]);
+
+      const x1 = xscale(lines.source)+innerWidth/68;
+   const x2 = xscale(lines.target)+innerWidth/68;
+   const r = Math.abs(x2 - x1) / 2;
+   return `m${x1},${0}A${r},${r} 0,1,1 ${x2},${0}`;
+     },
+     drawArc(){
+       let that = this;
+       var [e,f] = d3.extent(that.links, function(d){return d.value;})
+console.log([e,f]);
+var thickness = d3.scaleLinear().domain([e,f]).range([1, 20]);
+
+d3.select('#slotview').append('g').attr('id','inclusion_delay').attr('fill','none')
+    .selectAll("path")
+    .data(that.links).enter()
+    .append("path").attr("d",that.arc).attr("stroke-width", function(d){return thickness(d.value);})
+    .attr("stroke", "blue")
+
      }
   },
 
@@ -136,7 +161,8 @@ export default {
         console.log("draw")
         this.getSlot();
         this.drawSlots();
-        this.drawBlocks();
+        this.drawArc();
+        //this.drawBlocks();
     }
 
   }

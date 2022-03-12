@@ -1,7 +1,10 @@
 <template>
   <div>
     <div>
-      <Epoch @details='Details'/> 
+      <Overview></Overview>
+    </div>
+    <div>
+      <Epoch @details='Details'></Epoch> 
     </div>
     <div>
       <Slot v-if='details_display > 0' v-bind:msg = "details_display"/>
@@ -10,13 +13,13 @@
 </template>
 <script>
 import Epoch from "./components/Epoch.vue"
-//import Overview from "./components/Overview.vue"
+import Overview from "./components/Overview.vue"
 import Slot from "./components/Slot.vue"
 export default {
     name:'App',
     components:{
       Epoch,
-      //Overview,
+      Overview,
       Slot
     },
  
