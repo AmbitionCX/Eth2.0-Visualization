@@ -135,6 +135,7 @@ export default {
    const r = Math.abs(x2 - x1) / 2;
    return `m${x1},${0}A${r},${r} 0,1,1 ${x2},${0}`;
      },
+
      drawArc(){
        let that = this;
        var [e,f] = d3.extent(that.links, function(d){return d.value;})
@@ -156,17 +157,19 @@ d3.select('#slotview').append('g').attr('id','inclusion_delay').attr('fill','non
     this.drawBlocks();
   },
   watch:{
+    slots(){
+        this.drawSlots()
+        this.drawArc()
+        this.drawBlocks()
+    },
     message(){
-      d3.select('#headers').remove();
-        console.log("draw")
-        this.getSlot();
-        this.drawSlots();
-        this.drawArc();
-        //this.drawBlocks();
+      d3.select('#headers').remove()
+        console.log("draw");
+        this.getSlot()
+      }
     }
 
-  }
-};
+}
 </script>
 
 <style scoped>

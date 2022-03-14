@@ -144,11 +144,15 @@ var draw = d3.select('g').append('g')
   .attr('height', function(d){return distribute(d.at_number);})
   .attr('fill', 'grey')
   .attr('opacity', 0.9)
-
+//i was here
 var ex_block = innerWidth/50;  
+var [m,n] = d3.extent(slot_total, function(d,i){return len(d.ex_blocks);})
+console.log([m,n]);
+var dis = d3.scaleLinear().domain([m,n]).range([10, innerWidth/34]);
+
 
 for(let j = 0; j < slot_total.length; j++){
-	for(let k=1; k <= slot_total[j]['block_number']; k++){
+	for(let k=1; k <= slot_total[j]['ex_blocks']; k++){
 		d3.select('g').append('g')
         .attr('transform',function(d){
         return `translate(${xscale(j)+innerWidth/68-ex_block/2},${k*(ex_block+10)+30})`;

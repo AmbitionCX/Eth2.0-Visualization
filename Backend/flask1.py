@@ -82,7 +82,6 @@ class Vote(db.Model):
     __tablename__ = 'c_main_table'
     slot = db.Column('f_slot', db.Integer, primary_key = True)
     epoch = db.Column('f_epoch', db.Integer)
-    committee_index = db.Column('f_committee_index', db.String)
     casper_y = db.Column('f_casper_y', db.String)
     casper_y_balance = db.Column('f_casper_y_balance', db.BigInteger)
     casper_n = db.Column('f_casper_n', db.String)
@@ -182,7 +181,7 @@ def validator(index):
     ats = Vote.query.filter(Vote.epoch == index).order_by(Vote.slot).all()
     val = []
     for a in ats:
-        val = val + a.casper_n + a.not_note
+        val = val + a.casper_n + a.not_vote
     
     val_error = []
     for v in val:
@@ -190,26 +189,35 @@ def validator(index):
         tmp['validator_index'] = v
         tmp['vote'] = 1
         val_error.append(tmp)
+    print(len(val_error))
 
     casper = []
-    for s in range(index, index - 10 ,-1):
+    for s in range(index, index - 8 ,-1):
+        print(s)
         cas = {}
         cas['epoch'] = s
         cas['validator'] = val_error
         temp = Vote.query.filter(Vote.epoch == s).all()
+        aggregate_y = []
+        aggregate_n = []
+        aggregate_not_vote=[]
         for t in temp:
-            for i in range(0, len(val_error)):
-                v = cas['validator'][i]['validator_index']
-                if v in t.casper_n:
-                    cas['validator'][i]['vote'] = 0
+            aggregate_y += t.casper_y
+            aggregate_n += t.casper_n
+            aggregate_not_vote += t.not_vote
+        print(1)
+        for i in range(0, len(val_error)):
+            v = cas['validator'][i]['validator_index']
+            if v in aggregate_n:
+                cas['validator'][i]['vote'] = 0
+            else:
+                if v in aggregate_not_vote:
+                    cas['validator'][i]['vote'] = -1
                 else:
-                    if v in t.not_voted:
-                        cas['validator'][i]['vote'] = -1
+                    if v in aggregate_y:
+                        continue
                     else:
-                        if v in t.casper_y:
-                            continue
-                        else:
-                            cas['validator'][i]['vote'] = -1
+                        cas['validator'][i]['vote'] = -1
         casper.append(cas)
     return json.dumps(casper)
 
@@ -286,6 +294,28 @@ def slot(index):
                 links_temp.append(link)
             temp['at_number'] += len(ats_no)
 
+        votes = Vote.query.filter_by(slot = s).first()
+        print(votes)
+        blocks = []
+        if votes:
+            blocks = votes.ghost_selection
+        if len(blocks) > 0:
+            blocks.sort(key=lambda x:(-x['canonical'],x['root']['data']))
+            temp['block_header'] = 0
+            temp['ex_blocks'] = []
+            block_prev = blocks[0]['root']['data']
+            balance = 0
+            for b in blocks:
+                if b['canonical'] == True:
+                    temp['block_header'] += b['balance']
+                else:
+                    if block_prev != b['root']['data']:
+                        if balance != 0:
+                            temp['ex_blocks'].append(balance)
+                        block_prev = b['root']['data']
+                        balance = 0
+                    balance += b['balance']
+
         if len(links_temp) > 0:
             l = {
                 'source': links_temp[0]['source'],
@@ -306,7 +336,7 @@ def slot(index):
                     counter += 1
 
         slots.append(temp)
-    return json.dumps(slots), json.dumps(links)
+    return render_template("slot.html", slots = json.dumps(slots), links = json.dumps(links))
 
 
 @app.route('/block')
@@ -318,19 +348,19 @@ def block():
     if votes:
         blocks = votes.ghost_selection
     if len(blocks) > 0:
-        blocks.sort(key=lambda x:(-x['canonical'],x['root']))
+        blocks.sort(key=lambda x:(-x['canonical'],x['root']['data']))
         temp['block_header'] = 0
         temp['ex_blocks'] = []
-        block_prev = blocks[0]['root']
+        block_prev = blocks[0]['root']['data']
         balance = 0
         for b in blocks:
             if b['canonical'] == True:
                 temp['block_header'] += b['balance']
             else:
-                if block_prev != b['root']:
+                if block_prev != b['root']['data']:
                     if balance != 0:
                         temp['ex_blocks'].append(balance)
-                    block_prev = b['root']
+                    block_prev = b['root']['data']
                     balance = 0
                 balance += b['balance']
     return ""

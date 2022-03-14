@@ -1,7 +1,8 @@
 <template>
-  <div>
+  <div class="overview">
     <button @click='Draw(dayData)'>Hi</button>
     <svg id = "mainsvg" style = 'width:4200px; height:3600px'>
+ 
     </svg>
     
   </div>
@@ -201,16 +202,11 @@ for (let i = 0; i < deposits.length; i++) {
 };
 </script>
 
-<style scoped>
-.panel-header {
-  position: relative;
-  padding: 0 8px;
-  width: 250px;
-  height: 40px;
-  line-height: 40px;
-  font-size: 24px;
-  background: #455a64;
-  color: #fcfcfc;
+<style>
+.overview {
+  position: sticky;
+  top: 100px;
+  background: #ffffff;
   display: flex;
   font-weight: bold;
   border-radius: 2px;

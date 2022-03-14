@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="epoch">
     <svg id = "Epoch" style = 'width:2000px; height:1750px'> 
     </svg>
     <button id = 'ghost' style = 'appearance: none;
@@ -182,17 +182,11 @@ export default {
 </script>
 
 <style scoped>
-.panel-header {
-  position: relative;
-  padding: 0 8px;
-  width: 250px;
-  height: 40px;
-  line-height: 40px;
-  font-size: 24px;
-  background: #455a64;
-  color: #fcfcfc;
-  display: flex;
-  font-weight: bold;
+.epoch {
+  position: sticky;
+  top:2000px;
+  left:50px;
+  background: #ffffff;
   border-radius: 2px;
   box-shadow: 0 1px 2px rgba(26 26 26 0.2);
 }
