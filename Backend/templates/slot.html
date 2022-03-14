@@ -134,20 +134,31 @@ var [a,b] = d3.extent(slot_total, function(d,i){return d.at_number;})
 console.log([a,b]);
 var distribute = d3.scaleLinear().domain([a,b]).range([10, innerWidth/34]);
 
+//console.log(d3.filter(slot_total, x=>x.block_header !=0))
+var [m,n] = d3.extent(slot_total, function(d,i){return d.block_header})
+var opaci = d3.scaleLinear().domain([m,n]).range([0, 1]);
+console.log([m,n]);
+var [h,q] = d3.extent(slot_total, function(d){return d.casper_balance;})
+var cas_opa = d3.scaleLinear().domain([h,q]).range([0, 1]);
+
+
 var draw = d3.select('g').append('g')
   .selectAll('rect').data(slot_total).enter()
   .append('rect')
   .attr('transform',function(d,i){
 	return `translate(${xscale(i)+innerWidth/68-distribute(d.at_number)/2}, ${-distribute(d.at_number)/2})`;
   })
-  .attr('width', function(d){return distribute(d.at_number);} )//长宽待定
-  .attr('height', function(d){return distribute(d.at_number);})
-  .attr('fill', 'grey')
+  .attr('width', function(d){
+	  return d.at_number == 0? 0 : distribute(d.at_number);} )//长宽待定
+  .attr('height', function(d){
+	  hei = d.at_number == 0? 0 : distribute(d.at_number)
+	  return hei/2;})
+  .attr('fill', "grey")
   .attr('opacity', 0.9)
 //i was here
 var ex_block = innerWidth/50;  
-var [m,n] = d3.extent(slot_total, function(d,i){return len(d.ex_blocks);})
-console.log([m,n]);
+//var [m,n] = d3.extent(slot_total, function(d,i){return len(d.ex_blocks);})
+//console.log([m,n]);
 var dis = d3.scaleLinear().domain([m,n]).range([10, innerWidth/34]);
 
 

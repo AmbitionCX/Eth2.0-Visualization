@@ -1,54 +1,9 @@
 <template>
-  <div class="epoch">
-    <svg id = "Epoch" style = 'width:2000px; height:1750px'> 
+  <div>
+    <svg id = "Epoch"  class="epoch" style = 'width:400px; height:350px'> 
     </svg>
-    <button id = 'ghost' style = 'appearance: none;
-    background-color: #2ea44f;
-    border: 1px solid rgba(27, 31, 35, .15);
-    border-radius: 6px;
-    box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
-    box-sizing: border-box;
-    color: #fff;
-    cursor: pointer;
-    display: inline-block;
-    font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
-    font-size: 56px;
-    font-weight: 1200;
-    line-height: 80px;
-    padding: 24px 64px;
-    position: relative;
-    text-align: center;
-    text-decoration: none;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-    vertical-align: middle;
-    white-space: nowrap'
-    @click = 'GHOST()'>Head</button>
-
-    <button id = 'casper' style = 'appearance: none;
-    background-color: #2ea44f;
-    border: 1px solid rgba(27, 31, 35, .15);
-    border-radius: 6px;
-    box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
-    box-sizing: border-box;
-    color: #fff;
-    cursor: pointer;
-    display: inline-block;
-    font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
-    font-size: 56px;
-    font-weight: 1200;
-    line-height: 80px;
-    padding: 24px 64px;
-    position: relative;
-    text-align: center;
-    text-decoration: none;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-    vertical-align: middle;
-    white-space: nowrap'
-    @click = 'Casper()'>Checkpoint</button>
+    <button id = 'ghost' @click = 'GHOST()'>Head</button>
+    <button id = 'casper' @click = 'Casper()'>Checkpoint</button>
   </div>
 </template>
 
@@ -63,13 +18,13 @@ export default {
 
     return {
       epochs:[],
-      width: 2000,
-      height: 1750,
+      width: 400,
+      height: 350,
       margin:{
-        top:100,
-        right:90,
-        bottom:60,
-        left:90
+        top:30,
+        right:10,
+        bottom:10,
+        left:30
       },
       r:15,
       c:15,
@@ -101,8 +56,8 @@ export default {
      },
 
      Scale(){
-      const g = d3.select('svg').append('g').attr('id', 'maingroup')
-                   .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
+      const g = d3.select('#Epoch').append('g').attr('id', 'epochview')
+                  .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
       const xscale = d3.scaleLinear()
                        .domain([0,this.c])
                        .range([0, this.innerWidth]);
@@ -112,12 +67,12 @@ export default {
 
       const yaxis = d3.axisLeft(yscale)
           .ticks(this.r)
-          .tickSize(10)
+          .tickSize(5)
           .tickPadding(10);
       const xaxis = d3.axisBottom(xscale)
           .ticks(this.c)
-          .tickSize(-10)
-          .tickPadding(-50);
+          .tickSize(-5)
+          .tickPadding(-20);
           g.append('g').call(yaxis)
     .attr('id' ,'yaxis');
   g.append('g').call(xaxis)
@@ -125,7 +80,7 @@ export default {
   },
 
   GHOST(){
-    d3.select('g').selectAll('rect').remove()
+    d3.select('#epochview').selectAll('rect').remove()
     const c = this.c;
     var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['head_correct_balance'];})
     const xscale = d3.scaleLinear()
@@ -134,21 +89,20 @@ export default {
     const yscale = d3.scaleLinear()
           .domain([0,this.r])
           .range([0, this.innerHeight]);
-    d3.select('g').selectAll('rect').data(this.epochs).enter()
+    d3.select('#epochview').selectAll('rect').data(this.epochs).enter()
                   .append('rect')
                   .attr('fill', function(d){return d3.interpolateReds((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
-                  .attr('width', this.innerWidth/15-20)
-                  .attr('height', this.innerHeight/15-20)
-                  .attr("transform", function(d, i) { // bug: d and i lack number 0 and 1 in pies_data
-                  console.log(c)
-            return `translate(${xscale(Math.floor((i)%c))+10},${yscale(Math.floor((i)/c))+10})`;
+                  .attr('width', this.innerWidth/15-5)
+                  .attr('height', this.innerHeight/15-5)
+                  .attr("transform", function(d, i) {
+            return `translate(${xscale(Math.floor((i)%c))+2.5},${yscale(Math.floor((i)/c))+2.5})`;
                   })
   },
 
 
   Casper(){
     let that = this;
-    d3.select('g').selectAll('rect').remove()
+    d3.select('#epochview').selectAll('rect').remove()
     const c = this.c;
     var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['target_correct_balance'];})
     const xscale = d3.scaleLinear()
@@ -157,14 +111,14 @@ export default {
     const yscale = d3.scaleLinear()
           .domain([0,this.r])
           .range([0, this.innerHeight]);
-    d3.select('g').selectAll('rect').data(this.epochs).enter()
+    d3.select('#epochview').selectAll('rect').data(this.epochs).enter()
                   .append('rect')
                   .attr('fill', function(d){return d3.interpolateReds((d['active_balance'] - d['target_correct_balance']-a)/(b-a) )})
-                  .attr('width', this.innerWidth/15-20)
-                  .attr('height', this.innerHeight/15-20)
+                  .attr('width', this.innerWidth/15-5)
+                  .attr('height', this.innerHeight/15-5)
                   .attr("transform", function(d, i) {
                   console.log(c)
-            return `translate(${xscale(Math.floor((i)%c))+10},${yscale(Math.floor((i)/c))+10})`;
+            return `translate(${xscale(Math.floor((i)%c))+2.5},${yscale(Math.floor((i)/c))+2.5})`;
                   })
                   .on("click", function(){                   
                     var temp = d3.select(this).data();
@@ -182,25 +136,56 @@ export default {
 </script>
 
 <style scoped>
-.epoch {
-  position: sticky;
-  top:2000px;
-  left:50px;
-  background: #ffffff;
-  border-radius: 2px;
-  box-shadow: 0 1px 2px rgba(26 26 26 0.2);
+#ghost {
+    appearance: none;
+    background-color: #2ea44f;
+    border: 1px solid rgba(27, 31, 35, .15);
+    border-radius: 1px;
+    box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+    font-size: 10px;
+    font-weight: 1200;
+    line-height: 10px;
+    padding: 5px 5px;
+    position: absolute;
+    top:0;
+    left:285px;
+    text-align: center;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    vertical-align: middle;
+    white-space: nowrap;
 }
-
-.panel-header-end {
-  position: absolute;
-  top: 0px;
-  left: 250px;
-  border-top: 40px solid #455a64;
-  border-right: 45px solid #ffffff;
-  border-bottom: 3px solid #ffffff;
-}
-
-.ant-table-selected :deep(.table-selected) td {
-  background-color: #fafafa;
+#casper{
+    appearance: none;
+    background-color: #2ea44f;
+    border: 1px solid rgba(27, 31, 35, .15);
+    border-radius: 1px;
+    box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+    font-size: 10px;
+    font-weight: 1200;
+    line-height: 10px;
+    padding: 5px 5px;
+    position: absolute;
+    top:0;
+    left:330px;
+    text-align: center;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    vertical-align: middle;
+    white-space: nowrap;
 }
 </style>

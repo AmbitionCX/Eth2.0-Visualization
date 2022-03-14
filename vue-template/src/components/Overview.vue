@@ -1,6 +1,6 @@
 <template>
   <div class="overview">
-    <button @click='Draw(dayData)'>Hi</button>
+   
     <svg id = "mainsvg" style = 'width:4200px; height:3600px'>
  
     </svg>

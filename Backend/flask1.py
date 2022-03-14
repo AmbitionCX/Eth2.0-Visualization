@@ -159,7 +159,7 @@ def Overview():
 
 @app.route('/EpochView')
 def EpochView():
-    data = Epoch.query.order_by(-Epoch.epoch).limit(225)
+    data = Epoch.query.order_by(Epoch.epoch).limit(225)
     epochs = []
     for d in data[::-1]:
         s = {}
@@ -296,25 +296,26 @@ def slot(index):
 
         votes = Vote.query.filter_by(slot = s).first()
         print(votes)
+        temp['casper_balance'] = votes.casper_y_balance
         blocks = []
         if votes:
             blocks = votes.ghost_selection
         if len(blocks) > 0:
-            blocks.sort(key=lambda x:(-x['canonical'],x['root']['data']))
+            blocks.sort(key=lambda x:(x['root']['data']))
             temp['block_header'] = 0
             temp['ex_blocks'] = []
             block_prev = blocks[0]['root']['data']
             balance = 0
             for b in blocks:
-                if b['canonical'] == True:
-                    temp['block_header'] += b['balance']
-                else:
-                    if block_prev != b['root']['data']:
-                        if balance != 0:
-                            temp['ex_blocks'].append(balance)
-                        block_prev = b['root']['data']
-                        balance = 0
-                    balance += b['balance']
+                if block_prev != b['root']['data']:
+                    temp['ex_blocks'].append(balance)
+                    block_prev = b['root']['data']
+                    balance = 0
+                balance += b['balance']
+            temp['ex_blocks'].append(balance)
+            temp['ex_blocks'].sort()
+            if temp['at_number'] != 0:
+                temp['block_header'] = temp['ex_blocks'].pop()
 
         if len(links_temp) > 0:
             l = {

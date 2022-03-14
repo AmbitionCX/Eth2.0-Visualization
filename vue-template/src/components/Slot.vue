@@ -1,7 +1,6 @@
 <template>
   <div>
-    <svg id = "Slot" style = 'width:2000px; height:3600px'></svg>
-    <text>"This is the slot view"</text>
+    <svg id = "Slot" style = 'width:1200px; height:360px'></svg>
   </div>
 </template>
 
@@ -17,15 +16,15 @@ export default {
     return {
       slots:[],
       links:[],
-      width: 2000,
-      height: 1750,
+      width: 1200,
+      height: 360,
       margin:{
         top:100,
         right:10,
         bottom:60,
         left:10
       },
-      c:32
+      c:33
     };
   },
   mounted(){
@@ -66,19 +65,19 @@ export default {
       const g = d3.select('#Slot').append('g').attr('id', 'slotview')
                    .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
       const xscale = d3.scaleLinear()
-                       .domain([0,this.c])
+                       .domain([-1,this.c])
                        .range([0, this.innerWidth]);
 
       const xaxis = d3.axisBottom(xscale)
-        .ticks(32)
+        .ticks(34)
         .tickSize(-10)
-        .tickPadding(45)
-        .tickFormat(function(d,i){return i < 32 ? ("slot " + i):"";});
+        .tickPadding(20)
+        .tickFormat(function(d,i){return (i < 33 && i > 0) ? (i-1):"";});
         
        g.append('g').call(xaxis)
         .attr('id', 'xaxis')
         .selectAll('text')
-        .attr('transform',`translate(${this.innerWidth/64},${0})`)
+        .attr('transform',`translate(${this.innerWidth/68},${0})`)
         .attr('font-size', '14px');
      },
 
@@ -90,13 +89,13 @@ export default {
                        .range([0, this.innerWidth]);
       var [a,b] = d3.extent(that.slots, function(d){return d.at_number;})
       console.log([a,b]);
-      var distribute = d3.scaleLinear().domain([a,b]).range([10, this.innerWidth/32]);
+      var distribute = d3.scaleLinear().domain([a,b]).range([10, this.innerWidth/34]);
 
       d3.select('#slotview').append('g').attr('id','headers')
         .selectAll('rect').data(this.slots).enter()
         .append('rect')
         .attr('transform',function(d,i){
-        return `translate(${xscale(i)+that.innerWidth/64-distribute(d.at_number)/2}, ${-distribute(d.at_number)/2})`;
+        return `translate(${xscale(i)+that.innerWidth/68-distribute(d.at_number)/2}, ${-distribute(d.at_number)/2})`;
         })
         .attr('width', function(d){return distribute(d.at_number);} )//长宽待定
         .attr('height', function(d){return distribute(d.at_number);})
@@ -115,7 +114,7 @@ export default {
         for(let k=1; k <= that.slots[j]['block_number']; k++){
           d3.select('#slotview').append('g').attr('id','ex_blocks')
               .attr('transform',function(){
-              return `translate(${xscale(j)+that.innerWidth/64-ex_block/2},${k*(ex_block+10)+30})`;
+              return `translate(${xscale(j)+that.innerWidth/68-ex_block/2},${k*(ex_block+10)+30})`;
               })
               .append('rect')
           .attr('width', ex_block)
