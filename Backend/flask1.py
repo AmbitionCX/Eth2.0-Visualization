@@ -156,9 +156,9 @@ def Overview():
     return json.dumps(dayData1)
 
 
-@app.route('/EpochView')
-def EpochView():
-    data = Epoch.query.order_by(-Epoch.epoch).limit(225)
+@app.route('/EpochView/<int:index>')
+def EpochView(index):
+    data = Epoch.query.filter(Epoch.epoch.in_(range(index,index+225))).order_by(-Epoch.epoch).all()
     epochs = []
     for d in data[::-1]:
         s = {}
@@ -350,7 +350,7 @@ def slot(index):
             links.append(t)
 
         slots.append(temp)
-    return render_template("slot.html", slots = json.dumps(slots), links = json.dumps(links))
+    return json.dumps([slots] + [links])
 
 
 @app.route('/block')

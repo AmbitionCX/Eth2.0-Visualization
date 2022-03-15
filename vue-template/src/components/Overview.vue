@@ -1,7 +1,7 @@
 <template>
   <div class="overview">
    
-    <svg id = "mainsvg" style = 'width:4200px; height:3600px'>
+    <svg id = "mainsvg" style = 'width:4200px; height:1500px'>
  
     </svg>
     
@@ -36,6 +36,9 @@ export default {
     //this.Scale();
   },
   computed:{
+    all_data(){
+      return this.all
+    },
     innerWidth(){
       return this.width - this.margin.left - this.margin.right
     },
@@ -63,9 +66,6 @@ export default {
          .catch(error => {
            console.error(error);
          });
-     },
-     show(data){
-       console.log(data);
      },
  
   Color(num){
@@ -156,8 +156,12 @@ g.selectAll('.datarect').data(dayDatas[k]).enter().append('rect')
 .attr('height', 25)
 .attr('y', d => (yscale(that.MONTHS[d['month']]))+12.5)
 .attr('x', d => (xscale(d['date'])) -12.5)
-.attr('fill', d => d3.interpolateYlOrRd((d['color']))).
-attr('opacity', 0.9)
+.attr('fill', d => d3.interpolateYlOrRd((d['color'])))
+.attr('opacity', 0.9)
+.on("click", function(){                   
+  var temp = 100; //暂且
+  that.$emit('day_detail',temp);
+})     
 
 for (let i = 0; i < deposits.length; i++) {
     for (let j = 0; j < deposits[i].length; j++) {
@@ -197,32 +201,12 @@ for (let i = 0; i < deposits.length; i++) {
     this.getAll();
   },
   watch:{
-
+    all_data(){
+      this.Draw();
+    }
   }
 };
 </script>
 
 <style>
-.overview {
-  position: sticky;
-  top: 100px;
-  background: #ffffff;
-  display: flex;
-  font-weight: bold;
-  border-radius: 2px;
-  box-shadow: 0 1px 2px rgba(26 26 26 0.2);
-}
-
-.panel-header-end {
-  position: absolute;
-  top: 0px;
-  left: 250px;
-  border-top: 40px solid #455a64;
-  border-right: 45px solid #ffffff;
-  border-bottom: 3px solid #ffffff;
-}
-
-.ant-table-selected :deep(.table-selected) td {
-  background-color: #fafafa;
-}
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <svg id = "Epoch"  class="epoch" style = 'width:400px; height:350px'> 
+    <svg id = "Epoch"  class="epoch" style = 'width:400px; height:340px'> 
     </svg>
     <button id = 'ghost' @click = 'GHOST()'>Head</button>
     <button id = 'casper' @click = 'Casper()'>Checkpoint</button>
@@ -13,28 +13,33 @@ import * as d3 from 'd3'
 
 export default {
   name:'Epoch',
-
+  props:["day"],
   data(){
-
     return {
       epochs:[],
       width: 400,
-      height: 350,
+      height: 340,
       margin:{
         top:30,
         right:10,
-        bottom:10,
+        bottom:0,
         left:30
       },
       r:15,
-      c:15,
-      msg:0
+      c:15
     };
   },
   mounted(){
-    this.Scale();
+
   },
   computed:{
+    index(){
+      console.log(this.day);
+      return this.day;
+    },
+    epoch(){
+      return this.epochs;
+    },
     innerWidth(){
       return this.width - this.margin.left - this.margin.right
     },
@@ -44,7 +49,7 @@ export default {
   },
   methods:{
      getEpoch(){
-       const path = 'http://127.0.0.1:5000/EpochView';
+       const path = 'http://127.0.0.1:5000/EpochView/' + eval(this.day);
        axios
          .get(path)
          .then(res => {
@@ -80,6 +85,7 @@ export default {
   },
 
   GHOST(){
+    let that = this;
     d3.select('#epochview').selectAll('rect').remove()
     const c = this.c;
     var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['head_correct_balance'];})
@@ -97,6 +103,10 @@ export default {
                   .attr("transform", function(d, i) {
             return `translate(${xscale(Math.floor((i)%c))+2.5},${yscale(Math.floor((i)/c))+2.5})`;
                   })
+                  .on("click", function(){                   
+                    var temp = d3.select(this).data();
+                    that.$emit('details',temp[0].epoch);
+                  })     
   },
 
 
@@ -130,7 +140,17 @@ export default {
     this.getEpoch();
   },
   watch:{
-
+    epoch(){
+      this.Scale();
+      this.GHOST();
+    },
+    index(){
+      this.getEpoch();
+      console.log("day changed")
+      console.log(this.epochs)
+      this.Scale();
+      this.GHOST();
+    }
   }
 };
 </script>
@@ -152,7 +172,7 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:0;
+    top:1500px;
     left:285px;
     text-align: center;
     text-decoration: none;
@@ -178,7 +198,7 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:0;
+    top:1500px;
     left:330px;
     text-align: center;
     text-decoration: none;
