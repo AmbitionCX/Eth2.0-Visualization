@@ -7,7 +7,7 @@
       <Epoch @details='Details'></Epoch> 
     </div>
     <div>
-      <Slot v-if='details_display > 0' v-bind:msg = "details_display"/>
+      <Slot v-if= 'details_display > 0' v-bind:msg = "details_display"> </Slot>
     </div>
   </div>
 </template>

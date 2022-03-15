@@ -35,6 +35,9 @@ export default {
     this.drawBlocks();
   },
   computed:{
+    slot(){
+      return this.slots
+    },
     message(){
       return this.msg
     },
@@ -48,7 +51,7 @@ export default {
   methods:{
      getSlot(){
 
-       const path = 'http://127.0.0.1:5000/slot/'+eval(this.msg);
+       const path = 'http://127.0.0.1:5000/slot/561';//+eval(this.msg);
        console.log(path);
        axios
          .get(path)
@@ -81,7 +84,7 @@ export default {
         .attr('font-size', '14px');
      },
 
-     drawSlots(){
+     drawBlockheader(){
        console.log("drawSlots")
       let that = this;
       const xscale = d3.scaleLinear()
@@ -91,75 +94,110 @@ export default {
       console.log([a,b]);
       var distribute = d3.scaleLinear().domain([a,b]).range([10, this.innerWidth/34]);
 
-      d3.select('#slotview').append('g').attr('id','headers')
-        .selectAll('rect').data(this.slots).enter()
+      var [m,n] = d3.extent(d3.filter(that.slots, x=>x.block_header !=0), function(d){return d.block_header})
+      var opaci = d3.scaleLinear().domain([m,n]).range([0.1, 1]);
+
+     d3.select('#slotview').append('g').attr('id','block_header')
+        .selectAll('rect').data(that.slots).enter()
         .append('rect')
         .attr('transform',function(d,i){
         return `translate(${xscale(i)+that.innerWidth/68-distribute(d.at_number)/2}, ${-distribute(d.at_number)/2})`;
         })
-        .attr('width', function(d){return distribute(d.at_number);} )//长宽待定
-        .attr('height', function(d){return distribute(d.at_number);})
-        .attr('fill', 'grey')
+        .attr('width', function(d){
+          return d.at_number == 0? 0 : distribute(d.at_number);} )//长宽待定
+        .attr('height', function(d){
+          let hei = d.at_number == 0? 0 : distribute(d.at_number)
+          return hei/2;})
+        .attr('fill', function(d){return d3.interpolateGreys(opaci(d.block_header))})
         .attr('opacity', 0.9)
      },
 
-     drawBlocks(){
-       console.log("drawBlocks");
+     drawCasper(){
+      let that=this;
+      const xscale = d3.scaleLinear()
+                       .domain([0,this.c])
+                       .range([0, this.innerWidth]);
+      var [a,b] = d3.extent(that.slots, function(d){return d.at_number;})
+      console.log([a,b]);
+      var distribute = d3.scaleLinear().domain([a,b]).range([10, this.innerWidth/34]);
+      var [h,q] = d3.extent(d3.filter(that.slots, x=>x.block_header !=0), function(d){return d.casper_balance;})
+      var cas_opa = d3.scaleLinear().domain([h,q]).range([0.2, 1]);
+
+      d3.select('#slotview').append('g').attr('id','casper_balance')
+        .selectAll('rect').data(that.slots).enter()
+        .append('rect')
+        .attr('transform',function(d,i){
+        return `translate(${xscale(i)+that.innerWidth/68-distribute(d.at_number)/2}, ${0})`;
+        })
+        .attr('width', function(d){
+          return d.at_number == 0? 0 : distribute(d.at_number);} )//长宽待定
+        .attr('height', function(d){
+          let hei = d.at_number == 0? 0 : distribute(d.at_number)
+          return hei/2;})
+        .attr('fill', function(d){return d3.interpolateGreys(d.block_header == 0? 0.1:cas_opa(d.casper_balance))})
+        .attr('opacity', 0.9)
+     },
+
+     drawExBlocks(){
+      console.log("drawBlocks");
       var ex_block = this.innerWidth/50;  
       const xscale = d3.scaleLinear()
                   .domain([0,this.c])
                   .range([0, this.innerWidth]);
       let that = this;
+
       for(let j = 0; j < that.slots.length; j++){
-        for(let k=1; k <= that.slots[j]['block_number']; k++){
-          d3.select('#slotview').append('g').attr('id','ex_blocks')
-              .attr('transform',function(){
-              return `translate(${xscale(j)+that.innerWidth/68-ex_block/2},${k*(ex_block+10)+30})`;
-              })
+          var [u,v] = d3.extent(that.slots[j]['ex_blocks'])
+          var dis = d3.scaleLinear().domain([u,v]).range([0.1, 1]);
+          d3.select('#slotview').append('g').attr('id','ex_block'+j).selectAll('rect')
+          .data(that.slots[j]['ex_blocks']).enter()
               .append('rect')
+          .attr('transform',function(d,i){
+              return `translate(${xscale(j)+that.innerWidth/68-ex_block/2},${-i*(ex_block+10)-that.innerWidth/34-20})`;
+              })
           .attr('width', ex_block)
           .attr('height', ex_block)
-          .attr('fill',"lightblue")
+          .attr('fill',function(d){return d3.interpolateBlues(dis(d));})
           .attr('opacity',0.9)
-        }
-}
+          }
      },
      arc(lines){
-       const xscale = d3.scaleLinear()
+        const xscale = d3.scaleLinear()
                        .domain([0,this.c])
                        .range([0, this.innerWidth]);
 
-      const x1 = xscale(lines.source)+innerWidth/68;
-   const x2 = xscale(lines.target)+innerWidth/68;
-   const r = Math.abs(x2 - x1) / 2;
-   return `m${x1},${0}A${r},${r} 0,1,1 ${x2},${0}`;
+        const x1 = xscale(lines.source)+this.innerWidth/68;
+        const x2 = xscale(lines.target)+this.innerWidth/68;
+        const r = Math.abs(x2 - x1) / 2;
+      return `m${x1},${this.innerWidth/34}A${r},${r} 0,1,0 ${x2},${this.innerWidth/34}`;
      },
 
      drawArc(){
-       let that = this;
-       var [e,f] = d3.extent(that.links, function(d){return d.value;})
-console.log([e,f]);
-var thickness = d3.scaleLinear().domain([e,f]).range([1, 20]);
+      let that = this;
+      var [e,f] = d3.extent(that.links, function(d){return d.value;})
+      console.log([e,f]);
+      var thickness = d3.scaleLinear().domain([e,f]).range([1, 20]);
 
-d3.select('#slotview').append('g').attr('id','inclusion_delay').attr('fill','none')
-    .selectAll("path")
-    .data(that.links).enter()
-    .append("path").attr("d",that.arc).attr("stroke-width", function(d){return thickness(d.value);})
-    .attr("stroke", "blue")
+      d3.select('#slotview').append('g').attr('id','inclusion_delay').attr('fill','none')
+          .selectAll("path")
+          .data(that.links).enter()
+          .append("path").attr("d",that.arc).attr("stroke-width", function(d){return thickness(d.value);})
+          .attr("stroke", "blue")
 
      }
   },
 
   created(){
     this.getSlot();
-    this.drawSlots();
-    this.drawBlocks();
   },
   watch:{
-    slots(){
-        this.drawSlots()
-        this.drawArc()
-        this.drawBlocks()
+    slot(){
+        d3.select('#Slot').selectAll('g').remove()
+        this.xScale();
+        this.drawArc();
+        this.drawBlockheader();
+        this.drawCasper();
+        this.drawExBlocks();
     },
     message(){
       d3.select('#headers').remove()

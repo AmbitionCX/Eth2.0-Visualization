@@ -23,12 +23,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@10.192.9
 db = SQLAlchemy(app)
 CORS(app)
 
-def str_to_array(str):
-    str = str.lstrip('<')
-    str = str.rstrip('>')
-    str = str.split(',')
-    return str
-
 class Epoch(db.Model):
     __tablename__='t_epoch_summaries'
     epoch = db.Column('f_epoch', db.Integer, primary_key = True)
@@ -47,6 +41,11 @@ class Committee(db.Model):
     slot = db.Column('f_slot', db.Integer, primary_key = True)
     index = db.Column('f_index', db.Integer, primary_key = True)
     committee = db.Column('f_committee', db.String)
+
+class Proposer(db.Model):
+    __tablename__ = 't_proposer_duties'
+    slot = db.Column('f_slot', db.Integer, primary_key = True)
+    proposer = db.Column('f_validator_index', db.Integer)
 
 class Attestation(db.Model):
     __tablename__ = 't_attestations'
@@ -159,7 +158,7 @@ def Overview():
 
 @app.route('/EpochView')
 def EpochView():
-    data = Epoch.query.order_by(Epoch.epoch).limit(225)
+    data = Epoch.query.order_by(-Epoch.epoch).limit(225)
     epochs = []
     for d in data[::-1]:
         s = {}
@@ -219,7 +218,16 @@ def validator(index):
                     else:
                         cas['validator'][i]['vote'] = -1
         casper.append(cas)
-    return json.dumps(casper)
+    
+    proposer = []
+    for i in range(index, index-8, -1):
+        p = []
+        for s in range(i*32, (i+1)*32):
+            data = Proposer.query.filter_by(slot=s).first()
+            p.append(data.proposer)
+        proposer.append(p)
+
+    return json.dumps(casper), json.dumps(proposer)
 
 
 @app.route('/Vali/<int:index>',methods=['GET'])
@@ -335,6 +343,11 @@ def slot(index):
                     l = li
                 else:
                     counter += 1
+            t = {}
+            t['source'] = l['source']
+            t['target'] = l['target']
+            t['value'] = counter
+            links.append(t)
 
         slots.append(temp)
     return render_template("slot.html", slots = json.dumps(slots), links = json.dumps(links))

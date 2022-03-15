@@ -103,7 +103,7 @@
     const margin = { top: 500, right: 10, bottom: 60, left: 10 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
-    const g = svg.append('g').attr('id', 'maingroup')
+    const g = svg.append('g').attr('id', 'slotview')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
 
@@ -115,10 +115,10 @@ const xscale = d3.scaleLinear()
 const xaxis = d3.axisBottom(xscale)
   .ticks(32)
   .tickSize(-10)
-  .tickPadding(45)
+  .tickPadding(25)
   .tickFormat(function(d,i){return (i < 33 & i > 0)? ("slot " + (i-1)):"";});
   
-console.log(xscale(2));
+
 g.append('g').call(xaxis)
   .attr('id', 'xaxis')
   .selectAll('text')
@@ -130,19 +130,41 @@ console.log(slot_total)
 const links = eval('{{links | safe}}');
 console.log(links)
 
+
+var [e,f] = d3.extent(links, function(d){return d.value;})
+console.log([e,f]);
+var thickness = d3.scaleLinear().domain([e,f]).range([1, 20]);
+
+function arc(d) {
+   const x1 = xscale(d.source)+innerWidth/68;
+   const x2 = xscale(d.target)+innerWidth/68;
+   const r = Math.abs(x2 - x1) / 2;
+   return `m${x1},${innerWidth/34}A${r},${r} 0,1,0 ${x2},${innerWidth/34}`;
+ }
+
+const path = d3.select('#slotview').append('g').attr('id','inclusion_delay').attr('fill','none')
+    .selectAll("path")
+    .data(links).enter()
+    .append("path")      
+	.attr("d", arc)
+	.attr("stroke-width", function(d){return thickness(d.value);})
+    .attr("stroke", "blue")
+
+
 var [a,b] = d3.extent(slot_total, function(d,i){return d.at_number;})
 console.log([a,b]);
 var distribute = d3.scaleLinear().domain([a,b]).range([10, innerWidth/34]);
 
-//console.log(d3.filter(slot_total, x=>x.block_header !=0))
-var [m,n] = d3.extent(slot_total, function(d,i){return d.block_header})
-var opaci = d3.scaleLinear().domain([m,n]).range([0, 1]);
-console.log([m,n]);
-var [h,q] = d3.extent(slot_total, function(d){return d.casper_balance;})
-var cas_opa = d3.scaleLinear().domain([h,q]).range([0, 1]);
+
+var [m,n] = d3.extent(d3.filter(slot_total, x=>x.block_header !=0), function(d,i){return d.block_header})
+var opaci = d3.scaleLinear().domain([m,n]).range([0.1, 1]);
+
+var [h,q] = d3.extent(d3.filter(slot_total, x=>x.block_header !=0), function(d){return d.casper_balance;})
+var cas_opa = d3.scaleLinear().domain([h,q]).range([0.2, 1]);
+console.log([h,q]);
 
 
-var draw = d3.select('g').append('g')
+var draw = d3.select('#slotview').append('g').attr('id','block_header')
   .selectAll('rect').data(slot_total).enter()
   .append('rect')
   .attr('transform',function(d,i){
@@ -153,9 +175,25 @@ var draw = d3.select('g').append('g')
   .attr('height', function(d){
 	  hei = d.at_number == 0? 0 : distribute(d.at_number)
 	  return hei/2;})
-  .attr('fill', "grey")
+  .attr('fill', function(d){return d3.interpolateGreys(opaci(d.block_header))})
   .attr('opacity', 0.9)
-//i was here
+
+
+var draw_casper = d3.select('#slotview').append('g').attr('id','casper_balance')
+  .selectAll('rect').data(slot_total).enter()
+  .append('rect')
+  .attr('transform',function(d,i){
+	return `translate(${xscale(i)+innerWidth/68-distribute(d.at_number)/2}, ${0})`;
+  })
+  .attr('width', function(d){
+	  return d.at_number == 0? 0 : distribute(d.at_number);} )//长宽待定
+  .attr('height', function(d){
+	  hei = d.at_number == 0? 0 : distribute(d.at_number)
+	  return hei/2;})
+  .attr('fill', function(d){return d3.interpolateGreys(d.block_header == 0? 0.1:cas_opa(d.casper_balance))})
+  .attr('opacity', 0.9)
+
+
 var ex_block = innerWidth/50;  
 //var [m,n] = d3.extent(slot_total, function(d,i){return len(d.ex_blocks);})
 //console.log([m,n]);
@@ -163,37 +201,21 @@ var dis = d3.scaleLinear().domain([m,n]).range([10, innerWidth/34]);
 
 
 for(let j = 0; j < slot_total.length; j++){
-	for(let k=1; k <= slot_total[j]['ex_blocks']; k++){
-		d3.select('g').append('g')
-        .attr('transform',function(d){
-        return `translate(${xscale(j)+innerWidth/68-ex_block/2},${k*(ex_block+10)+30})`;
-        })
+		var [u,v] = d3.extent(slot_total[j]['ex_blocks'])
+		var dis = d3.scaleLinear().domain([u,v]).range([0.1, 1]);
+		d3.select('g').append('g').selectAll('rect')
+		.data(slot_total[j]['ex_blocks']).enter()
         .append('rect')
+		.attr('transform',function(d,i){
+			console.log(i)
+        return `translate(${xscale(j)+innerWidth/68-ex_block/2},${-i*(ex_block+10)-innerWidth/34-20})`;
+        })
 		.attr('width', ex_block)
 		.attr('height', ex_block)
-		.attr('fill',"lightblue")
+		.attr('fill',function(d){return d3.interpolateBlues(dis(d));})
 		.attr('opacity',0.9)
-	}
 }
 
-var [e,f] = d3.extent(links, function(d){return d.value;})
-console.log([e,f]);
-var thickness = d3.scaleLinear().domain([e,f]).range([1, 20]);
-
-function arc(d) {
-   const x1 = xscale(d.source)+innerWidth/68;
-   const x2 = xscale(d.target)+innerWidth/68;
-   const r = Math.abs(x2 - x1) / 2;
-   return `m${x1},${0}A${r},${r} 0,1,1 ${x2},${0}`;
- }
-
-const path = d3.select('g').append('g').attr('id','inclusion_delay').attr('fill','none')
-    .selectAll("path")
-    .data(links).enter()
-    .append("path")      
-	.attr("d", arc)
-	.attr("stroke-width", function(d){return thickness(d.value);})
-    .attr("stroke", "blue")
 
 </script>
 
