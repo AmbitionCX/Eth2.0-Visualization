@@ -172,7 +172,7 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:1500px;
+    top:600px;
     left:285px;
     text-align: center;
     text-decoration: none;
@@ -198,7 +198,7 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:1500px;
+    top:600px;
     left:330px;
     text-align: center;
     text-decoration: none;
