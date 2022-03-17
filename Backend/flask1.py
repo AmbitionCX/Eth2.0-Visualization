@@ -12,6 +12,7 @@ import json
 import simplejson
 import datetime
 import numpy as np
+import copy
 
 url = 'http://10.192.9.11:9091/api/v1/query'
 headers = {
@@ -188,14 +189,17 @@ def validator(index):
         tmp['validator_index'] = v
         tmp['vote'] = 1
         val_error.append(tmp)
-    print(len(val_error))
+    val_error.sort(key=lambda x:x['validator_index'])
+
+    #print(len(val_error))
 
     casper = []
+    tag=1
     for s in range(index, index - 8 ,-1):
-        print(s)
+        #print(s)
         cas = {}
         cas['epoch'] = s
-        cas['validator'] = val_error
+        cas['validator'] =copy.deepcopy(val_error)
         temp = Vote.query.filter(Vote.epoch == s).all()
         aggregate_y = []
         aggregate_n = []
@@ -204,19 +208,22 @@ def validator(index):
             aggregate_y += t.casper_y
             aggregate_n += t.casper_n
             aggregate_not_vote += t.not_vote
-        print(1)
+
         for i in range(0, len(val_error)):
             v = cas['validator'][i]['validator_index']
+
             if v in aggregate_n:
                 cas['validator'][i]['vote'] = 0
+
             else:
                 if v in aggregate_not_vote:
                     cas['validator'][i]['vote'] = -1
+
                 else:
                     if v in aggregate_y:
-                        continue
+                        cas['validator'][i]['vote']=1
                     else:
-                        cas['validator'][i]['vote'] = -1
+                        cas['validator'][i]['vote'] = -2
         casper.append(cas)
     
     proposer = []
@@ -225,15 +232,16 @@ def validator(index):
         for s in range(i*32, (i+1)*32):
             data = Proposer.query.filter_by(slot=s).first()
             p.append(data.proposer)
+        p.sort()
         proposer.append(p)
-
-    return json.dumps(casper), json.dumps(proposer)
+    # print(casper)
+    return render_template('3.html', d = json.dumps(casper), proposer = json.dumps(proposer))
 
 
 @app.route('/Vali/<int:index>',methods=['GET'])
 def Vali(index):
     ats = Attestation.query.filter(Attestation.inclusion_slot.in_(range(index*32,(index+1)*32))).order_by(Attestation.inclusion_slot,Attestation.slot,Attestation.committee_index).all()
-    
+
     # val为选定epoch中，投否定票或missed（没有投票）的参与者集合
     # print(list(set(ats[-16].committee()) - set(ats[-16].aggregation_indices)))
     com = ats[0].committee()
@@ -378,7 +386,7 @@ def block():
                     balance = 0
                 balance += b['balance']
     return ""
-    
+
 @app.route('/',methods=['GET'])
 def index():
     return "Hello Vue"
