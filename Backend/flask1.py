@@ -11,7 +11,7 @@ import math
 import json
 import simplejson
 import datetime
-import numpy as np
+import copy
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@10.192.9.11'
@@ -134,14 +134,16 @@ def validator(index):
         tmp['validator_index'] = v
         tmp['vote'] = 1
         val_error.append(tmp)
-    print(len(val_error))
+    val_error.sort(key=lambda x:x['validator_index'])
+
+    #print(len(val_error))
 
     casper = []
     for s in range(index, index - 8 ,-1):
-        print(s)
+        #print(s)
         cas = {}
         cas['epoch'] = s
-        cas['validator'] = val_error
+        cas['validator'] =copy.deepcopy(val_error)
         temp = Vote.query.filter(Vote.epoch == s).all()
         aggregate_y = []
         aggregate_n = []
@@ -150,19 +152,22 @@ def validator(index):
             aggregate_y += t.casper_y
             aggregate_n += t.casper_n
             aggregate_not_vote += t.not_vote
-        print(1)
+
         for i in range(0, len(val_error)):
             v = cas['validator'][i]['validator_index']
+
             if v in aggregate_n:
                 cas['validator'][i]['vote'] = 0
+
             else:
                 if v in aggregate_not_vote:
                     cas['validator'][i]['vote'] = -1
+
                 else:
                     if v in aggregate_y:
-                        continue
+                        cas['validator'][i]['vote']=1
                     else:
-                        cas['validator'][i]['vote'] = -1
+                        cas['validator'][i]['vote'] = -2
         casper.append(cas)
     
     proposer = []
@@ -172,53 +177,7 @@ def validator(index):
             data = Proposer.query.filter_by(slot=s).first()
             p.append(data.proposer)
         proposer.append(p)
-
-    return json.dumps(casper), json.dumps(proposer)
-
-
-@app.route('/Vali/<int:index>',methods=['GET'])
-def Vali(index):
-    ats = Attestation.query.filter(Attestation.inclusion_slot.in_(range(index*32,(index+1)*32))).order_by(Attestation.inclusion_slot,Attestation.slot,Attestation.committee_index).all()
-    
-    # val为选定epoch中，投否定票或missed（没有投票）的参与者集合
-    # print(list(set(ats[-16].committee()) - set(ats[-16].aggregation_indices)))
-    com = ats[0].committee()
-    val = com.committee
-    for a in ats:
-        if a.committee_index != com.index:
-            com = a.committee()
-            val = val + com.committee
-        # print(list(set(a.committee()) - set(a.aggregation_indices)))
-        j = 0
-        val_correct = []
-        while j < len(a.aggregation_indices):
-            if a.bits()[j] == '1':
-                val_correct.append(a.aggregation_indices[j])
-            j += 1
-        val = list(set(val)-set(val_correct))
-    val = list(set(val))
-    print(len(val))
-    records = []
-    for i in range(index-1, index-3,-1):
-        record = {}
-        attest = Attestation.query.filter(Attestation.inclusion_slot.in_(range(i*32,(i+1)*32))).all()
-        record['epoch'] = i
-        validators = []
-        for v in val:
-            vali = {}
-            vali['validator_index'] = v
-            vali['vote'] = -1
-            for a in attest:
-                if v in a.aggregation_indices:
-                    vali['vote'] = eval(a.bits()[a.aggregation_indices.index(v)])
-                else:
-                    continue
-            validators.append(vali)
-        record['validator'] = validators
-        print(record)
-        records.append(record)
-        json.dump(records, open('epoch100.json', "w"))
-    return render_template('exp.html', data = json.dumps(records), val_error = json.dumps(val))
+    return json.dumps([casper] + [proposer])
 
 
 @app.route('/slot/<int:index>',methods=['GET'])
@@ -299,50 +258,10 @@ def slot(index):
     return json.dumps([slots] + [links])
 
 
-@app.route('/block')
-def block():
-    s = 0
-    temp = {} # 删除
-    votes = Vote.query.filter_by(slot = s).first()
-    # 以下tab
-    if votes:
-        blocks = votes.ghost_selection
-    if len(blocks) > 0:
-        blocks.sort(key=lambda x:(-x['canonical'],x['root']['data']))
-        temp['block_header'] = 0
-        temp['ex_blocks'] = []
-        block_prev = blocks[0]['root']['data']
-        balance = 0
-        for b in blocks:
-            if b['canonical'] == True:
-                temp['block_header'] += b['balance']
-            else:
-                if block_prev != b['root']['data']:
-                    if balance != 0:
-                        temp['ex_blocks'].append(balance)
-                    block_prev = b['root']['data']
-                    balance = 0
-                balance += b['balance']
-    return ""
-    
+
 @app.route('/',methods=['GET'])
 def index():
     return "Hello Vue"
-
-@app.route('/get_filtered_list', methods=['GET','POST'])
-def get_filtered_list():
-    post_data = request.data.decode()
-    index = 100
-    if post_data != "":
-        index = simplejson.loads(post_data)['epoch']
-    ats = Attestation.query.filter_by(inclusion_slot=index*32).all()
-    slots = []
-    for a in ats:
-        temp={}
-        temp['inclusion_slot'] = a.inclusion_slot
-        temp['slot'] = a.slot
-        slots.append(temp)
-    return json.dumps(slots)
 
 
 if __name__ == '__main__':
