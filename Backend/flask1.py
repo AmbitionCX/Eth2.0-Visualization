@@ -177,8 +177,9 @@ def validator(index):
         for s in range(i*32, (i+1)*32):
             data = Proposer.query.filter_by(slot=s).first()
             p.append(data.proposer)
+        p.sort()
         proposer.append(p)
-    return json.dumps([casper] + [proposer])
+    return render_template('3.html', d = json.dumps(casper), proposer = json.dumps(proposer))
 
 
 @app.route('/slot/<int:index>',methods=['GET'])
