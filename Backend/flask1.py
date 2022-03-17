@@ -11,17 +11,7 @@ import math
 import json
 import simplejson
 import datetime
-<<<<<<< HEAD
-import numpy as np
 import copy
-
-url = 'http://10.192.9.11:9091/api/v1/query'
-headers = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'
-}
-=======
-import copy
->>>>>>> a4f019a91093a95276077fb9eb817f3d50cc90fa
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@10.192.9.11'
@@ -149,7 +139,6 @@ def validator(index):
     #print(len(val_error))
 
     casper = []
-    tag=1
     for s in range(index, index - 8 ,-1):
         #print(s)
         cas = {}
@@ -189,57 +178,7 @@ def validator(index):
             p.append(data.proposer)
         p.sort()
         proposer.append(p)
-<<<<<<< HEAD
-    # print(casper)
     return render_template('3.html', d = json.dumps(casper), proposer = json.dumps(proposer))
-
-
-@app.route('/Vali/<int:index>',methods=['GET'])
-def Vali(index):
-    ats = Attestation.query.filter(Attestation.inclusion_slot.in_(range(index*32,(index+1)*32))).order_by(Attestation.inclusion_slot,Attestation.slot,Attestation.committee_index).all()
-
-    # val为选定epoch中，投否定票或missed（没有投票）的参与者集合
-    # print(list(set(ats[-16].committee()) - set(ats[-16].aggregation_indices)))
-    com = ats[0].committee()
-    val = com.committee
-    for a in ats:
-        if a.committee_index != com.index:
-            com = a.committee()
-            val = val + com.committee
-        # print(list(set(a.committee()) - set(a.aggregation_indices)))
-        j = 0
-        val_correct = []
-        while j < len(a.aggregation_indices):
-            if a.bits()[j] == '1':
-                val_correct.append(a.aggregation_indices[j])
-            j += 1
-        val = list(set(val)-set(val_correct))
-    val = list(set(val))
-    print(len(val))
-    records = []
-    for i in range(index-1, index-3,-1):
-        record = {}
-        attest = Attestation.query.filter(Attestation.inclusion_slot.in_(range(i*32,(i+1)*32))).all()
-        record['epoch'] = i
-        validators = []
-        for v in val:
-            vali = {}
-            vali['validator_index'] = v
-            vali['vote'] = -1
-            for a in attest:
-                if v in a.aggregation_indices:
-                    vali['vote'] = eval(a.bits()[a.aggregation_indices.index(v)])
-                else:
-                    continue
-            validators.append(vali)
-        record['validator'] = validators
-        print(record)
-        records.append(record)
-        json.dump(records, open('epoch100.json', "w"))
-    return render_template('exp.html', data = json.dumps(records), val_error = json.dumps(val))
-=======
-    return json.dumps([casper] + [proposer])
->>>>>>> a4f019a91093a95276077fb9eb817f3d50cc90fa
 
 
 @app.route('/slot/<int:index>',methods=['GET'])
@@ -321,35 +260,6 @@ def slot(index):
 
 
 
-<<<<<<< HEAD
-@app.route('/block')
-def block():
-    s = 0
-    temp = {} # 删除
-    votes = Vote.query.filter_by(slot = s).first()
-    # 以下tab
-    if votes:
-        blocks = votes.ghost_selection
-    if len(blocks) > 0:
-        blocks.sort(key=lambda x:(-x['canonical'],x['root']['data']))
-        temp['block_header'] = 0
-        temp['ex_blocks'] = []
-        block_prev = blocks[0]['root']['data']
-        balance = 0
-        for b in blocks:
-            if b['canonical'] == True:
-                temp['block_header'] += b['balance']
-            else:
-                if block_prev != b['root']['data']:
-                    if balance != 0:
-                        temp['ex_blocks'].append(balance)
-                    block_prev = b['root']['data']
-                    balance = 0
-                balance += b['balance']
-    return ""
-
-=======
->>>>>>> a4f019a91093a95276077fb9eb817f3d50cc90fa
 @app.route('/',methods=['GET'])
 def index():
     return "Hello Vue"
