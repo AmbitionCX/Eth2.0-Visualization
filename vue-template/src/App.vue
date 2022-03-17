@@ -47,7 +47,7 @@ export default {
 
 #Epoch {
   position: absolute;
-  top:1515px;
+  top:615px;
   left:10px;
   background: #ffffff;
   border-radius: 2px;
@@ -56,13 +56,13 @@ export default {
 
 #Validator {
   position: absolute;
-  top: 1515px;
+  top: 615px;
   left: 500px;
 }
 
 #Slot {
   position:absolute;
-  top:1900px;
+  top:1000px;
   left:10px;
 }
 

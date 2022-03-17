@@ -11,17 +11,18 @@ import math
 import json
 import simplejson
 import datetime
-import numpy as np
-
-url = 'http://10.192.9.11:9091/api/v1/query'
-headers = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'
-}
+import copy
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@10.192.9.11'
 db = SQLAlchemy(app)
 CORS(app)
+
+class c_overview(db.Model):
+    __tablename__ = 'c_overview'
+    days = db.Column('f_days',db.Integer,primary_key = True)
+    blocks = db.Column('f_blocks',db.Integer)
+    deposits = db.Column('f_deposits',db.Integer)
 
 class Epoch(db.Model):
     __tablename__='t_epoch_summaries'
@@ -92,68 +93,17 @@ class Vote(db.Model):
 
 @app.route('/Overview')
 def Overview():
-    #新表
-    # data1= c_block_status.query.order_by(-c_block_status.slot).limit(60000*32)
-    # data2 = data1[::-1] 
-    # canonical = []
-  
-        
-    # for i in range(math.ceil(len(data2)/8160)):
-    #     count = 0
-    #     for d in data2[8160*i:8160*(i+1):1]:
-    #         if not d.canonical == True:
-    #             count+=1
-            
-    #     canonical.append(count) 
-
-    data2= Block.query.order_by(Block.slot).limit(32*225*100).all()
-    print("data_loaded")
-    canonical = []
-    deposit = []
-    dayData1 = []
-
-    counter = 0
-    prev = 0
-    for i in data2:
-        if math.floor((i.slot)/7200) != prev:
-            canonical.append(counter)
-            counter = 0
-            prev = math.floor((i.slot)/7200)
-        counter += 1
-    canonical.append(counter)
-    print("1")
-    
-    deposit = []
-    for i in range(math.ceil((data2[-1].slot)/32)):
-        deposit.append([])
-    
-    for i in data2:
-        
-        deposit[math.floor((i.slot)/32)].append(i.deposit)
-    deposit1 = []
-    for i in range(len(deposit)):
-        deposit1.append([])
-        deposit1[i] = sum(deposit[i])
-    print('2')
-
-    deposits = []
-   
-    for j in range(math.ceil(len(deposit1)/225)):
-        deposits.append([])
-        for i in deposit1[j*225:(j+1)*225]:
-            deposits[j].append(i)
-
-    print('3')
-    for i in range(len(canonical)):
+    data= c_overview.query.order_by(c_overview.days).limit(230).all()
+    dayData = []
+    for i in data:
         s = {}
-        add_day=datetime.timedelta(i)
+        add_day=datetime.timedelta(i.days)
         first_day = datetime.datetime(2020,12,1)
         s['day'] = datetime.datetime.strftime(first_day+add_day,'%Y-%m-%d')
-        s['canonical'] =8160-canonical[i]
-        s['deposits'] = deposits[i]
-        dayData1.append(s)
-    print('4')
-    return json.dumps(dayData1)
+        s['canonical']= sum(i.blocks)
+        s['deposits']= i.deposits
+        dayData.append(s)
+    return json.dumps(dayData)
 
 
 @app.route('/EpochView/<int:index>')
@@ -168,10 +118,6 @@ def EpochView(index):
         s['target_correct_balance'] = d.target_correct_balance
         s['head_correct_balance'] = d.head_correct_balance
         epochs.append(s)
-    param = {'query':'beacon_current_justified_epoch'}
-    justified = eval(requests.get(url = url, params = param, headers = headers).json()['data']['result'][0]['value'][1])
-    param = {'query':'beacon_finalized_epoch'}
-    finalized = eval(requests.get(url = url, params = param, headers = headers).json()['data']['result'][0]['value'][1])
     return json.dumps(epochs)
 
 
@@ -189,14 +135,16 @@ def validator(index):
         tmp['validator_index'] = v
         tmp['vote'] = 1
         val_error.append(tmp)
-    print(len(val_error))
+    val_error.sort(key=lambda x:x['validator_index'])
+
+    #print(len(val_error))
 
     casper = []
     for s in range(index, index - 8 ,-1):
-        print(s)
+        #print(s)
         cas = {}
         cas['epoch'] = s
-        cas['validator'] = val_error
+        cas['validator'] =copy.deepcopy(val_error)
         temp = Vote.query.filter(Vote.epoch == s).all()
         aggregate_y = []
         aggregate_n = []
@@ -205,19 +153,22 @@ def validator(index):
             aggregate_y += t.casper_y
             aggregate_n += t.casper_n
             aggregate_not_vote += t.not_vote
-        print(1)
+
         for i in range(0, len(val_error)):
             v = cas['validator'][i]['validator_index']
+
             if v in aggregate_n:
                 cas['validator'][i]['vote'] = 0
+
             else:
                 if v in aggregate_not_vote:
                     cas['validator'][i]['vote'] = -1
+
                 else:
                     if v in aggregate_y:
-                        continue
+                        cas['validator'][i]['vote']=1
                     else:
-                        cas['validator'][i]['vote'] = -1
+                        cas['validator'][i]['vote'] = -2
         casper.append(cas)
     
     proposer = []
@@ -227,53 +178,7 @@ def validator(index):
             data = Proposer.query.filter_by(slot=s).first()
             p.append(data.proposer)
         proposer.append(p)
-
-    return json.dumps(casper), json.dumps(proposer)
-
-
-@app.route('/Vali/<int:index>',methods=['GET'])
-def Vali(index):
-    ats = Attestation.query.filter(Attestation.inclusion_slot.in_(range(index*32,(index+1)*32))).order_by(Attestation.inclusion_slot,Attestation.slot,Attestation.committee_index).all()
-    
-    # val为选定epoch中，投否定票或missed（没有投票）的参与者集合
-    # print(list(set(ats[-16].committee()) - set(ats[-16].aggregation_indices)))
-    com = ats[0].committee()
-    val = com.committee
-    for a in ats:
-        if a.committee_index != com.index:
-            com = a.committee()
-            val = val + com.committee
-        # print(list(set(a.committee()) - set(a.aggregation_indices)))
-        j = 0
-        val_correct = []
-        while j < len(a.aggregation_indices):
-            if a.bits()[j] == '1':
-                val_correct.append(a.aggregation_indices[j])
-            j += 1
-        val = list(set(val)-set(val_correct))
-    val = list(set(val))
-    print(len(val))
-    records = []
-    for i in range(index-1, index-3,-1):
-        record = {}
-        attest = Attestation.query.filter(Attestation.inclusion_slot.in_(range(i*32,(i+1)*32))).all()
-        record['epoch'] = i
-        validators = []
-        for v in val:
-            vali = {}
-            vali['validator_index'] = v
-            vali['vote'] = -1
-            for a in attest:
-                if v in a.aggregation_indices:
-                    vali['vote'] = eval(a.bits()[a.aggregation_indices.index(v)])
-                else:
-                    continue
-            validators.append(vali)
-        record['validator'] = validators
-        print(record)
-        records.append(record)
-        json.dump(records, open('epoch100.json', "w"))
-    return render_template('exp.html', data = json.dumps(records), val_error = json.dumps(val))
+    return json.dumps([casper] + [proposer])
 
 
 @app.route('/slot/<int:index>',methods=['GET'])
@@ -354,50 +259,10 @@ def slot(index):
     return json.dumps([slots] + [links])
 
 
-@app.route('/block')
-def block():
-    s = 0
-    temp = {} # 删除
-    votes = Vote.query.filter_by(slot = s).first()
-    # 以下tab
-    if votes:
-        blocks = votes.ghost_selection
-    if len(blocks) > 0:
-        blocks.sort(key=lambda x:(-x['canonical'],x['root']['data']))
-        temp['block_header'] = 0
-        temp['ex_blocks'] = []
-        block_prev = blocks[0]['root']['data']
-        balance = 0
-        for b in blocks:
-            if b['canonical'] == True:
-                temp['block_header'] += b['balance']
-            else:
-                if block_prev != b['root']['data']:
-                    if balance != 0:
-                        temp['ex_blocks'].append(balance)
-                    block_prev = b['root']['data']
-                    balance = 0
-                balance += b['balance']
-    return ""
-    
+
 @app.route('/',methods=['GET'])
 def index():
     return "Hello Vue"
-
-@app.route('/get_filtered_list', methods=['GET','POST'])
-def get_filtered_list():
-    post_data = request.data.decode()
-    index = 100
-    if post_data != "":
-        index = simplejson.loads(post_data)['epoch']
-    ats = Attestation.query.filter_by(inclusion_slot=index*32).all()
-    slots = []
-    for a in ats:
-        temp={}
-        temp['inclusion_slot'] = a.inclusion_slot
-        temp['slot'] = a.slot
-        slots.append(temp)
-    return json.dumps(slots)
 
 
 if __name__ == '__main__':

@@ -107,6 +107,25 @@ export default {
                     var temp = d3.select(this).data();
                     that.$emit('details',temp[0].epoch);
                   })     
+		 
+     //var [a,b] = d3.extent(record, function(d){return d.minTemp;});//max时choice=MaxTemp
+		 
+		 function color() {
+			 return d3.scaleLinear([a, b], function (t){return d3.interpolateReds(t);}); 
+		 } 
+    d3.select("#legend")
+		   .append("g").attr("id","legend")
+       .call(that.colorbox,[450,20],d3.scaleLinear([a, b], function (t){return d3.interpolateReds(t);}))
+		   .attr("transform","translate(5,0)")
+		 //创建图例
+		 
+		 d3.select("#legend")
+		   .append("g")
+		   .call(d3.axisBottom(d3.scaleLinear().domain([b,a]).range([450,0])).ticks(5))
+		   .attr("transform","translate(5,20)")
+		 d3.select("#legend") 
+		   .append("text")
+		   .text("/%C").attr("transform","translate(450,35) scale(0.5)")
   },
 
 
@@ -134,6 +153,43 @@ export default {
                     var temp = d3.select(this).data();
                     that.$emit('details',temp[0].epoch);
                   })     
+   },
+
+  colorbox(sel, size, colors){
+    var [x0,x1] = d3.extent( colors.domain());
+    var bars = d3.range( x0, x1, (x1-x0)/size[0]);
+    var sc = d3.scaleLinear()
+        .domain([x0,x1]).range( [0, size[0]]);
+    sel.selectAll("line").data(bars).enter().append("line")
+      .attr( "x1", sc).attr( "x2",sc)
+      .attr( "y1", 0).attr("y2",size[1])
+      .attr("stroke",colors);
+    
+    sel.append("rect")
+        .attr("width",size[0]).attr("height",size[1])
+        .attr("fill","none").attr("stroke","black")
+		 },
+
+  Legend(){
+    var [a,b] = d3.extent(record, function(d){return d.minTemp;});//max时choice=MaxTemp
+		 
+		function color() {
+		    var med = d3.median([a,b]);
+			 return d3.scaleDiverging([a, med, b], function (t){return d3.interpolatePuBu(t);}); 
+		}
+    d3.select("#legend")
+		   .append("g").attr("id","legend")
+       .call( colorbox,[450,20],colorM())
+		   .attr("transform","translate(5,0)")
+		 //创建图例
+		 
+		 d3.select("#legend")
+		   .append("g")
+		   .call(d3.axisBottom(d3.scaleLinear().domain([b,a]).range([450,0])).ticks(5))
+		   .attr("transform","translate(5,20)")
+		 d3.select("#legend") 
+		   .append("text")
+		   .text("/%C").attr("transform","translate(450,35) scale(0.5)")
    }
   },
   created(){
@@ -172,7 +228,7 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:1500px;
+    top:600px;
     left:285px;
     text-align: center;
     text-decoration: none;
@@ -198,7 +254,7 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:1500px;
+    top:600px;
     left:330px;
     text-align: center;
     text-decoration: none;
