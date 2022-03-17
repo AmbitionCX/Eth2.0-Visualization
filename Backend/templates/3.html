@@ -76,7 +76,7 @@ proposer=proposer.reverse();
  //graph保留数量信息
 
 for(var j=0;j<SUM;j++){
-  for(var i=0;i<data.length;i++){
+  for(var i=0,k=0;i<data.length;i++){
     var Y=data[i].validator[j].vote+1;
     if(Y==-1)
        console.log(i,j);
@@ -84,10 +84,10 @@ for(var j=0;j<SUM;j++){
     if(Y<0)
         Y=0;
     var X= ++graph[i][Y];
-    v_line[j].node.push( {dy:X,y:Y});
+    v_line[j].node.push( {dy:X,y:Y,ispro:0});
     }
     else{
-     v_line[j].node.push( {dy:0,y:2})
+     v_line[j].node.push( {dy:0,y:2,ispro:0})
     }
    }
 }
@@ -145,31 +145,31 @@ g.append('g').call(xaxis)
 const  rect_width=innerWidth/(5*c);
 const  sub_width=innerWidth/c-rect_width;
 const rect_height_I=innerHeight/SUM;
-g.selectAll('.datarect').data(data_rect).enter().append('rect')
-.attr('class','datarect')
-.attr('width',rect_width)
-.attr('height', d=>d.size*rect_height_I)
-.attr('y',function(d){
-    if(!d.j)
-    return (yscale2(d.j));
-    else
-    return yscale2(d.j)-d.size*rect_height_I;
-})
-.attr('x',d=>xscale2(d.i))
-.attr('fill',function(d){
-    if(!d.j)
-    return 'grey';
-    else 
-    return 'red';
-})
-.attr('opacity',0.8);
+// g.selectAll('.datarect').data(data_rect).enter().append('rect')
+// .attr('class','datarect')
+// .attr('width',rect_width)
+// .attr('height', d=>d.size*rect_height_I)
+// .attr('y',function(d){
+//     if(!d.j)
+//     return (yscale2(d.j));
+//     else
+//     return yscale2(d.j)-d.size*rect_height_I;
+// })
+// .attr('x',d=>xscale2(d.i))
+// .attr('fill',function(d){
+//     if(!d.j)
+//     return 'grey';
+//     else 
+//     return 'red';
+// })
+// .attr('opacity',0.8);
 
 
 var x1=[];
 var x2=[];
 for(j=0;j<data.length-1;j++){
-       x1.push((j+1)*rect_width+j*sub_width);
-       x2.push((j+1)*rect_width+(j+1)*sub_width);
+       x1.push((j+1)*rect_width+j*sub_width+sub_width/2);
+       x2.push((j+1)*rect_width+(j+1)*sub_width+sub_width/2);
   }
 // console.log(x1,x2);
 function make_line(i){
@@ -182,7 +182,7 @@ function make_line(i){
         if(v_line[i].node[j].y==2)
             h=0;
         else if(v_line[i].node[j].y==0)
-            h=rect_height_I*v_line[i].node[j].dy+yscale2(v_line[i].node[j].y);
+            h=rect_height_I*v_line[i].node[j].dy+yscale2(v_line[i].node[j].y)+(SUM-graph[j][0]-graph[j][1])*rect_height_I;
         else 
            h=rect_height_I*v_line[i].node[j].dy+yscale2(v_line[i].node[j].y)-graph[j][1]*rect_height_I;
         Y.push(h);
@@ -201,8 +201,8 @@ function make_line(i){
         let cpx2 = x2[j] - dx;
         let cpy2 = y2[j] - dy;
         path.moveTo(x1[j],y1[j]);
-        //path.bezierCurveTo(cpx1,cpy1,cpx2,cpy2,x2[j],y2[j]);
-        path.lineTo(x2[j],y2[j]);
+        //path.bezierCurveTo(cpx1,cpy1,cpx2,cpy2,x2[j],y2[j]);  //曲线
+        path.lineTo(x2[j],y2[j]);                                //直线
        }
 
     }
@@ -210,15 +210,44 @@ function make_line(i){
             .attr('class','v_line')
             .attr('d', path.toString())
             .style('stroke','blue')
-            .style('stroke-width','1')
+            .style('stroke-width','0.5')
             .style('fill','none')
             
            
 }
+function make_rect(i){
+    for(j=0;j<v_line[i].node.length;j++){
+    if(v_line[i].node[j].y!=2){
+var y=v_line[i].node[j].y;
+var dy=v_line[i].node[j].dy;
+ g.append('rect')
+.attr('class','v_rect')
+.attr('width',rect_width)
+.attr('height', rect_height_I*0.9)
+.attr('y',function(){
+    var ans;
+    if(!y)
+    ans= (yscale2(y))+(dy-1)*rect_height_I+(SUM-graph[j][0]-graph[j][1])*rect_height_I;
+    else
+    ans=yscale2(y)-graph[j][1]*rect_height_I+(dy-1)*rect_height_I;
+    return ans;
+})
+.attr('x',xscale2(j)+sub_width/2)
+.attr('fill',function(){
+    if(!y)
+     return 'grey';
+    else 
+     return 'red';
+})
+.attr('opacity',0.8);
 
+    }
 
+  }
+}
 for(var i=0;i<v_line.length;i++){
        make_line(i);
+       make_rect(i);
 }
 
     </script>
