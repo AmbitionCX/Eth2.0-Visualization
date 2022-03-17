@@ -1,7 +1,7 @@
 <template>
   <div class="overview">
    
-    <svg id = "mainsvg" style = 'width:4200px; height:3600px'>
+    <svg id = "Overview" style = 'width:1200px; height:600px'>
  
     </svg>
     
@@ -18,13 +18,13 @@ export default {
 
     return {
       all:[],
-      width: 2000,
-      height: 1750,
+      width: 1200,
+      height: [22],
       margin:{
-        top:100,
-        right:90,
-        bottom:60,
-        left:90
+        top:0,
+        right:60,
+        bottom:0,
+        left:60
       },
       r:15,
       c:15,
@@ -36,13 +36,16 @@ export default {
     //this.Scale();
   },
   computed:{
+    all_data(){
+      return this.all
+    },
     innerWidth(){
       return this.width - this.margin.left - this.margin.right
     },
     innerHeight(){
-      return this.height - this.margin.top - this.margin.bottom
+      return this.height[this.height.length-1] - this.margin.top - this.margin.bottom
     },
-    dayData(){
+    day(){
       let day = this.all
       day.forEach(d =>{
         d["date"] = new Date(d['day']).getDate();
@@ -50,6 +53,19 @@ export default {
         d["year"] = new Date(d['day']).getFullYear();
     })
     return day
+    },
+    dayData(){
+        let dayDatas=[[],[],[]]
+        dayDatas[0] = this.day.filter(d =>{
+                return d["year"]==2020;
+        })
+        dayDatas[1] = this.day.filter(d =>{
+                return d["year"]==2021;
+        })
+        dayDatas[2] = this.day.filter(d =>{
+                return d["year"]==2022;
+        })
+      return dayDatas;
     }
   },
   methods:{
@@ -64,165 +80,121 @@ export default {
            console.error(error);
          });
      },
-     show(data){
-       console.log(data);
-     },
  
   Color(num){
     let that = this;
-    const color = d3.scaleLinear()
-                    .domain([d3.min(that.dayData,function(d){return d["canonical"]}),
-                             d3.max(that.dayData,function(d){return d["canonical"]})])
+    const color = d3.scaleSymlog()
+                    .domain([d3.min(that.day,function(d){return d["canonical"]}),d3.max(that.day,function(d){return d["canonical"]})])
                     .range([0, 1]);
     return color(num)
   },
-  Draw(){
+  Draw(k){
+    let that = this;
+
+   
+    var rawdeposits = [];
+
+    var allmonths = Array.from(new Set(that.dayData[k].map(d => {
+            return d["month"];
+          })));
+            
+    allmonths.forEach(function() {
+            let b = [];
+            for(let i =0; i<31;i++){ b.push([]);}
+            rawdeposits.push(b);
+            })
+    var deposits = rawdeposits
+
+    that.dayData[k].forEach(d => {
+            for (let i = 0;i < d["deposits"].length; i++){
+            deposits[allmonths.indexOf(d['month'])][d["date"]-1].push(d["deposits"][i]);
+    }})
+
+    var svg = d3.select('#Overview');
+    const g = svg.append('g').attr("id","overview" + k)
+                 .attr('transform', `translate(${that.margin.left},${d3.sum(that.height)+22*k})`);
+
+    const xscale = d3.scaleLinear()
+    .domain([0,31])
+    .range([0, that.innerWidth]);
+
+    that.height.push(25 * allmonths.length)
+
+
+    const yscale = d3.scaleBand()
+                     .domain(allmonths.map(d => that.MONTHS[d]))
+                     .range([0, that.innerHeight])
+
+    const yaxis = d3.axisLeft(yscale)
+            // .ticks(allmonths.length)
+            // .tickPadding(-45);
+    const xaxis = d3.axisTop(xscale)
+            .ticks(31)
+            .tickPadding(5);
+
+    g.append('g').call(yaxis).attr('id' ,'yaxis');
+
+    g.append('g').call(xaxis).attr('id', 'xaxis');
     
-for (let i =0; i < this.dayData.length; i++){
-    this.dayData[i]['color'] = this.Color(this.dayData[i]["canonical"])}
+    let rectwid = 20
+    g.selectAll('.datarect'+ k).data(that.dayData[k]).enter().append('rect')
+     .attr('class', 'datarect'+k)
+     .attr('width', rectwid)
+     .attr('height', rectwid)
+     .attr('y', function(d){return yscale.step()*(allmonths.indexOf(d['month'])+0.5) - rectwid/2 }) 
+     .attr('x', d => (xscale(d['date'])-rectwid/2))
+     .attr('fill', d => d3.interpolateYlOrRd((that.Color(d["canonical"]))))
+     .attr('opacity', 0.9)
+     .on("click", function(){
+          var temp = d3.select(this).data();
+          console.log(temp)
+          let a = temp[0]['day'];
+          let b = "2020-12-01";
+          that.$emit('day_detail',225*(new Date(a) - new Date(b))/(1*24*60*60*1000));
+          })     
 
+    for (let i = 0; i < deposits.length; i++) {
+      for (let j = 0; j < deposits[i].length; j++) {
+        const xscale20 = d3.scaleLinear()
+                           .domain([0,254])
+                           .range([0, rectwid]);
 
-var dayDatas=[[],[],[]]
-dayDatas[0] = this.dayData.filter(d =>{
-        return d["year"]==2020;
-})
-dayDatas[1] = this.dayData.filter(d =>{
-        return d["year"]==2021;
-})
-dayDatas[2] = this.dayData.filter(d =>{
-        return d["year"]==2022;
-})
-console.log(dayDatas[0])
-console.log(dayDatas[1])
-console.log(dayDatas[2])
- 
+        const yscale20 = d3.scaleLinear()
+                           .domain([d3.max(deposits[i][j],function(d){return d}),d3.min(deposits[i][j],function(d){return d})])
+                           .range([0, rectwid]);
 
-for (let k=0; k<3;k++){
+        const line0 = d3.line()
+                        .x(function (d,i) {return xscale20(i);})
+                        .y(function (d) {return yscale20(d);});
 
-var rawdeposits = [];
-
-var allmonths = Array.from(new Set(dayDatas[k].map(d => {
-        return d["month"];
-      })));
-        
-allmonths.forEach(function(){
-        let b = [];
-        for(let i =0; i<31;i++){ b.push([]);}
-        rawdeposits.push(b);
-        })
-var deposits = rawdeposits
-
-dayDatas[k].forEach(d => {
-        for (let i=0;i<d["deposits"].length;i++){
-        deposits[allmonths.indexOf(d['month'])][d["date"]-1].push(d["deposits"][i]);
-}})
-
-console.log(deposits)
-let that = this;
-const width = 1400//(+svg.attr('width');
-const height = 45*allmonths.length//(+svg.attr('height');
-const margin = { top: 30, right: 60, bottom: 30, left: 55 };
-const innerWidth = width - margin.left - margin.right;
-const innerHeight = height - margin.top - margin.bottom;
-const g = d3.select('#mainsvg').append('g').attr('id', 'maingroup')
-              .attr('transform', `translate(${margin.left},${margin.top+height*k})`);
-
-              const xscale = d3.scaleLinear()
-.domain([0,31])
-.range([0, innerWidth]);
-
-const yscale = d3.scaleBand().
-        domain(allmonths.map(d => that.MONTHS[d])).
-        range([0, innerHeight]);
-
-
-const yaxis = d3.axisLeft(yscale)
-        .tickSize(5)
-        .tickPadding(20);
-const xaxis = d3.axisBottom(xscale)
-        .ticks(31)
-        .tickSize(-5)
-        .tickPadding(-20);
-
-g.append('g').call(yaxis).attr('id' ,'yaxis');
-
-g.append('g').call(xaxis).attr('id', 'xaxis');
-
-console.log(dayDatas[k])
-
-g.selectAll('.datarect').data(dayDatas[k]).enter().append('rect')
-.attr('class', 'datarect')
-.attr('width', 25)
-.attr('height', 25)
-.attr('y', d => (yscale(that.MONTHS[d['month']]))+12.5)
-.attr('x', d => (xscale(d['date'])) -12.5)
-.attr('fill', d => d3.interpolateYlOrRd((d['color']))).
-attr('opacity', 0.9)
-
-for (let i = 0; i < deposits.length; i++) {
-    for (let j = 0; j < deposits[i].length; j++) {
-                const xscale2 = d3.scaleLinear()
-                .domain([0,254])
-                .range([0, 25]);
-
-                const yscale2 = d3.scaleLinear().
-                domain([d3.max(deposits[i][j],function(d){
-                        return d}),d3.min(deposits[i][j],function(d){return d})])
-                        .range([0, 25]);
-
-                const line = d3.line()
-                .x(function (d, i) {return xscale2(i);})
-                .y(function (d) {return yscale2(d);});
-
-                d3.select('g')
-                .append('g')
-                .attr('transform', function () {
-                return `translate(${xscale(j+1) -12.5},${yscale(that.MONTHS[allmonths[i]]) +12.5+height*k})`;
-                })
-                .append('path')
-                .datum(deposits[i][j])
-                .attr('class', 'linestyle')
-                .attr("fill", "none")
-                .attr("stroke", "brown")
-                .attr("stroke-width", 0.3)
-                .attr("d", line)
+        d3.select('#overview'+k).append('g')
+          .attr('transform', function () {
+          return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectwid/2})`;
+          })
+          .append('path')
+          .datum(deposits[i][j])
+          .attr('class', 'linestyle')
+          .attr("fill", "none")
+          .attr("stroke", "brown")
+          .attr("stroke-width", 0.5)
+          .attr("d", line0)
         }
-      }}
-      
-
-  }
+      }
+    }
 
   },
   created(){
     this.getAll();
-  },
+},
   watch:{
-
+    all_data(){
+      for(let i=0; i < this.dayData.length; i++){
+        this.Draw(i);
+      }
+    }
   }
 };
 </script>
 
 <style>
-.overview {
-  position: sticky;
-  top: 100px;
-  background: #ffffff;
-  display: flex;
-  font-weight: bold;
-  border-radius: 2px;
-  box-shadow: 0 1px 2px rgba(26 26 26 0.2);
-}
-
-.panel-header-end {
-  position: absolute;
-  top: 0px;
-  left: 250px;
-  border-top: 40px solid #455a64;
-  border-right: 45px solid #ffffff;
-  border-bottom: 3px solid #ffffff;
-}
-
-.ant-table-selected :deep(.table-selected) td {
-  background-color: #fafafa;
-}
 </style>

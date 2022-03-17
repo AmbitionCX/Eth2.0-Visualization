@@ -11,6 +11,7 @@ import math
 import json
 import simplejson
 import datetime
+<<<<<<< HEAD
 import numpy as np
 import copy
 
@@ -18,11 +19,20 @@ url = 'http://10.192.9.11:9091/api/v1/query'
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'
 }
+=======
+import copy
+>>>>>>> a4f019a91093a95276077fb9eb817f3d50cc90fa
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@10.192.9.11'
 db = SQLAlchemy(app)
 CORS(app)
+
+class c_overview(db.Model):
+    __tablename__ = 'c_overview'
+    days = db.Column('f_days',db.Integer,primary_key = True)
+    blocks = db.Column('f_blocks',db.Integer)
+    deposits = db.Column('f_deposits',db.Integer)
 
 class Epoch(db.Model):
     __tablename__='t_epoch_summaries'
@@ -93,73 +103,22 @@ class Vote(db.Model):
 
 @app.route('/Overview')
 def Overview():
-    #新表
-    # data1= c_block_status.query.order_by(-c_block_status.slot).limit(60000*32)
-    # data2 = data1[::-1] 
-    # canonical = []
-  
-        
-    # for i in range(math.ceil(len(data2)/8160)):
-    #     count = 0
-    #     for d in data2[8160*i:8160*(i+1):1]:
-    #         if not d.canonical == True:
-    #             count+=1
-            
-    #     canonical.append(count) 
-
-    data2= Block.query.order_by(Block.slot).limit(32*225*100).all()
-    print("data_loaded")
-    canonical = []
-    deposit = []
-    dayData1 = []
-
-    counter = 0
-    prev = 0
-    for i in data2:
-        if math.floor((i.slot)/7200) != prev:
-            canonical.append(counter)
-            counter = 0
-            prev = math.floor((i.slot)/7200)
-        counter += 1
-    canonical.append(counter)
-    print("1")
-    
-    deposit = []
-    for i in range(math.ceil((data2[-1].slot)/32)):
-        deposit.append([])
-    
-    for i in data2:
-        
-        deposit[math.floor((i.slot)/32)].append(i.deposit)
-    deposit1 = []
-    for i in range(len(deposit)):
-        deposit1.append([])
-        deposit1[i] = sum(deposit[i])
-    print('2')
-
-    deposits = []
-   
-    for j in range(math.ceil(len(deposit1)/225)):
-        deposits.append([])
-        for i in deposit1[j*225:(j+1)*225]:
-            deposits[j].append(i)
-
-    print('3')
-    for i in range(len(canonical)):
+    data= c_overview.query.order_by(c_overview.days).limit(230).all()
+    dayData = []
+    for i in data:
         s = {}
-        add_day=datetime.timedelta(i)
+        add_day=datetime.timedelta(i.days)
         first_day = datetime.datetime(2020,12,1)
         s['day'] = datetime.datetime.strftime(first_day+add_day,'%Y-%m-%d')
-        s['canonical'] =8160-canonical[i]
-        s['deposits'] = deposits[i]
-        dayData1.append(s)
-    print('4')
-    return json.dumps(dayData1)
+        s['canonical']= sum(i.blocks)
+        s['deposits']= i.deposits
+        dayData.append(s)
+    return json.dumps(dayData)
 
 
-@app.route('/EpochView')
-def EpochView():
-    data = Epoch.query.order_by(-Epoch.epoch).limit(225)
+@app.route('/EpochView/<int:index>')
+def EpochView(index):
+    data = Epoch.query.filter(Epoch.epoch.in_(range(index,index+225))).order_by(-Epoch.epoch).all()
     epochs = []
     for d in data[::-1]:
         s = {}
@@ -169,10 +128,6 @@ def EpochView():
         s['target_correct_balance'] = d.target_correct_balance
         s['head_correct_balance'] = d.head_correct_balance
         epochs.append(s)
-    param = {'query':'beacon_current_justified_epoch'}
-    justified = eval(requests.get(url = url, params = param, headers = headers).json()['data']['result'][0]['value'][1])
-    param = {'query':'beacon_finalized_epoch'}
-    finalized = eval(requests.get(url = url, params = param, headers = headers).json()['data']['result'][0]['value'][1])
     return json.dumps(epochs)
 
 
@@ -234,6 +189,7 @@ def validator(index):
             p.append(data.proposer)
         p.sort()
         proposer.append(p)
+<<<<<<< HEAD
     # print(casper)
     return render_template('3.html', d = json.dumps(casper), proposer = json.dumps(proposer))
 
@@ -281,6 +237,9 @@ def Vali(index):
         records.append(record)
         json.dump(records, open('epoch100.json', "w"))
     return render_template('exp.html', data = json.dumps(records), val_error = json.dumps(val))
+=======
+    return json.dumps([casper] + [proposer])
+>>>>>>> a4f019a91093a95276077fb9eb817f3d50cc90fa
 
 
 @app.route('/slot/<int:index>',methods=['GET'])
@@ -358,9 +317,11 @@ def slot(index):
             links.append(t)
 
         slots.append(temp)
-    return render_template("slot.html", slots = json.dumps(slots), links = json.dumps(links))
+    return json.dumps([slots] + [links])
 
 
+
+<<<<<<< HEAD
 @app.route('/block')
 def block():
     s = 0
@@ -387,24 +348,11 @@ def block():
                 balance += b['balance']
     return ""
 
+=======
+>>>>>>> a4f019a91093a95276077fb9eb817f3d50cc90fa
 @app.route('/',methods=['GET'])
 def index():
     return "Hello Vue"
-
-@app.route('/get_filtered_list', methods=['GET','POST'])
-def get_filtered_list():
-    post_data = request.data.decode()
-    index = 100
-    if post_data != "":
-        index = simplejson.loads(post_data)['epoch']
-    ats = Attestation.query.filter_by(inclusion_slot=index*32).all()
-    slots = []
-    for a in ats:
-        temp={}
-        temp['inclusion_slot'] = a.inclusion_slot
-        temp['slot'] = a.slot
-        slots.append(temp)
-    return json.dumps(slots)
 
 
 if __name__ == '__main__':

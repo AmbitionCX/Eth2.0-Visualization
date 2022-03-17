@@ -1,6 +1,6 @@
 <template>
   <div>
-    <svg id = "Epoch"  class="epoch" style = 'width:400px; height:350px'> 
+    <svg id = "Epoch"  class="epoch" style = 'width:400px; height:340px'> 
     </svg>
     <button id = 'ghost' @click = 'GHOST()'>Head</button>
     <button id = 'casper' @click = 'Casper()'>Checkpoint</button>
@@ -13,28 +13,33 @@ import * as d3 from 'd3'
 
 export default {
   name:'Epoch',
-
+  props:["day"],
   data(){
-
     return {
       epochs:[],
       width: 400,
-      height: 350,
+      height: 340,
       margin:{
         top:30,
         right:10,
-        bottom:10,
+        bottom:0,
         left:30
       },
       r:15,
-      c:15,
-      msg:0
+      c:15
     };
   },
   mounted(){
-    this.Scale();
+
   },
   computed:{
+    index(){
+      console.log(this.day);
+      return this.day;
+    },
+    epoch(){
+      return this.epochs;
+    },
     innerWidth(){
       return this.width - this.margin.left - this.margin.right
     },
@@ -44,7 +49,7 @@ export default {
   },
   methods:{
      getEpoch(){
-       const path = 'http://127.0.0.1:5000/EpochView';
+       const path = 'http://127.0.0.1:5000/EpochView/' + eval(this.day);
        axios
          .get(path)
          .then(res => {
@@ -80,6 +85,7 @@ export default {
   },
 
   GHOST(){
+    let that = this;
     d3.select('#epochview').selectAll('rect').remove()
     const c = this.c;
     var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['head_correct_balance'];})
@@ -97,6 +103,29 @@ export default {
                   .attr("transform", function(d, i) {
             return `translate(${xscale(Math.floor((i)%c))+2.5},${yscale(Math.floor((i)/c))+2.5})`;
                   })
+                  .on("click", function(){                   
+                    var temp = d3.select(this).data();
+                    that.$emit('details',temp[0].epoch);
+                  })     
+		 
+     //var [a,b] = d3.extent(record, function(d){return d.minTemp;});//max时choice=MaxTemp
+		 
+		 function color() {
+			 return d3.scaleLinear([a, b], function (t){return d3.interpolateReds(t);}); 
+		 } 
+    d3.select("#legend")
+		   .append("g").attr("id","legend")
+       .call(that.colorbox,[450,20],d3.scaleLinear([a, b], function (t){return d3.interpolateReds(t);}))
+		   .attr("transform","translate(5,0)")
+		 //创建图例
+		 
+		 d3.select("#legend")
+		   .append("g")
+		   .call(d3.axisBottom(d3.scaleLinear().domain([b,a]).range([450,0])).ticks(5))
+		   .attr("transform","translate(5,20)")
+		 d3.select("#legend") 
+		   .append("text")
+		   .text("/%C").attr("transform","translate(450,35) scale(0.5)")
   },
 
 
@@ -124,13 +153,60 @@ export default {
                     var temp = d3.select(this).data();
                     that.$emit('details',temp[0].epoch);
                   })     
+   },
+
+  colorbox(sel, size, colors){
+    var [x0,x1] = d3.extent( colors.domain());
+    var bars = d3.range( x0, x1, (x1-x0)/size[0]);
+    var sc = d3.scaleLinear()
+        .domain([x0,x1]).range( [0, size[0]]);
+    sel.selectAll("line").data(bars).enter().append("line")
+      .attr( "x1", sc).attr( "x2",sc)
+      .attr( "y1", 0).attr("y2",size[1])
+      .attr("stroke",colors);
+    
+    sel.append("rect")
+        .attr("width",size[0]).attr("height",size[1])
+        .attr("fill","none").attr("stroke","black")
+		 },
+
+  Legend(){
+    var [a,b] = d3.extent(record, function(d){return d.minTemp;});//max时choice=MaxTemp
+		 
+		function color() {
+		    var med = d3.median([a,b]);
+			 return d3.scaleDiverging([a, med, b], function (t){return d3.interpolatePuBu(t);}); 
+		}
+    d3.select("#legend")
+		   .append("g").attr("id","legend")
+       .call( colorbox,[450,20],colorM())
+		   .attr("transform","translate(5,0)")
+		 //创建图例
+		 
+		 d3.select("#legend")
+		   .append("g")
+		   .call(d3.axisBottom(d3.scaleLinear().domain([b,a]).range([450,0])).ticks(5))
+		   .attr("transform","translate(5,20)")
+		 d3.select("#legend") 
+		   .append("text")
+		   .text("/%C").attr("transform","translate(450,35) scale(0.5)")
    }
   },
   created(){
     this.getEpoch();
   },
   watch:{
-
+    epoch(){
+      this.Scale();
+      this.GHOST();
+    },
+    index(){
+      this.getEpoch();
+      console.log("day changed")
+      console.log(this.epochs)
+      this.Scale();
+      this.GHOST();
+    }
   }
 };
 </script>
@@ -152,7 +228,7 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:0;
+    top:600px;
     left:285px;
     text-align: center;
     text-decoration: none;
@@ -178,7 +254,7 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:0;
+    top:600px;
     left:330px;
     text-align: center;
     text-decoration: none;

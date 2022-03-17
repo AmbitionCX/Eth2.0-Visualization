@@ -1,6 +1,6 @@
 <template>
   <div>
-    <svg id = "Slot" style = 'width:1200px; height:360px'></svg>
+    <svg id = "Slot" style = 'width:1200px; height:850px'></svg>
   </div>
 </template>
 
@@ -17,11 +17,11 @@ export default {
       slots:[],
       links:[],
       width: 1200,
-      height: 360,
+      height: 850,
       margin:{
-        top:100,
+        top:150,
         right:10,
-        bottom:60,
+        bottom:500,
         left:10
       },
       c:33
@@ -30,15 +30,13 @@ export default {
   mounted(){
     this.xScale();
   },
-  beforeUpdate(){
-    this.drawSlots();
-    this.drawBlocks();
-  },
   computed:{
     slot(){
+      console.log(this.slots);
       return this.slots
     },
     message(){
+      console.log(this.msg)
       return this.msg
     },
     innerWidth(){
@@ -50,12 +48,12 @@ export default {
   },
   methods:{
      getSlot(){
-
-       const path = 'http://127.0.0.1:5000/slot/561';//+eval(this.msg);
+       const path = 'http://127.0.0.1:5000/slot/' + eval(this.msg);
        console.log(path);
        axios
          .get(path)
          .then(res => {
+           console.log(res);
            this.slots=res.data[0];
            this.links = res.data[1]
          })
@@ -88,7 +86,7 @@ export default {
        console.log("drawSlots")
       let that = this;
       const xscale = d3.scaleLinear()
-                       .domain([0,this.c])
+                       .domain([-1,this.c])
                        .range([0, this.innerWidth]);
       var [a,b] = d3.extent(that.slots, function(d){return d.at_number;})
       console.log([a,b]);
@@ -115,7 +113,7 @@ export default {
      drawCasper(){
       let that=this;
       const xscale = d3.scaleLinear()
-                       .domain([0,this.c])
+                       .domain([-1,this.c])
                        .range([0, this.innerWidth]);
       var [a,b] = d3.extent(that.slots, function(d){return d.at_number;})
       console.log([a,b]);
@@ -142,7 +140,7 @@ export default {
       console.log("drawBlocks");
       var ex_block = this.innerWidth/50;  
       const xscale = d3.scaleLinear()
-                  .domain([0,this.c])
+                  .domain([-1,this.c])
                   .range([0, this.innerWidth]);
       let that = this;
 
@@ -163,7 +161,7 @@ export default {
      },
      arc(lines){
         const xscale = d3.scaleLinear()
-                       .domain([0,this.c])
+                       .domain([-1,this.c])
                        .range([0, this.innerWidth]);
 
         const x1 = xscale(lines.source)+this.innerWidth/68;
@@ -192,7 +190,7 @@ export default {
   },
   watch:{
     slot(){
-        d3.select('#Slot').selectAll('g').remove()
+      console.log('slot changed')
         this.xScale();
         this.drawArc();
         this.drawBlockheader();
@@ -200,9 +198,9 @@ export default {
         this.drawExBlocks();
     },
     message(){
-      d3.select('#headers').remove()
+        this.getSlot();
+        d3.select('#Slot').selectAll('g').remove()
         console.log("draw");
-        this.getSlot()
       }
     }
 
