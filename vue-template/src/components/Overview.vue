@@ -1,7 +1,7 @@
 <template>
   <div class="overview">
    
-    <svg id = "Overview" style = 'width:1200px; height:600px'>
+    <svg id = "Overview" style = 'width:1220px; height:600px'>
  
     </svg>
     
@@ -18,11 +18,11 @@ export default {
 
     return {
       all:[],
-      width: 1200,
+      width: 1220,
       height: [22],
       margin:{
         top:0,
-        right:60,
+        right:80,
         bottom:0,
         left:60
       },
@@ -83,9 +83,8 @@ export default {
  
   Color(num){
     let that = this;
-    const color = d3.scaleSymlog()
-                    .domain([d3.min(that.day,function(d){return d["canonical"]}),d3.max(that.day,function(d){return d["canonical"]})])
-                    .range([0, 1]);
+    const [a,b] = d3.extent(that.day, function(d){return d['canonical'];})
+    const color =d3.scaleDivergingSymlog([a,0.8*a+0.2*b,b], function(t){return d3.interpolateYlOrRd(t);})
     return color(num)
   },
   Draw(k){
@@ -126,8 +125,7 @@ export default {
                      .range([0, that.innerHeight])
 
     const yaxis = d3.axisLeft(yscale)
-            // .ticks(allmonths.length)
-            // .tickPadding(-45);
+
     const xaxis = d3.axisTop(xscale)
             .ticks(31)
             .tickPadding(5);
@@ -135,7 +133,7 @@ export default {
     g.append('g').call(yaxis).attr('id' ,'yaxis');
 
     g.append('g').call(xaxis).attr('id', 'xaxis');
-    
+
     let rectwid = 20
     g.selectAll('.datarect'+ k).data(that.dayData[k]).enter().append('rect')
      .attr('class', 'datarect'+k)
@@ -143,11 +141,10 @@ export default {
      .attr('height', rectwid)
      .attr('y', function(d){return yscale.step()*(allmonths.indexOf(d['month'])+0.5) - rectwid/2 }) 
      .attr('x', d => (xscale(d['date'])-rectwid/2))
-     .attr('fill', d => d3.interpolateYlOrRd((that.Color(d["canonical"]))))
+     .attr('fill', d => that.Color(d["canonical"]))
      .attr('opacity', 0.9)
      .on("click", function(){
           var temp = d3.select(this).data();
-          console.log(temp)
           let a = temp[0]['day'];
           let b = "2020-12-01";
           that.$emit('day_detail',225*(new Date(a) - new Date(b))/(1*24*60*60*1000));
@@ -180,8 +177,41 @@ export default {
           .attr("d", line0)
         }
       }
-    }
+    },
+    
+  Legend(){
+    let that = this;
+    var [a,b] = d3.extent(that.day, function(d){return d['canonical'];})
 
+    d3.select("#Overview")
+      .append("g").attr("id","legend_overview")
+      .call(that.colorbox,[10,150],d3.scaleDivergingSymlog([a,0.8*a+0.2*b,b], function(t){return d3.interpolateYlOrRd(t);}))
+      .attr("transform",`translate(${22+that.width - that.margin.right},${30})`)
+
+    d3.select("#legend_overview")
+       .append("g")
+       .call(d3.axisRight(d3.scaleLinear().domain([b,a]).range([150,0])).ticks(5))
+       .attr("transform","translate(10,0)")
+    d3.select("#legend_overview") 
+      .append("text")
+      .text("Missing Blocks")
+      .attr("transform","translate(-12,-10)")
+      .attr("font-size","10px")
+  },
+  colorbox(sel, size, colors){
+    var [x0,x1] = d3.extent( colors.domain());
+    var bars = d3.range( x0, x1, (x1-x0)/size[1]);
+    var sc = d3.scaleLinear()
+        .domain([x0,x1]).range([0, size[1]]);
+    sel.selectAll("line").data(bars).enter().append("line")
+      .attr("x1", 0).attr("x2",size[0])
+      .attr("y1", sc).attr("y2",sc)
+      .attr("stroke",colors);
+    
+    sel.append("rect")
+        .attr("width",size[0]).attr("height",size[1])
+        .attr("fill","none").attr("stroke","black")
+      }
   },
   created(){
     this.getAll();
@@ -191,6 +221,7 @@ export default {
       for(let i=0; i < this.dayData.length; i++){
         this.Draw(i);
       }
+      this.Legend();
     }
   }
 };

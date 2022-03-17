@@ -209,14 +209,15 @@ def slot(index):
 
         votes = Vote.query.filter_by(slot = s).first()
         print(votes)
-        temp['casper_balance'] = votes.casper_y_balance
+        temp['casper_balance'] = 0
+        temp['block_header'] = 0
+        temp['ex_blocks'] = []
         blocks = []
         if votes:
             blocks = votes.ghost_selection
+            temp['casper_balance'] = votes.casper_y_balance
         if len(blocks) > 0:
             blocks.sort(key=lambda x:(x['root']['data']))
-            temp['block_header'] = 0
-            temp['ex_blocks'] = []
             block_prev = blocks[0]['root']['data']
             balance = 0
             for b in blocks:
