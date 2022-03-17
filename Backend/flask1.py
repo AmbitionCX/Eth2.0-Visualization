@@ -178,6 +178,7 @@ def EpochView(index):
 @app.route('/validator/<int:index>', methods=['GET'])
 def validator(index):
     ats = Vote.query.filter(Vote.epoch == index).order_by(Vote.slot).all()
+    print(ats)
     val = []
     for a in ats:
         val = val + a.casper_n + a.not_vote
@@ -400,4 +401,4 @@ def get_filtered_list():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=12346, debug=True)
