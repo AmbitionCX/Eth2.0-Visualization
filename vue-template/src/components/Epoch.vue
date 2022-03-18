@@ -1,27 +1,6 @@
 <template>
-  <div>
+  <div id = "Tip">
     <svg id = "Epoch"  class="epoch" style = 'width:500px; height:340px'>
-      <g id = "tooltip" v-if ="flag==1">
-        <rect v-text = "information.str"
-          :x = 'information.x'
-          :y = 'information.y'
-          :width = 'auto'
-          :height = 'auto'
-          background-color: white;
-          font-size: 14px;
-          text-align: center; 
-          > 
-        </rect>
-      </g>
-      <rect
-        :x = 'brushData[0][0]'
-        :y = 'brushData[0][1]'
-        :height = 'brushData[1][1] - brushData[0][1]'
-        :width = 'brushData[1][0] - brushData[0][0]'
-        fill = '#b3ffc6'
-        fill-opacity = 0.2
-        stroke = 'green'>
-        </rect>
     </svg>
     <button id = 'ghost' @click = 'GHOST()'>Head</button>
     <button id = 'casper' @click = 'Casper()'>Checkpoint</button>
@@ -43,7 +22,7 @@ export default {
       margin:{
         top:30,
         right:130,
-        bottom:0,
+        bottom:3,
         left:30
       },
       r:15,
@@ -64,6 +43,7 @@ export default {
       return this.day;
     },
     epoch(){
+      console.log(this.epochs)
       return this.epochs;
     },
     innerWidth(){
@@ -130,6 +110,38 @@ export default {
       .attr('fill', function(d){return d3.interpolateReds((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
       .attr('width', this.innerWidth/15-5)
       .attr('height', this.innerHeight/15-5)
+      .attr('stroke',function(d){
+        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+            console.log(d['head_correct_balance'])
+            return '#7E00C4'
+        }else{
+          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.22){
+            return '#7510EB'
+          }else{
+            if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.11){
+              return '#759FEB'
+            }else{
+              return ''
+            }
+          }
+        }
+      })
+      .attr('stroke-width',function(d){
+        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+            console.log(d['head_correct_balance'])
+            return '2.5px'
+        }else{
+          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.22){
+            return '2px'
+          }else{
+            if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.11){
+              return '1.5px'
+            }else{
+              return ''
+            }
+          }
+        }
+      })
       .attr("transform", function(d, i) {
         return `translate(${xscale(Math.floor((i)%c))+2.5},${yscale(Math.floor((i)/c))+2.5})`;
       })
@@ -137,19 +149,25 @@ export default {
         var temp = d3.select(this).data();
         that.$emit('details',temp[0].epoch);
       })
-      // .on("mouseover",function(){
-      //   let d =d3.select(this).data();
+      .on("mouseover",function(){
+        let d =d3.select(this).data();
 
-      //   var str ="head_error_balance/active_balance:" + (1 - d[0]['head_correct_balance']/d[0]['active_balance']);
+        var str ="head_error_balance/active_balance:" + (1 - d[0]['head_correct_balance']/d[0]['active_balance']);
       
-    //   tooltip.html(str)
-    //          .style("left", (xscale(Math.floor((d[0].epoch%225)%c)))+"px")
-    //         .style("top", (yscale(Math.floor((d[0].epoch%225)/c)))+"px")
-    //         .style("opacity",1.0);
-    // })
-    //         .on("mouseleave",function(){
-    //   tooltip.style("opacity",0.0);
-    // }) 
+        var tooltip = d3.select("#Tip")
+                  .append("div")
+                  .attr("class","tooltip")
+
+        tooltip.html(str)
+               .style("left", (615+xscale(Math.floor((d[0].epoch%225)%c)))+"px")
+               .style("top", (10+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
+               .style("opacity",1.0);
+    })
+      .on("mouseleave",function(){
+            d3.select('#Tip')
+              .selectAll('.tooltip')
+              .remove()
+          })
     
     var med = d3.median([a,b]);
     d3.select("#Epoch")
@@ -186,6 +204,38 @@ export default {
                   .attr('fill', function(d){return d3.interpolateReds((d['active_balance'] - d['target_correct_balance']-a)/(b-a) )})
                   .attr('width', this.innerWidth/15-5)
                   .attr('height', this.innerHeight/15-5)
+                  .attr('stroke',function(d){
+                    if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+                        console.log(d['head_correct_balance'])
+                        return '#7E00C4'
+                    }else{
+                      if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.22){
+                        return '#7510EB'
+                      }else{
+                        if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.11){
+                          return '#759FEB'
+                        }else{
+                          return ''
+                        }
+                      }
+                    }
+                  })
+                  .attr('stroke-width',function(d){
+                    if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+                        console.log(d['head_correct_balance'])
+                        return '2.5px'
+                    }else{
+                      if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.22){
+                        return '2px'
+                      }else{
+                        if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.11){
+                          return '1.5px'
+                        }else{
+                          return ''
+                        }
+                      }
+                    }
+                  })
                   .attr("transform", function(d, i) {
             return `translate(${xscale(Math.floor((i)%c))+2.5},${yscale(Math.floor((i)/c))+2.5})`;
                   })
@@ -303,8 +353,9 @@ export default {
     position: absolute;
     width:auto;
     height:auto;
-    background-color: white;
+    background-color: rgb(216, 18, 18);
     font-size: 14px;
     text-align: center;
 		}
+
 </style>
