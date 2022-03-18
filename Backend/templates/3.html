@@ -135,11 +135,41 @@ console.log(v_line);
 
  //设置矩阵的行列
 var r=2,c=data.length;
-const yValue=['decline','abstain'];
+const yValue=['decline','abstain','proposer'];
 const xValue=[];
 for(let i=0;i<c;i++){
     xValue.push('epoch:'+data[i].epoch);
 }
+var legend = d3.select('g').selectAll(".legend")
+        .data(yValue)
+        .enter().append("g")
+        .attr("class", "legend")
+        .attr("transform", function (d, i) { return "translate(" + (80) + "," + (i * 40 + 30) + ")"; });
+      legend.append("rect")
+        .data(yValue)
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", 50)
+        .attr("height", 30)
+        .style("fill",function(d,i){
+            switch (d){
+                case 'decline':return 'red';
+                case 'abstain':return 'grey';
+                case 'proposer':return '#6E00F5';
+            }
+        })
+        .attr('opacity',0.8)
+        ;
+
+      legend.append("text")
+        .data(yValue)
+        .attr('class', 'legend_text')
+        .attr("x", 60)
+        .attr("y", 10)
+        .attr("dy", ".5em")
+        .attr("fill", 'black')
+        .style("text-anchor", "start")
+        .text(d => d );
 //设置坐标轴
 const xscale = d3.scaleBand()
         .domain(xValue)
@@ -155,17 +185,17 @@ const yscale = d3.scalePoint()
 const yscale2 = d3.scaleLinear() 
         .domain([0,1])
         .range([0,innerHeight])
-const yaxis = d3.axisLeft(yscale)
-        .ticks(r)
-        .tickSize(10)
-        .tickPadding(10)
+// const yaxis = d3.axisLeft(yscale)
+//         .ticks(r)
+//         .tickSize(10)
+//         .tickPadding(10)
 const xaxis = d3.axisTop(xscale)
         .ticks(c)
-        .tickSize(-10)
+        .tickSize(-5)
         .tickPadding(-50);
-g.append('g').call(yaxis)
-        .attr('id' ,'yaxis') 
-        .style("font-size","24px");
+// g.append('g').call(yaxis)
+//         .attr('id' ,'yaxis') 
+//         .style("font-size","24px");
  
 g.append('g').call(xaxis)
         .attr('id', 'xaxis')
@@ -249,7 +279,7 @@ function make_line(i){
              this.style.opacity=1;
              var x='validator_index: '+v_line[i].index;
              tooltip3.html(x)
-				.style("left", margin.left+150+"px")
+				.style("left",innerWidth/2+"px")
 				.style("top", margin.top+50+"px")
 				.style("opacity",1.0);
             })
@@ -295,6 +325,7 @@ var dy=v_line[i].node[j].dy;
 
   }
 }
+
 for(var i=0;i<v_line.length;i++){
        make_line(i);
        make_rect(i);
