@@ -135,7 +135,7 @@ console.log(v_line);
 
  //设置矩阵的行列
 var r=2,c=data.length;
-const yValue=['decline','abstain','proposer'];
+const yValue=['Unvoted validator','Wrong voted validator','Incorrect voted proposer','Serial incorrect voting'];
 const xValue=[];
 for(let i=0;i<c;i++){
     xValue.push('epoch:'+data[i].epoch);
@@ -150,22 +150,23 @@ var legend = d3.select('g').selectAll(".legend")
         .attr("x", 0)
         .attr("y", 0)
         .attr("width", 50)
-        .attr("height", 30)
+        .attr("height", d=>d=='Serial incorrect voting'?10:30)
         .style("fill",function(d,i){
             switch (d){
-                case 'decline':return 'red';
-                case 'abstain':return 'grey';
-                case 'proposer':return '#6E00F5';
+                case 'Wrong voted validator':return 'red';
+                case 'Unvoted validator':return 'grey';
+                case 'Incorrect voted proposer':return '#6E00F5';
+                case 'Serial incorrect voting':return 'blue';
             }
         })
-        .attr('opacity',0.8)
+        .attr('opacity',d=>d=='Serial incorrect voting'?0.7:0.8)
         ;
 
       legend.append("text")
         .data(yValue)
         .attr('class', 'legend_text')
         .attr("x", 60)
-        .attr("y", 10)
+        .attr("y", d=>d=='Serial incorrect voting'?2:10)
         .attr("dy", ".5em")
         .attr("fill", 'black')
         .style("text-anchor", "start")

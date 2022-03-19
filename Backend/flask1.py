@@ -58,6 +58,7 @@ class Attestation(db.Model):
     aggregation_indices = db.Column('f_aggregation_indices', db.String)
     beacon_block_root = db.Column('f_beacon_block_root', db.Integer)
     source_epoch = db.Column('f_source_epoch', db.Integer)
+    head_correct = db.Column('f_head_correct', db.String)
     target_epoch = db.Column('f_target_epoch', db.Integer)
     target_correct = db.Column('f_target_correct', db.String)
     def bits(self):
@@ -178,7 +179,11 @@ def validator(index):
             p.append(data.proposer)
         p.sort()
         proposer.append(p)
+<<<<<<< HEAD
     return render_template('3.html', d = json.dumps(casper), proposer = json.dumps(proposer))
+=======
+    return json.dumps([casper]+[proposer])
+>>>>>>> f10ee6913063c04b9283547bd1f9d4c6fd49d7a0
 
 
 @app.route('/slot/<int:index>',methods=['GET'])
@@ -200,6 +205,7 @@ def slot(index):
                 else:
                     link['source'] = a.slot%32
                 link['target'] = a.inclusion_slot%32
+                link['correct'] = a.target_correct and a.head_correct
                 if committee_prev != a.committee_index:
                     temp['at_number'] += len(ats_no)
                     ats_no = set()
@@ -210,14 +216,15 @@ def slot(index):
 
         votes = Vote.query.filter_by(slot = s).first()
         print(votes)
-        temp['casper_balance'] = votes.casper_y_balance
+        temp['casper_balance'] = 0
+        temp['block_header'] = 0
+        temp['ex_blocks'] = []
         blocks = []
         if votes:
             blocks = votes.ghost_selection
+            temp['casper_balance'] = votes.casper_y_balance
         if len(blocks) > 0:
             blocks.sort(key=lambda x:(x['root']['data']))
-            temp['block_header'] = 0
-            temp['ex_blocks'] = []
             block_prev = blocks[0]['root']['data']
             balance = 0
             for b in blocks:
@@ -234,8 +241,10 @@ def slot(index):
         if len(links_temp) > 0:
             l = {
                 'source': links_temp[0]['source'],
-                'target': links_temp[0]['target']
+                'target': links_temp[0]['target'],
+                'correct': links_temp[0]['correct']
             }
+        
             counter = 0
             links = []
             for li in links_temp:
@@ -243,15 +252,18 @@ def slot(index):
                     t = {}
                     t['source'] = l['source']
                     t['target'] = l['target']
+                    t['correct'] = l['correct']
                     t['value'] = counter
                     links.append(t)
                     counter = 1
                     l = li
                 else:
                     counter += 1
+
             t = {}
-            t['source'] = l['source']
-            t['target'] = l['target']
+            t['source'] = li['source']
+            t['target'] = li['target']
+            t['correct'] = li['correct']
             t['value'] = counter
             links.append(t)
 
