@@ -179,12 +179,7 @@ def validator(index):
             p.append(data.proposer)
         p.sort()
         proposer.append(p)
-<<<<<<< HEAD
-    return render_template('3.html', d = json.dumps(casper), proposer = json.dumps(proposer))
-=======
     return json.dumps([casper]+[proposer])
->>>>>>> f10ee6913063c04b9283547bd1f9d4c6fd49d7a0
-
 
 @app.route('/slot/<int:index>',methods=['GET'])
 def slot(index):
