@@ -179,7 +179,7 @@ g.append('g').call(xaxis)
 
 const  rect_width=innerWidth/(5*c);
 const  sub_width=innerWidth/c-rect_width;
-const rect_height_I=innerHeight/SUM;
+const   rect_height_I=innerHeight/SUM;
 // g.selectAll('.datarect').data(data_rect).enter().append('rect')
 // .attr('class','datarect')
 // .attr('width',rect_width)
@@ -231,12 +231,12 @@ for(j=0;j<that.val.length-1;j++){
     var path=d3.path();
     for(j=0;j<y1.length;j++){
        if((v_line[i].node[j+1].y==1||v_line[i].node[j+1].y==0)&&(v_line[i].node[j].y==0||v_line[i].node[j].y==1)){
-        var dx=(x2[j]-x1[j])/20;
-        var dy=(y2[j]-y1[j])/3;
-        let cpx1 = x1[j] + dx;
-        let cpy1 = y1[j] + dy;
-        let cpx2 = x2[j] - dx;
-        let cpy2 = y2[j] - dy;
+        // var dx=(x2[j]-x1[j])/20;
+        // var dy=(y2[j]-y1[j])/3;
+        // let cpx1 = x1[j] + dx;
+        // let cpy1 = y1[j] + dy;
+        // let cpx2 = x2[j] - dx;
+        // let cpy2 = y2[j] - dy;
         path.moveTo(x1[j],y1[j]);
         //path.bezierCurveTo(cpx1,cpy1,cpx2,cpy2,x2[j],y2[j]);  //曲线
         path.lineTo(x2[j],y2[j]);                                //直线
