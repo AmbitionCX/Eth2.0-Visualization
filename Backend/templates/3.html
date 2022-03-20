@@ -55,20 +55,6 @@ var d=eval('{{d|safe}}');
 var proposer=eval('{{proposer}}');
 
 
-
-//  //升序排列
-// for(i=0;i<proposer.length;i++){
-//     proposer[i].sort(function(x,y){
-//         return x-y;
-//     });
-// }
-// for(i=0;i<d.length;i++){
-//     d[i].validator.sort(function(x,y){
-//         return x.validator_index-y.validator_index;
-//     })
-// }   
-//默认flask里面已经处理好了
-
 for(j=d[d.length-1].validator.length-1;j>0&&d[d.length-1].validator[j].vote==-2;j--)
 
 for(i=0;i<d.length;i++){
@@ -79,13 +65,8 @@ var data=d.reverse();
 proposer=proposer.reverse();
 
 
-  //  d3.json('epoch100.json').then(d=>{    //默认validator是升序的
-          //数据处理
-// console.log(data);
  const SUM=data[0].validator.length;
 
-
-//  console.log(data);
 
  var graph=[];
  var v_line=[];
@@ -207,25 +188,6 @@ g.append('g').call(xaxis)
 const  rect_width=innerWidth/(5*c);
 const  sub_width=innerWidth/c-rect_width;
 const rect_height_I=innerHeight/SUM;
-// g.selectAll('.datarect').data(data_rect).enter().append('rect')
-// .attr('class','datarect')
-// .attr('width',rect_width)
-// .attr('height', d=>d.size*rect_height_I)
-// .attr('y',function(d){
-//     if(!d.j)
-//     return (yscale2(d.j));
-//     else
-//     return yscale2(d.j)-d.size*rect_height_I;
-// })
-// .attr('x',d=>xscale2(d.i))
-// .attr('fill',function(d){
-//     if(!d.j)
-//     return 'grey';
-//     else 
-//     return 'red';
-// })
-// .attr('opacity',0.8);
-
 
 var x1=[];
 var x2=[];
