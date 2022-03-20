@@ -22,7 +22,7 @@ export default {
       margin:{
         top:30,
         right:130,
-        bottom:3,
+        bottom:30,
         left:30
       },
       r:15,

@@ -1,8 +1,9 @@
 <template>
   <div>
     <svg id = "Validator" style = 'width:700px; height:340px'>
+
     </svg>
-    <text>This is the Validator View</text>
+    <!-- <text>This is the Validator View</text> -->
   </div>
 </template>
 
@@ -22,9 +23,10 @@ export default {
       margin:{
         top:30,
         right:130,
-        bottom:0,
+        bottom:40,
         left:30
       }
+    
     };
   },
   mounted(){
@@ -64,21 +66,25 @@ export default {
     },
 
     data_processing(){
-
-    const g = svg.append('g').attr('id', 'maingroup')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
       
-      var tooltip3 = d3.select("body")
-		                   .append("div")
-		                   .attr("class","tooltip3")
+    const g = d3.select("#Validator").append('g')
+      .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
+      
+    var tooltip= d3.select("#Validator").append("text")
+     .attr('transform', `translate(${this.innerWidth/3},${20})`)
+     .text('')
+     .style('opacity',0);
+		                
       
 
 
 let that = this;
 
-for(j=that.casper[that.casper.length-1].validator.length-1;j>0&&that.casper[that.casper.length-1].validator[j].vote==-2;j--)
+console.log("WZH",that.casper[0]);
 
-for(i=0;i<that.casper.length;i++){
+for(var j=that.casper[that.casper.length-1].validator.length-1;j>0&&that.casper[that.casper.length-1].validator[j].vote==-2;j--)
+
+for(var i=0;i<that.casper.length;i++){
     that.casper[i].validator.splice(j,1);
 }
 
@@ -89,7 +95,6 @@ that.proposer=that.proposer.reverse();
  const SUM=that.val[0].validator.length;
 
 
-//  console.log(data);
 
  var graph = [];
  var v_line = [];
@@ -111,8 +116,8 @@ for(var j = 0; j < SUM; j++){
    while(k[i] < that.proposer[i].length && that.val[i].validator[j].validator_index>that.proposer[i][k[i]])
         k[i]++;
     var Y=that.val[i].validator[j].vote+1;
-    if(Y==-1)
-       console.log(i,j);
+    // if(Y==-1)
+    //    console.log(i,j);
     if(Y<2){
     if(Y<0)
         Y=0;
@@ -122,13 +127,13 @@ for(var j = 0; j < SUM; j++){
     else{
      v_line[j].node.push( {dy:0,y:2,ispro:0})
     }
-    if(k[i]<proposer[i].length&&that.val[i].validator[j].validator_index==proposer[i][k[i]])
+    if(k[i]<that.proposer[i].length&&that.val[i].validator[j].validator_index==that.proposer[i][k[i]])
     v_line[j].node[i].ispro=1;
    }
 }
-console.log(proposer);
-console.log(graph);
-console.log(v_line);
+// console.log(proposer);
+// console.log(graph);
+// console.log(v_line);
 
     var data_rect=[];
    for(var i=0;i<graph.length;i++){
@@ -139,11 +144,45 @@ console.log(v_line);
 
  //设置矩阵的行列
 var r=2,c=that.val.length;
-const yValue=['decline','abstain'];
+const yValue=['Unvoted validator','Wrong voted validator','Incorrect voted proposer','Serial incorrect voting'];
 const xValue=[];
 for(let i=0;i<c;i++){
     xValue.push('epoch:'+ that.val[i].epoch);
 }
+
+
+var legend = g.selectAll(".legend")
+        .data(yValue)
+        .enter().append("g")
+        .attr("class", "legend")
+        .attr("transform", function (d, i) { return "translate(" + (that.innerWidth) + "," + (i *25) + ")"; });
+      legend.append("rect")
+        .data(yValue)
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", 30)
+        .attr("height", d=>d=='Serial incorrect voting'?8:20)
+        .style("fill",function(d,i){
+            switch (d){
+                case 'Wrong voted validator':return 'red';
+                case 'Unvoted validator':return 'grey';
+                case 'Incorrect voted proposer':return '#6E00F5';
+                case 'Serial incorrect voting':return 'blue';
+            }
+        })
+        .attr('opacity',d=>d=='Serial incorrect voting'?0.7:0.8)
+        ;
+
+      legend.append("text")
+        .data(yValue)
+        .attr('class', 'legend_text')
+        .attr("x", 30)
+        .attr("y", d=>d=='Serial incorrect voting'?2:8)
+        .attr("dy", ".5em")
+        .attr("fill", 'black')
+        .style("text-anchor", "start")
+        .text(d => d )
+         .attr('font-size','10px');
 //设置坐标轴
 const xscale = d3.scaleBand()
         .domain(xValue)
@@ -159,46 +198,27 @@ const yscale = d3.scalePoint()
 const yscale2 = d3.scaleLinear() 
         .domain([0,1])
         .range([0,that.innerHeight])
-const yaxis = d3.axisLeft(yscale)
-        .ticks(r)
-        .tickSize(10)
-        .tickPadding(10)
+// const yaxis = d3.axisLeft(yscale)
+//         .ticks(r)
+//         .tickSize(10)
+//         .tickPadding(10)
 const xaxis = d3.axisTop(xscale)
         .ticks(c)
-        .tickSize(-10)
-        .tickPadding(-50);
-g.append('g').call(yaxis)
-        .attr('id' ,'yaxis') 
-        .style("font-size","24px");
+        .tickSize(-3)
+        .tickPadding(-15);
+// g.append('g').call(yaxis)
+//         .attr('id' ,'yaxis') 
+//         .style("font-size","24px");
  
 g.append('g').call(xaxis)
         .attr('id', 'xaxis')
         .attr('transform', `translate(0, ${that.innerHeight})`)
-        .style("font-size","20px");
+        .style("font-size","10px");
 //添加矩阵
 
-const  rect_width=innerWidth/(5*c);
-const  sub_width=innerWidth/c-rect_width;
-const   rect_height_I=innerHeight/SUM;
-// g.selectAll('.datarect').data(data_rect).enter().append('rect')
-// .attr('class','datarect')
-// .attr('width',rect_width)
-// .attr('height', d=>d.size*rect_height_I)
-// .attr('y',function(d){
-//     if(!d.j)
-//     return (yscale2(d.j));
-//     else
-//     return yscale2(d.j)-d.size*rect_height_I;
-// })
-// .attr('x',d=>xscale2(d.i))
-// .attr('fill',function(d){
-//     if(!d.j)
-//     return 'grey';
-//     else 
-//     return 'red';
-// })
-// .attr('opacity',0.8);
-
+const  rect_width=that.innerWidth/(5*c);
+const  sub_width=that.innerWidth/c-rect_width;
+const   rect_height_I=that.innerHeight/SUM;
 
 var x1=[];
 var x2=[];
@@ -207,9 +227,8 @@ for(j=0;j<that.val.length-1;j++){
        x2.push((j+1)*rect_width+(j+1)*sub_width+sub_width/2);
   }
 
-    },
 
-    make_line(i){
+  function  make_line(i){
       var Y=[];
       var y1=[];
       var y2=[];
@@ -253,21 +272,21 @@ for(j=0;j<that.val.length-1;j++){
             .on('mouseover',function(){
              this.style.stroke='red';
              this.style.opacity=1;
-             var x='validator_index: '+v_line[i].index;
-             tooltip3.html(x)
-				.style("left", margin.left+150+"px")
-				.style("top", margin.top+50+"px")
-				.style("opacity",1.0);
+            var x='validator_index: '+v_line[i].index;
+             tooltip.html(x)
+			     	.style("opacity",1.0);
             })
             .on('mouseleave',function(){
              this.style.stroke='blue';
              this.style.opacity=0.7;
-             tooltip3
-				.style("opacity",0.0);
+             tooltip
+				.style("opacity",0);
             })
-        },
+        }
 
-        make_rect(i){
+
+
+      function  make_rect(i){
         for(j=0;j<v_line[i].node.length;j++){
           if(v_line[i].node[j].y!=2){
             var y=v_line[i].node[j].y;
@@ -299,8 +318,14 @@ for(j=0;j<that.val.length-1;j++){
           }
          }
         }
+    for(let i=0;i< v_line.length;i++){
+      make_line(i);
+      make_rect(i);
+    }
+   
 
-  },
+  }
+   },
   created(){
 
   },
@@ -309,16 +334,43 @@ for(j=0;j<that.val.length-1;j++){
         this.getValidator();
         d3.select('#Validator').selectAll('g').remove()
         console.log("draw");
-      },
-      val(){
-      for(let i=0;i< v_line.length;i++){
-       this.make_line(i);
-       this.make_rect(i);
+        
       }
+
+    ,val(){
+      // for(let i=0;i< v_line.length;i++){
+      //  this.make_line(i);
+      //  this.make_rect(i);
+      // }
+      this. data_processing();
     }
     }
 }
 </script>
 <style scoped>
-
+ .axis text{
+            font-family: sans-serif;
+            font-size: 11px;
+        }
+        .tooltip1{
+		   stroke:blue;
+		   stroke-width:1;
+		   fill:none;
+           opacity: 1;
+	   }
+       .tooltip2{
+		   stroke:blue;
+		   stroke-width:0.5;
+		   fill:none;
+           opacity: 0.7;
+	   }
+       .tooltip3{
+			position:absolute;
+		    width:100;
+			height:100;
+			background-color: white;
+			font-size: 50px;
+			text-align: center;
+			
+		}
 </style>

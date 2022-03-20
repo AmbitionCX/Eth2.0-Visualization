@@ -103,9 +103,9 @@ for(var j=0;j<SUM;j++){
     v_line[j].node[i].ispro=1;
    }
 }
-console.log(proposer);
-console.log(graph);
-console.log(v_line);
+// console.log(proposer);
+// console.log(graph);
+// console.log(v_line);
 
     var data_rect=[];
    for(var i=0;i<graph.length;i++){
@@ -121,6 +121,8 @@ const xValue=[];
 for(let i=0;i<c;i++){
     xValue.push('epoch:'+data[i].epoch);
 }
+
+
 var legend = d3.select('g').selectAll(".legend")
         .data(yValue)
         .enter().append("g")
