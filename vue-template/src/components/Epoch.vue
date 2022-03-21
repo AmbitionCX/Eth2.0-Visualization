@@ -1,7 +1,8 @@
 <template>
   <div id = "Tip">
-    <svg id = "Epoch"  class="epoch" style = 'width:500px; height:340px'>
+    <svg id = "Epoch"  class="epoch" style = 'width:360px; height:300px'>
     </svg>
+    <div class="tooltip"></div>
     <button id = 'ghost' @click = 'GHOST()'>Head</button>
     <button id = 'casper' @click = 'Casper()'>Checkpoint</button>
   </div>
@@ -17,12 +18,12 @@ export default {
   data(){
     return {
       epochs:[],
-      width: 500,
-      height: 340,
+      width: 360,
+      height: 300,
       margin:{
         top:30,
-        right:130,
-        bottom:30,
+        right:80,
+        bottom:10,
         left:30
       },
       r:15,
@@ -88,6 +89,7 @@ export default {
                       .attr('id' ,'yaxis');
                      g.append('g').call(xaxis)
                       .attr('id', 'xaxis');
+
   },
 
   GHOST(){
@@ -104,6 +106,8 @@ export default {
           .domain([0,this.r])
           .range([0, this.innerHeight]);
 
+    
+
     d3.select('#epochview')
       .selectAll('rect').data(this.epochs).enter()
       .append('rect')
@@ -111,34 +115,26 @@ export default {
       .attr('width', this.innerWidth/15-5)
       .attr('height', this.innerHeight/15-5)
       .attr('stroke',function(d){
-        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.67){
             console.log(d['head_correct_balance'])
             return '#7E00C4'
         }else{
-          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.22){
+          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
             return '#7510EB'
           }else{
-            if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.11){
-              return '#759FEB'
-            }else{
-              return ''
-            }
+           return ''
           }
         }
       })
       .attr('stroke-width',function(d){
-        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.67){
             console.log(d['head_correct_balance'])
             return '2.5px'
         }else{
-          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.22){
+          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
             return '2px'
           }else{
-            if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.11){
-              return '1.5px'
-            }else{
               return ''
-            }
           }
         }
       })
@@ -152,28 +148,26 @@ export default {
       .on("mouseover",function(){
         let d =d3.select(this).data();
 
-        var str ="head_error_balance/active_balance:" + (1 - d[0]['head_correct_balance']/d[0]['active_balance']);
+        var str =" head_error_balance/active_balance: " + (100*(1 - d[0]['head_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% ";
       
-        var tooltip = d3.select("#Tip")
-                  .append("div")
-                  .attr("class","tooltip")
-
-        tooltip.html(str)
-               .style("left", (615+xscale(Math.floor((d[0].epoch%225)%c)))+"px")
-               .style("top", (10+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
+        
+        d3.selectAll('.tooltip')
+          .html(str)
+               .style("left", (820+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
+               .style("top", (25+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
                .style("opacity",1.0);
     })
       .on("mouseleave",function(){
             d3.select('#Tip')
               .selectAll('.tooltip')
-              .remove()
+              .style("opacity",0.0);
           })
     
     var med = d3.median([a,b]);
     d3.select("#Epoch")
       .append("g").attr("id","legend")
       .call(that.colorbox,[10,150],d3.scaleDiverging([a, med, b], function (t){return d3.interpolateReds(t);}))
-      .attr("transform",`translate(${10+that.width - that.margin.right},${20})`)
+      .attr("transform",`translate(${10+that.width - that.margin.right},${25})`)
 
     d3.select("#legend")
        .append("g")
@@ -205,34 +199,26 @@ export default {
                   .attr('width', this.innerWidth/15-5)
                   .attr('height', this.innerHeight/15-5)
                   .attr('stroke',function(d){
-                    if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+                    if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.5){
                         console.log(d['head_correct_balance'])
                         return '#7E00C4'
                     }else{
-                      if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.22){
+                      if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.25){
                         return '#7510EB'
                       }else{
-                        if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.11){
-                          return '#759FEB'
-                        }else{
                           return ''
-                        }
                       }
                     }
                   })
                   .attr('stroke-width',function(d){
-                    if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+                    if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.5){
                         console.log(d['head_correct_balance'])
                         return '2.5px'
                     }else{
-                      if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.22){
+                      if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.25){
                         return '2px'
                       }else{
-                        if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.11){
-                          return '1.5px'
-                        }else{
                           return ''
-                        }
                       }
                     }
                   })
@@ -312,8 +298,8 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:600px;
-    left:285px;
+    top:0px;
+    left:1085px;
     text-align: center;
     text-decoration: none;
     user-select: none;
@@ -338,8 +324,8 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:600px;
-    left:330px;
+    top:0px;
+    left:1130px;
     text-align: center;
     text-decoration: none;
     user-select: none;
@@ -351,9 +337,13 @@ export default {
 
 .tooltip{
     position: absolute;
+    padding-left:5px;
+    padding-right:5px;
     width:auto;
     height:auto;
-    background-color: rgb(216, 18, 18);
+    border:1px solid #2ea44f;
+    border-radius:5px;
+    background-color: white;
     font-size: 14px;
     text-align: center;
 		}

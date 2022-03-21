@@ -1,6 +1,6 @@
 <template>
   <div>
-    <svg id = "Slot" style = 'width:1200px; height:860px'></svg>
+    <svg id = "Slot" style = 'width:800px; height:860px'></svg>
   </div>
 </template>
 
@@ -16,7 +16,7 @@ export default {
     return {
       slots:[],
       links:[],
-      width: 1200,
+      width: 650,
       height: 850,
       margin:{
         top:160,
@@ -79,7 +79,7 @@ export default {
       const xaxis = d3.axisBottom(xscale)
                       .ticks(34)
                       .tickSize(-10)
-                      .tickPadding(20)
+                      .tickPadding(10)
                       .tickFormat(function(d,i){console.log(i==0?0:1)
                       return (i < 33 && i > 0) ? (i-1): "";});
         
@@ -87,12 +87,12 @@ export default {
         .attr('id', 'xaxis')
         .selectAll('text')
         .attr('transform',`translate(${this.innerWidth/68},${0})`)
-        .attr('font-size', '11px');
+        .attr('font-size', '10px');
       
       g.append('circle')
         .attr('cx',xscale(-1)+that.innerWidth/68)
         .attr('cy',0)
-        .attr('r',8)
+        .attr('r',6)
         .attr('fill','#B768FF')
 
       // g.append('circle')
@@ -203,7 +203,7 @@ export default {
         const x1 = xscale(lines.source)+this.innerWidth/68;
         const x2 = xscale(lines.target)+this.innerWidth/68;
         const r = Math.abs(x2 - x1) / 2;
-      return `m${x1},${this.innerWidth/34}A${r},${r} 0,1,0 ${x2},${this.innerWidth/34}`;
+      return `m${x1},${this.innerWidth/30}A${r},${r} 0,1,0 ${x2},${this.innerWidth/30}`;
      },
 
      drawArc(){
@@ -222,12 +222,12 @@ export default {
      },
      colorbox(sel, size, colors){
     var [x0,x1] = d3.extent( colors.domain());
-    var bars = d3.range( x0, x1, (x1-x0)/size[1]);
+    var bars = d3.range( x0, x1, (x1-x0)/size[0]);
     var sc = d3.scaleLinear()
-        .domain([x0,x1]).range([0, size[1]]);
+        .domain([x0,x1]).range([0, size[0]]);
     sel.selectAll("line").data(bars).enter().append("line")
-      .attr("x1", 0).attr("x2",size[0])
-      .attr("y1", sc).attr("y2",sc)
+      .attr("x1", sc).attr("x2",sc)
+      .attr("y1", 0).attr("y2",size[1])
       .attr("stroke",colors);
     
     sel.append("rect")
@@ -238,54 +238,54 @@ export default {
      Legend(){
        let that = this;
        var lg = d3.select('#Slot').append('g').attr('id','legend')
-                  .attr('transform', `translate(${10},${0})`)
+                  .attr('transform', `translate(${600},${30})`)
        lg.append('rect')
-         .attr('width',that.innerWidth/50)
-         .attr('height', that.innerWidth/100)
-         .attr('transform', `translate(${10},${0})`)
+         .attr('width',that.innerWidth/35)
+         .attr('height', that.innerWidth/70)
+         .attr('transform', `translate(${55},${130})`)
          .attr('fill','#2665A5')
 
        lg.append('rect')
-         .attr('width',that.innerWidth/50)
-         .attr('height', that.innerWidth/100)
-         .attr('transform', `translate(${10},${that.innerWidth/100})`)
+         .attr('width',that.innerWidth/35)
+         .attr('height', that.innerWidth/70)
+         .attr('transform', `translate(${55},${130+that.innerWidth/70})`)
          .attr('fill','lightgrey')
 
        lg.append('text')
-         .text('—Effective balance of GHOST selection')
-         .attr('transform', `translate(${16+that.innerWidth/50},${8})`)
-         .attr('font-size','10px')
+         .text(' — GHOST balance')
+         .attr('transform', `translate(${77},${136})`)
+         .attr('font-size','9px')
 
        lg.append('text')
-         .text('—Effective balance of Casper voting')
-         .attr('transform', `translate(${16+that.innerWidth/50},${9+that.innerWidth/100})`)
-         .attr('font-size','10px')
+         .text(' — Casper balance')
+         .attr('transform', `translate(${77},${139+that.innerWidth/70})`)
+         .attr('font-size','9px')
        
        lg.append('text')
          .text('Block size: number of attestations inside')
-         .attr('transform', `translate(${16+that.innerWidth/50},${20+that.innerWidth/100})`)
-         .attr('font-size','10px')
+         .attr('transform', `translate(${25},${155+that.innerWidth/70})`)
+         .attr('font-size','9px')
 
        lg.append('rect')
          .attr('width',that.innerWidth/50)
          .attr('height', that.innerWidth/50)
-         .attr('transform', `translate(${250},${0})`)
+         .attr('transform', `translate(${60},${80})`)
          .attr('fill','lightblue')
 
        lg.append('text')
-         .text('—Competing block in the slot')
-         .attr('transform', `translate(${260+that.innerWidth/50},${3+that.innerWidth/100})`)
-         .attr('font-size','10px')
+         .text(' — Competing blocks')
+         .attr('transform', `translate(${77},${80+that.innerWidth/100})`)
+         .attr('font-size','9px')
 
        lg.append('circle')
-         .attr('r', 8)
+         .attr('r', 5)
          .attr('fill', '#B768FF')
-         .attr('transform',`translate(${460+that.innerWidth/50},${11})`)
+         .attr('transform',`translate(${65},${100+that.innerWidth/50})`)
 
        lg.append('text')
          .text('Previous Epoch')
-         .attr('transform', `translate(${470+that.innerWidth/50},${3+that.innerWidth/100})`)
-         .attr('font-size','10px')
+         .attr('transform', `translate(${77},${104+that.innerWidth/50})`)
+         .attr('font-size','9px')
 
       //  lg.append('circle')
       //    .attr('r', 8)
@@ -301,54 +301,54 @@ export default {
          .attr('r', 10)
          .attr('fill', 'white')
          .attr('stroke','#DB366A')
-         .attr('transform',`translate(${620+that.innerWidth/50},${6})`)
+         .attr('transform',`translate(${60},${180+that.innerWidth/50})`)
 
        lg.append('rect')
-         .attr('width',20)
-         .attr('height', 10)
-         .attr('transform', `translate(${610+that.innerWidth/50},${-4})`)
+         .attr('width',22)
+         .attr('height', 12)
+         .attr('transform', `translate(${49},${168+that.innerWidth/50})`)
          .attr('fill','white')
        
        lg.append('text')
          .text('Target wrong attestations')
-         .attr('transform', `translate(${640+that.innerWidth/50},${3+that.innerWidth/100})`)
-         .attr('font-size','10px')
+         .attr('transform', `translate(${75},${190+that.innerWidth/50})`)
+         .attr('font-size','9px')
 
        lg.append('circle')
          .attr('r', 10)
          .attr('fill', 'white')
          .attr('stroke','#88EB52')
-         .attr('transform',`translate(${810+that.innerWidth/50},${6})`)
+         .attr('transform',`translate(${60},${210+that.innerWidth/50})`)
 
        lg.append('rect')
-         .attr('width',20)
-         .attr('height', 10)
-         .attr('transform', `translate(${800+that.innerWidth/50},${-4})`)
+         .attr('width',22)
+         .attr('height', 12)
+         .attr('transform', `translate(${49},${198+that.innerWidth/50})`)
          .attr('fill','white')
        
        lg.append('text')
          .text('Target correct attestations')
-         .attr('transform', `translate(${830+that.innerWidth/50},${3+that.innerWidth/100})`)
-         .attr('font-size','10px')
+         .attr('transform', `translate(${75},${220+that.innerWidth/50})`)
+         .attr('font-size','9px')
 
        lg.append("g").attr("id","legend_blocks")
-         .call(that.colorbox,[10,100],d3.scaleDivergingSymlog([that.extent_m,0.7*that.extent_m+0.3*that.extent_M,that.extent_M], function(t){return d3.interpolateBlues(t);}))
-         .attr("transform",`translate(${1170},${30})`)
+         .call(that.colorbox,[150,10],d3.scaleDivergingSymlog([that.extent_m,0.7*that.extent_m+0.3*that.extent_M,that.extent_M], function(t){return d3.interpolateBlues(t);}))
+         .attr("transform",`translate(${35},${35})`)
 
         d3.select("#legend_blocks")
           .append("g")
-          .call(d3.axisLeft(d3.scaleLinear().domain([that.extent_M/1000000000000,that.extent_m/10000000000]).range([100,0])).ticks(5))
-          .attr("transform","translate(0,0)")
+          .call(d3.axisBottom(d3.scaleLinear().domain([that.extent_M/1000000000000,that.extent_m/10000000000]).range([150,0])).ticks(5))
+          .attr("transform","translate(0,10)")
         d3.select("#legend_blocks") 
           .append("text")
           .text("Obtained Effective")
-          .attr("transform","translate(-70,-20)")
-          .attr("font-size","10px")
+          .attr("transform","translate(70,-20)")
+          .attr("font-size","9px")
         d3.select("#legend_blocks") 
           .append("text")
           .text("Balance/*10e12")
-          .attr("transform","translate(-60,-10)")
-          .attr("font-size","10px")
+          .attr("transform","translate(80,-10)")
+          .attr("font-size","9px")
      
      }
   },

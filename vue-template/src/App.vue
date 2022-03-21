@@ -47,24 +47,38 @@ export default {
 
 #Epoch {
   position: absolute;
-  top:615px;
-  left:10px;
+  top:15px;
+  left:860px;
   background: #ffffff;
   border-radius: 2px;
   border-color: blueviolet;
 }
+// #Epoch {
+//   position: absolute;
+//   top:415px;
+//   left:10px;
+//   background: #ffffff;
+//   border-radius: 2px;
+//   border-color: blueviolet;
+// }
 
 #Validator {
   position: absolute;
-  top: 615px;
-  left: 500px;
+  top: 300px;
+  left: 810px;
 }
 
 #Slot {
   position:absolute;
-  top:1000px;
+  top:360px;
   left:10px;
 }
+
+// #Slot {
+//   position:absolute;
+//   top:1000px;
+//   left:10px;
+// }
 
 
 #app {

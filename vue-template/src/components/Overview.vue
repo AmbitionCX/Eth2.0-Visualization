@@ -1,7 +1,7 @@
 <template>
   <div class="overview">
    
-    <svg id = "Overview" style = 'width:1220px; height:600px'>
+    <svg id = "Overview" style = 'width:800px; height:400px'>
  
     </svg>
     
@@ -18,7 +18,7 @@ export default {
 
     return {
       all:[],
-      width: 1220,
+      width: 800,//1220,
       height: [22],
       margin:{
         top:0,
@@ -117,8 +117,8 @@ export default {
     .domain([0,31])
     .range([0, that.innerWidth]);
 
-    that.height.push(25 * allmonths.length)
-
+    //that.height.push(25 * allmonths.length)
+    that.height.push(23 * allmonths.length)
 
     const yscale = d3.scaleBand()
                      .domain(allmonths.map(d => that.MONTHS[d]))
@@ -134,7 +134,8 @@ export default {
 
     g.append('g').call(xaxis).attr('id', 'xaxis');
 
-    let rectwid = 20
+   // let rectwid = 20
+    let rectwid = 16
     g.selectAll('.datarect'+ k).data(that.dayData[k]).enter().append('rect')
      .attr('class', 'datarect'+k)
      .attr('width', rectwid)
@@ -218,7 +219,7 @@ export default {
 },
   watch:{
     all_data(){
-      for(let i=0; i < this.dayData.length; i++){
+      for(let i=0; i < this.dayData.length-1; i++){
         this.Draw(i);
       }
       this.Legend();

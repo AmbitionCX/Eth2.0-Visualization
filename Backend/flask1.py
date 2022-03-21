@@ -94,7 +94,7 @@ class Vote(db.Model):
 
 @app.route('/Overview')
 def Overview():
-    data= c_overview.query.order_by(c_overview.days).limit(230).all()
+    data= c_overview.query.order_by(c_overview.days).all()
     dayData = []
     for i in data:
         s = {}
@@ -140,7 +140,7 @@ def validator(index):
     #print(len(val_error))
 
     casper = []
-    for s in range(index, index - 8 ,-1):
+    for s in range(index, index - 7 ,-1):
         #print(s)
         cas = {}
         cas['epoch'] = s
@@ -172,7 +172,7 @@ def validator(index):
         casper.append(cas)
     
     proposer = []
-    for i in range(index, index-8, -1):
+    for i in range(index, index-7, -1):
         p = []
         for s in range(i*32, (i+1)*32):
             data = Proposer.query.filter_by(slot=s).first()
