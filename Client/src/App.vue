@@ -1,12 +1,12 @@
 <template>
-  <Epoch/>
+  <ControlPanel/>
 </template>
 <script>
-import Epoch from "./components/Epoch.vue"
+import ControlPanel from "./components/ControlPanel.vue"
 export default {
     name:'App',
     components:{
-      Epoch
+      ControlPanel
     }
   }
 </script>

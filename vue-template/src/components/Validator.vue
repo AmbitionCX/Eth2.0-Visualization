@@ -1,6 +1,8 @@
 <template>
   <div>
-    <svg id = "Validator" style = 'width:450px; height:600px'>
+    <div class="panel-header_val">ValidatorView</div>
+    <div class="panel-header-end_val"></div>
+    <svg id = "Validator" style = 'width:435px; height:315px'>
     </svg>
     <div class="tooltip3"></div>
   </div>
@@ -17,12 +19,12 @@ export default {
     return {
       val:[],
       proposer:[],
-      width: 450,
-      height: 600,
+      width: 435,
+      height: 321,
       margin:{
-        top:10,
+        top:5,
         right:0,
-        bottom:190,
+        bottom:45,
         left:0
       }
     
@@ -137,7 +139,7 @@ for(let j = 0; j < SUM; j++){
 
  //设置矩阵的行列
 var c=that.val.length;
-const yValue=['Unvoted validator','Wrong voted validator','Incorrect voted proposer','Serial incorrect voting'];
+const yValue=['Unvoted validator','Wrong voted validator','Wrong voted proposer','Continuous irregular'];
 const xValue=[];
 for(let i=0;i<c;i++){
     xValue.push(i == 0?'epoch:'+ that.val[i].epoch:that.val[i].epoch);
@@ -148,33 +150,39 @@ var legend = g.selectAll(".legend")
         .data(yValue)
         .enter().append("g")
         .attr("class", "legend")
-        .attr("transform", function (d, i) { return "translate(" + (60+Math.floor(i/2) *200) + "," +(i==3?465:(440 + 20*(i%2))) + ")"; });
+        .attr("transform", function (d, i) { return "translate(" + (4+i *116) + "," +(that.margin.top+that.innerHeight+20) + ")"; });
       legend.append("rect")
         .data(yValue)
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("width", 30)
-        .attr("height", d=>d=='Serial incorrect voting'?2:5)
+        .attr("x", function(d,i){return i>=1?-20:0})
+        .attr("y", d=>d=='Continuous irregular'?5:3)
+        .attr("width", 10)
+        .attr("height", d=>d=='Continuous irregular'?1:4)
         .style("fill",function(d){
             switch (d){
                 case 'Wrong voted validator':return 'red';
                 case 'Unvoted validator':return 'grey';
-                case 'Incorrect voted proposer':return '#6E00F5';
-                case 'Serial incorrect voting':return 'blue';
+                case 'Wrong voted proposer':return '#6E00F5';
+                case 'Continuous irregular':return 'blue';
             }
         })
-        .attr('opacity',d=>d=='Serial incorrect voting'?0.7:0.8);
+        .attr('opacity',d=>d=='Continuous irregular'?0.7:0.8);
 
       legend.append("text")
         .data(yValue)
         .attr('class', 'legend_text')
-        .attr("x", 40)
-        .attr("y", d=>d=='Serial incorrect voting'?2:3)
+        .attr("x", function(d,i){return i>=1?-8:12})
+        .attr("y", d=>d=='Continuous irregular'?-2:3)
         .attr("dy", ".5em")
         .attr("fill", 'black')
         .style("text-anchor", "start")
         .text(d => d )
-         .attr('font-size','10px');
+         .attr('font-size','9px');
+        
+      g.append('text')
+        .text('voting')
+        .attr('transform', `translate(${380},${308})`)
+        .attr('font-size','9px')
+
 //设置坐标轴
 const xscale = d3.scaleBand()
         .domain(xValue)
@@ -254,8 +262,8 @@ for(let j=0;j<that.val.length-1;j++){
     g.append('path')
             .attr('class','v_line')
             .attr('d', path.toString())
-            .style('stroke','blue')
-            .style('stroke-width','1')//'0.5')
+            .style('stroke','#BFC9CA ')
+            .style('stroke-width','0.8')//'0.5')
             .style('fill','none')
             .style('opacity','0.7')
             .on('mouseover',function(){
@@ -269,7 +277,7 @@ for(let j=0;j<that.val.length-1;j++){
             //         .style("opacity",1.0);
             })
             .on('mouseleave',function(){
-             this.style.stroke='blue';
+             this.style.stroke='#BFC9CA';
              this.style.opacity=0.7;
              d3.selectAll('.tooltip3').style("opacity",0);
             })
@@ -299,7 +307,7 @@ for(let j=0;j<that.val.length-1;j++){
                 if(v_line[i].node[j].ispro)
                 return '#6E00F5'
                 else if(!y)
-                return 'grey';
+                return '#4D5656';
                 else 
                 return 'red';
             })
@@ -347,7 +355,7 @@ for(let j=0;j<that.val.length-1;j++){
   position:absolute;
   stroke:black;
   left:850px;
-  top:400px;
+  top:280px;
   width:auto;
   height:auto;
   border:1px solid lightcoral;
@@ -357,8 +365,38 @@ for(let j=0;j<that.val.length-1;j++){
   padding-top:5px;
   padding:5px;
   background-color: white;
-  font-size: 15px;
+  font-size: 12px;
   text-align: center;
   opacity:0;
+}
+
+.panel-header_val {
+  position: absolute;
+  left:818px;
+  top:250px;
+  padding: 0px 5px;
+  width: 75px;
+  height: 18px;
+  line-height: 18px;
+  font-size: 8px;
+  text-align: left;
+  background: #415c68;
+  color: #fcfcfc;
+  display: flex;
+  font-weight: bold;
+  border-radius: 1px;
+  box-shadow: 0 1px 2px rgba(26 26 26 0.2);
+  z-index:99;
+
+}
+
+.panel-header-end_val {
+  position: absolute;
+  top: 250px;
+  left: 903px;
+  border-top: 18px solid #455a64;
+  border-right: 18px solid #ffffff;
+  border-bottom: 0px solid #ffffff;
+  z-index:98;
 }
 </style>

@@ -1,10 +1,10 @@
 <template>
-  <div class="overview">
-   
-    <svg id = "Overview" style = 'width:800px; height:400px'>
- 
-    </svg>
-    
+  <div id="all">
+    <div class="panel-header">Overview</div>
+    <div class="panel-header-end"></div>
+    <svg id = "Overview" style = 'width:805px; height:250px'
+     @mousedown = 'reColor("down")'>
+    </svg>  
   </div>
 </template>
 
@@ -19,7 +19,7 @@ export default {
     return {
       all:[],
       width: 800,//1220,
-      height: [22],
+      height: [21],
       margin:{
         top:0,
         right:80,
@@ -87,6 +87,25 @@ export default {
     const color =d3.scaleDivergingSymlog([a,0.8*a+0.2*b,b], function(t){return d3.interpolateYlOrRd(t);})
     return color(num)
   },
+  // Color_select(num){
+  //   let that = this;
+  //   const [a,b] = d3.extent(that.day, function(d){return d['canonical'];})
+  //   const color =d3.scaleDivergingSymlog([a,0.8*a+0.2*b,b], function(t){return d3.interpolateGreens(t);})
+  //   return color(num)
+  // },
+  reColor(action){
+    let that = this;
+    if(action=="down"){
+      console.log("recolor")
+      for(let i = 0; i < that.dayData.length;i++){
+        d3.select("#Overview").select("#overview"+eval(i))
+          .selectAll("rect")
+          .attr("fill", d=>that.Color(d['canonical']))
+          .attr("stroke","")
+                }
+    }
+
+  },
   Draw(k){
     let that = this;
 
@@ -111,14 +130,14 @@ export default {
 
     var svg = d3.select('#Overview');
     const g = svg.append('g').attr("id","overview" + k)
-                 .attr('transform', `translate(${that.margin.left},${d3.sum(that.height)+22*k})`);
+                 .attr('transform', `translate(${that.margin.left},${d3.sum(that.height)+8*k})`);
 
     const xscale = d3.scaleLinear()
     .domain([0,31])
     .range([0, that.innerWidth]);
 
     //that.height.push(25 * allmonths.length)
-    that.height.push(23 * allmonths.length)
+    that.height.push(13 * allmonths.length)
 
     const yscale = d3.scaleBand()
                      .domain(allmonths.map(d => that.MONTHS[d]))
@@ -127,28 +146,43 @@ export default {
     const yaxis = d3.axisLeft(yscale)
 
     const xaxis = d3.axisTop(xscale)
-            .ticks(31)
-            .tickPadding(5);
+                    .ticks(31)
+                    .tickPadding(5)
+                    .tickSize(4)
+                    .tickFormat(function(d,i){
+                      if(k==0)
+                        return i
+                      return ""
+                    })
 
     g.append('g').call(yaxis).attr('id' ,'yaxis');
 
     g.append('g').call(xaxis).attr('id', 'xaxis');
 
-   // let rectwid = 20
-    let rectwid = 16
+    g.select("#yaxis").selectAll("text").attr("font-size","8px")
+
+    let rectwid = 17
+    let rectheight = 10
     g.selectAll('.datarect'+ k).data(that.dayData[k]).enter().append('rect')
      .attr('class', 'datarect'+k)
      .attr('width', rectwid)
-     .attr('height', rectwid)
-     .attr('y', function(d){return yscale.step()*(allmonths.indexOf(d['month'])+0.5) - rectwid/2 }) 
+     .attr('height', rectheight)
+     .attr('y', function(d){return yscale.step()*(allmonths.indexOf(d['month'])+0.5) - rectheight/2 }) 
      .attr('x', d => (xscale(d['date'])-rectwid/2))
      .attr('fill', d => that.Color(d["canonical"]))
      .attr('opacity', 0.9)
-     .on("click", function(){
+     .on("mouseup", function(){
+          d3.select(this)
+            .attr("fill", "#FFFF00")
+            .attr("stroke","#FF8BA0")
+            .attr("stroke-width","1.5px");//d=>that.Color_select(d['canonical']))
           var temp = d3.select(this).data();
           let a = temp[0]['day'];
           let b = "2020-12-01";
           that.$emit('day_detail',225*(new Date(a) - new Date(b))/(1*24*60*60*1000));
+          console.log("highlight")
+          console.log(this.class());
+
           })     
 
     for (let i = 0; i < deposits.length; i++) {
@@ -159,7 +193,7 @@ export default {
 
         const yscale20 = d3.scaleLinear()
                            .domain([d3.max(deposits[i][j],function(d){return d}),d3.min(deposits[i][j],function(d){return d})])
-                           .range([0, rectwid]);
+                           .range([0, rectheight]);
 
         const line0 = d3.line()
                         .x(function (d,i) {return xscale20(i);})
@@ -167,7 +201,7 @@ export default {
 
         d3.select('#overview'+k).append('g')
           .attr('transform', function () {
-          return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectwid/2})`;
+          return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectheight/2})`;
           })
           .append('path')
           .datum(deposits[i][j])
@@ -195,7 +229,7 @@ export default {
        .attr("transform","translate(10,0)")
     d3.select("#legend_overview") 
       .append("text")
-      .text("Missing Blocks")
+      .text("Missed Blocks")
       .attr("transform","translate(-12,-10)")
       .attr("font-size","10px")
   },
@@ -219,7 +253,7 @@ export default {
 },
   watch:{
     all_data(){
-      for(let i=0; i < this.dayData.length-1; i++){
+      for(let i=0; i < this.dayData.length; i++){
         this.Draw(i);
       }
       this.Legend();
@@ -229,4 +263,32 @@ export default {
 </script>
 
 <style>
+.panel-header {
+  position: absolute;
+  left:0px;
+  top:0px;
+  padding: 0 8px;
+  width: 45px;
+  height: 18px;
+  line-height: 18px;
+  font-size: 8px;
+  background: #415c68;
+  color: #fcfcfc;
+  display: flex;
+  font-weight: bold;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(26 26 26 0.2);
+  z-index:99;
+  text-align: left;
+}
+
+.panel-header-end {
+  position: absolute;
+  top: 0px;
+  left: 60.5px;
+  border-top: 18px solid #455a64;
+  border-right: 18px solid #ffffff;
+  border-bottom: 0px solid #ffffff;
+  z-index:98;
+}
 </style>

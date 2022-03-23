@@ -1,6 +1,8 @@
 <template>
   <div>
-    <svg id = "Slot" style = 'width:800px; height:860px'></svg>
+    <div class="panel-header">SlotView</div>
+    <div class="panel-header-end"></div>
+    <svg id = "Slot" style = 'width:805px; height:315px'></svg>
   </div>
 </template>
 
@@ -19,14 +21,16 @@ export default {
       width: 650,
       height: 850,
       margin:{
-        top:160,
-        right:40,
-        bottom:500,
-        left:5
+        top:72,
+        right:85,
+        bottom:0,
+        left:25
       },
       c:32,
       extent_m:0,
-      extent_M:0
+      extent_M:0,
+      h:0,
+      q:0
     };
   },
   mounted(){
@@ -78,7 +82,7 @@ export default {
 
       const xaxis = d3.axisBottom(xscale)
                       .ticks(34)
-                      .tickSize(-10)
+                      .tickSize(-5)
                       .tickPadding(10)
                       .tickFormat(function(d,i){console.log(i==0?0:1)
                       return (i < 33 && i > 0) ? (i-1): "";});
@@ -93,7 +97,7 @@ export default {
         .attr('cx',xscale(-1)+that.innerWidth/68)
         .attr('cy',0)
         .attr('r',6)
-        .attr('fill','#B768FF')
+        .attr('fill','#73C6B6')
 
       // g.append('circle')
       //   .attr('cx',xscale(32)+that.innerWidth/68)
@@ -156,6 +160,8 @@ export default {
       var distribute = d3.scaleLinear().domain([a,b]).range([10, this.innerWidth/34]);
       var [h,q] = d3.extent(d3.filter(that.slots, x=>x.block_header !=0), function(d){return d.casper_balance;})
       var cas_opa = d3.scaleLinear().domain([h,q]).range([0.2, 1]);
+      that.h = h;
+      that.q = q;
 
       d3.select('#slotview').append('g').attr('id','casper_balance')
         .selectAll('rect').data(that.slots).enter()
@@ -168,7 +174,7 @@ export default {
         .attr('height', function(d){
           let hei = d.at_number == 0? 0 : distribute(d.at_number)
           return hei/2;})
-        .attr('fill', function(d){return d3.interpolateGreys(d.block_header == 0? 0.1:cas_opa(d.casper_balance))})
+        .attr('fill', function(d){return d3.interpolatePurples(d.block_header == 0? 0.1:cas_opa(d.casper_balance))})
         .attr('opacity', 0.9)
      },
 
@@ -187,12 +193,13 @@ export default {
           .data(that.slots[j]['ex_blocks']).enter()
               .append('rect')
           .attr('transform',function(d,i){
-              return `translate(${xscale(j)+that.innerWidth/68-ex_block/2},${-i*(ex_block+10)-that.innerWidth/34-20})`;
+              return `translate(${xscale(j)+that.innerWidth/68-ex_block/2},${-i*(ex_block+2)-that.innerWidth/34-4})`;
               })
           .attr('width', ex_block)
           .attr('height', ex_block)
           .attr('fill',function(d){return that.Color(d);})
-          .attr('opacity',0.9)
+          .attr('stroke',"#F8BBD0")
+          .attr('opacity',1)
           }
      },
      arc(lines){
@@ -202,8 +209,8 @@ export default {
 
         const x1 = xscale(lines.source)+this.innerWidth/68;
         const x2 = xscale(lines.target)+this.innerWidth/68;
-        const r = Math.abs(x2 - x1) / 2;
-      return `m${x1},${this.innerWidth/30}A${r},${r} 0,1,0 ${x2},${this.innerWidth/30}`;
+        const r = Math.abs(x2 - x1) / 2 ;
+      return `m${x1},${this.innerWidth/30+3}A${r},${r/1.17} 0,0,0 ${x2},${this.innerWidth/30+3}`;
      },
 
      drawArc(){
@@ -242,49 +249,49 @@ export default {
        lg.append('rect')
          .attr('width',that.innerWidth/35)
          .attr('height', that.innerWidth/70)
-         .attr('transform', `translate(${55},${130})`)
+         .attr('transform', `translate(${55},${35})`)
          .attr('fill','#2665A5')
 
        lg.append('rect')
          .attr('width',that.innerWidth/35)
          .attr('height', that.innerWidth/70)
-         .attr('transform', `translate(${55},${130+that.innerWidth/70})`)
+         .attr('transform', `translate(${55},${35+that.innerWidth/70})`)
          .attr('fill','lightgrey')
 
        lg.append('text')
          .text(' — GHOST balance')
-         .attr('transform', `translate(${77},${136})`)
+         .attr('transform', `translate(${77},${41})`)
          .attr('font-size','9px')
 
        lg.append('text')
          .text(' — Casper balance')
-         .attr('transform', `translate(${77},${139+that.innerWidth/70})`)
+         .attr('transform', `translate(${77},${44+that.innerWidth/70})`)
          .attr('font-size','9px')
        
        lg.append('text')
          .text('Block size: number of attestations inside')
-         .attr('transform', `translate(${25},${155+that.innerWidth/70})`)
+         .attr('transform', `translate(${25},${60+that.innerWidth/70})`)
          .attr('font-size','9px')
 
        lg.append('rect')
          .attr('width',that.innerWidth/50)
          .attr('height', that.innerWidth/50)
-         .attr('transform', `translate(${60},${80})`)
+         .attr('transform', `translate(${60},${18})`)
          .attr('fill','lightblue')
 
        lg.append('text')
          .text(' — Competing blocks')
-         .attr('transform', `translate(${77},${80+that.innerWidth/100})`)
+         .attr('transform', `translate(${77},${18+that.innerWidth/100})`)
          .attr('font-size','9px')
 
        lg.append('circle')
          .attr('r', 5)
-         .attr('fill', '#B768FF')
-         .attr('transform',`translate(${65},${100+that.innerWidth/50})`)
+         .attr('fill', '#73C6B6')
+         .attr('transform',`translate(${65},${140+that.innerWidth/50})`)
 
        lg.append('text')
-         .text('Previous Epoch')
-         .attr('transform', `translate(${77},${104+that.innerWidth/50})`)
+         .text('Previous Epoch:  '+(that.msg-1))
+         .attr('transform', `translate(${77},${144+that.innerWidth/50})`)
          .attr('font-size','9px')
 
       //  lg.append('circle')
@@ -332,22 +339,35 @@ export default {
          .attr('font-size','9px')
 
        lg.append("g").attr("id","legend_blocks")
-         .call(that.colorbox,[150,10],d3.scaleDivergingSymlog([that.extent_m,0.7*that.extent_m+0.3*that.extent_M,that.extent_M], function(t){return d3.interpolateBlues(t);}))
-         .attr("transform",`translate(${35},${35})`)
+         .call(that.colorbox,[150,8],d3.scaleDivergingSymlog([that.extent_m,0.7*that.extent_m+0.3*that.extent_M,that.extent_M], function(t){return d3.interpolateBlues(t);}))
+         .attr("transform",`translate(${35},${-10})`)
 
         d3.select("#legend_blocks")
           .append("g")
-          .call(d3.axisBottom(d3.scaleLinear().domain([that.extent_M/1000000000000,that.extent_m/10000000000]).range([150,0])).ticks(5))
-          .attr("transform","translate(0,10)")
+          .call(d3.axisBottom(d3.scaleLinear().domain([that.extent_M/1000000000000,that.extent_m/10000000000]).range([150,0])).ticks(5).tickSize(3))
+          .attr("transform","translate(0,8)")
+
+
         d3.select("#legend_blocks") 
           .append("text")
-          .text("Obtained Effective")
-          .attr("transform","translate(70,-20)")
+          .text("Effective Balance(gwei)")
+          .attr("transform","translate(60,-5)")
           .attr("font-size","9px")
-        d3.select("#legend_blocks") 
+
+       lg.append("g").attr("id","legend_casper")
+         .call(that.colorbox,[150,8],d3.scaleDiverging([that.h,0.5*that.h+0.5*that.q,that.q], function(t){return d3.interpolatePurples(t);}))
+         .attr("transform",`translate(${35},${100})`)
+
+        d3.select("#legend_casper")
+          .append("g")
+          .call(d3.axisTop(d3.scaleLinear().domain([that.extent_M/1000000000000,that.extent_m/10000000000]).range([150,0])).ticks(5).tickSize(3))
+          .attr("transform","translate(0,0)")
+
+
+        d3.select("#legend_casper") 
           .append("text")
-          .text("Balance/*10e12")
-          .attr("transform","translate(80,-10)")
+          .text("Effective Balance(gwei)")
+          .attr("transform","translate(60,20)")
           .attr("font-size","9px")
      
      }
@@ -378,30 +398,33 @@ export default {
 
 <style scoped>
 .panel-header {
-  position: relative;
-  padding: 0 8px;
-  width: 250px;
-  height: 40px;
-  line-height: 40px;
-  font-size: 24px;
-  background: #455a64;
+  position: absolute;
+  left:0px;
+  top:250px;
+  padding: -10px 20px;
+  width: 45px;
+  height: 18px;
+  line-height: 18px;
+  font-size: 8px;
+  text-align: left;
+  background: #415c68;
   color: #fcfcfc;
   display: flex;
   font-weight: bold;
-  border-radius: 2px;
+  border-radius: 1px;
   box-shadow: 0 1px 2px rgba(26 26 26 0.2);
+  z-index:99;
+
 }
 
 .panel-header-end {
   position: absolute;
-  top: 0px;
-  left: 250px;
-  border-top: 40px solid #455a64;
-  border-right: 45px solid #ffffff;
-  border-bottom: 3px solid #ffffff;
+  top: 250px;
+  left: 61px;
+  border-top: 18px solid #455a64;
+  border-right: 18px solid #ffffff;
+  border-bottom: 0px solid #ffffff;
+  z-index:98;
 }
 
-.ant-table-selected :deep(.table-selected) td {
-  background-color: #fafafa;
-}
 </style>
