@@ -26,6 +26,7 @@ export default {
         right:0,
         bottom:45,
         left:0
+        
       }
     
     };
@@ -66,7 +67,24 @@ export default {
     },
 
     data_processing(){
-      
+   const     slashed_slot=[6668,22373,40771,138163,138730,140312,140558,140810,140844,140894,141173,248185,343132,476903,1510278
+  ,1856962,3339590,17090,17090,17090,17091,17091,17092,17090,17091,17091,17091,43917,102388,118135,138163,138163,138163,138730,
+  140894,140894,138163,138730,456995,457540,231180,256809,296752,357059,421394,456865,456873,456869,456875,456930,456931,456929,
+  456928,457443,457540,457537,457537,457538,457541,457542,457541,457537,457540,457537,457536,457539,457540,457536,457539,457541,
+  457536,457537,457542,457541,457536,457536,457536,457541,457536,457539,457536,457539,457536,475779,457537,457538,457537,457537,
+  457540,2755552,457538,457539,457541,457538,457540,2812800,2813960,457536,457536,457542,457539,457540,457537,457539,457537,457540,
+  457536,457542,457536,457539,457536,457540,457541,457541,457537,457538,457542,457536,457542,457536,457541,457542,475780,475778,475777,
+  475776,475780,475779,475776,475776,475780,475780,475776,475779,475776,475777,475778,475776,906880,1003553,1130720,1224987,1232591,1322720,
+  1322969,1348326,1376000,1376000,1379970,1381593,1899680,1956769,1956779,1978690,2008347,2029832,2043488,2176001,2176737,2176801,2332096,
+  2535250,2624390,2638205,2724283,2814144,2814432,2834208,2872459,3065149,3360800];
+  const  slashed_V=[20075,18177,25645,38069,38089,38130,38129,38065,38128,38117,38114,45871,40892,63338,169440,21613,19299,21574,4259,
+    4100,4390,4086,4102,4110,13869,18249,4451,7635,1644,23241,38105,38061,38061,38091,38148,38106,38058,38116,14415,71603,43843,52866,
+    57976,38038,9143,8320,8275,8250,8239,16509,16491,16523,16479,17377,71676,71654,69812,71401,69884,71665,68648,69358,69895,71614,75715,
+    71690,75162,69391,69817,69716,71664,69732,71671,69772,69841,71673,71708,69866,71699,71663,69809,69388,69756,17189,71593,71646,69786,
+    68593,72074,203983,72499,69717,70044,71672,71709,88656,88655,71718,72084,71714,71734,71744,72081,72082,72421,72491,72493,72496,72503,
+    72508,72511,72674,72807,75045,75172,75204,75212,75711,75723,71743,75699,69873,17395,18989,19001,24696,26278,26201,17164,17228,17304,
+    17140,24703,23179,17291,24528,19017,17232,73292,66420,8776,3206,100190,67319,119315,26447,25895,25894,25893,12981,78678,161751,161752,
+    9230,27442,45276,26945,26988,26989,26987,42708,261,1859,12697,12954,88632,88657,39710,62830,270651,66065];
     const g = d3.select("#Validator").append('g')
       .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
       
@@ -75,7 +93,7 @@ export default {
 
 let that = this;
 
-console.log("WZH",that.val[0]);
+// console.log("WZH",that.val[0]);
 
 for(let j=that.val[that.val.length-1].validator.length-1;j>0&&that.val[that.val.length-1].validator[j].vote==-2;j--)
 
@@ -101,7 +119,16 @@ that.proposer.reverse();
         graph[i].push(0);
     }
  }
+//处理 被slashed的数据
+var slashed=[];
 
+for(let i=0;i<slashed_slot.length;i++){
+  slashed.push({slot:slashed_slot[i],V_index:slashed_V[i]});
+}
+slashed.sort((x,y)=>{
+  return x.V_index-y.V_index;
+})
+// console.log(slashed);
  //graph保留数量信息
 var k = []
 for(let i = 0;i < that.proposer.length; i++)
@@ -117,14 +144,30 @@ for(let j = 0; j < SUM; j++){
     if(Y<0)
         Y=0;
     var X= ++graph[i][Y];
-    v_line[j].node.push( {dy:X,y:Y,ispro:0});
+    v_line[j].node.push( {dy:X,y:Y,ispro:0,isslashed:0});
     }
     else{
-     v_line[j].node.push( {dy:0,y:2,ispro:0})
+     v_line[j].node.push( {dy:0,y:2,ispro:0,isslashed:0})
     }
     if(k[i]<that.proposer[i].length&&that.val[i].validator[j].validator_index==that.proposer[i][k[i]])
     v_line[j].node[i].ispro=1;
    }
+}
+
+
+for(let i=0,j=0;i<slashed.length&&j<v_line.length;){
+     if(slashed[i].V_index<v_line[i].index){
+       i++;
+     }
+     else if(slashed[i].V_index>v_line[i].index){
+       j++;
+     }
+     else{
+         let epoch=Math.floor(slashed[i].slot/32);
+         if(epoch>=epoch_0&&epoch<epoch_0+that.val.length){
+               v_line[j].node[epoch-epoch_0].isslashed=1;
+         }
+     }
 }
 // console.log(proposer);
 // console.log(graph);
@@ -139,7 +182,8 @@ for(let j = 0; j < SUM; j++){
 
  //设置矩阵的行列
 var c=that.val.length;
-const yValue=['Unvoted validator','Wrong voted validator','Wrong voted proposer','Continuous irregular'];
+var epoch_0=that.val[0].epoch;
+const yValue=['Unvoted validator','Wrong voted validator','Wrong voted proposer','Continuous irregular','Slashed validator'];
 const xValue=[];
 for(let i=0;i<c;i++){
     xValue.push(i == 0?'epoch:'+ that.val[i].epoch:that.val[i].epoch);
@@ -150,10 +194,10 @@ var legend = g.selectAll(".legend")
         .data(yValue)
         .enter().append("g")
         .attr("class", "legend")
-        .attr("transform", function (d, i) { return "translate(" + (4+i *116) + "," +(that.margin.top+that.innerHeight+20) + ")"; });
+        .attr("transform", function (d, i) { return "translate(" + (4+i *95) + "," +(that.margin.top+that.innerHeight+20) + ")"; });
       legend.append("rect")
         .data(yValue)
-        .attr("x", function(d,i){return i>=1?-20:0})
+        .attr("x", function(d,i){return i?-20:0})
         .attr("y", d=>d=='Continuous irregular'?5:3)
         .attr("width", 10)
         .attr("height", d=>d=='Continuous irregular'?1:4)
@@ -162,7 +206,8 @@ var legend = g.selectAll(".legend")
                 case 'Wrong voted validator':return 'red';
                 case 'Unvoted validator':return 'grey';
                 case 'Wrong voted proposer':return '#6E00F5';
-                case 'Continuous irregular':return 'blue';
+                case 'Continuous irregular':return '#BFC9CA';
+                case 'Slashed validator':return 'black';
             }
         })
         .attr('opacity',d=>d=='Continuous irregular'?0.7:0.8);
@@ -170,18 +215,18 @@ var legend = g.selectAll(".legend")
       legend.append("text")
         .data(yValue)
         .attr('class', 'legend_text')
-        .attr("x", function(d,i){return i>=1?-8:12})
+        .attr("x", function(d,i){return i?-8:12})
         .attr("y", d=>d=='Continuous irregular'?-2:3)
         .attr("dy", ".5em")
         .attr("fill", 'black')
         .style("text-anchor", "start")
         .text(d => d )
-         .attr('font-size','9px');
+         .attr('font-size','6px');
         
       g.append('text')
         .text('voting')
-        .attr('transform', `translate(${380},${308})`)
-        .attr('font-size','9px')
+        .attr('transform', `translate(${300},${308})`)
+        .attr('font-size','6px')
 
 //设置坐标轴
 const xscale = d3.scaleBand()
@@ -304,7 +349,9 @@ for(let j=0;j<that.val.length-1;j++){
             })
             .attr('x',xscale2(j)+sub_width/2)
             .attr('fill',function(){
-                if(v_line[i].node[j].ispro)
+                if(v_line[i].node[j].isslashed)
+                return 'black';
+                else if(v_line[i].node[j].ispro)
                 return '#6E00F5'
                 else if(!y)
                 return '#4D5656';
