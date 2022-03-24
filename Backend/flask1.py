@@ -14,7 +14,7 @@ import datetime
 import copy
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@10.192.9.11'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:ChenXuan46@10.192.9.11'
 db = SQLAlchemy(app)
 CORS(app)
 
