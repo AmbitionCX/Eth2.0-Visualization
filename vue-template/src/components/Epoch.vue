@@ -24,10 +24,10 @@ export default {
       width: 360,
       height: 245,
       margin:{
-        top:22,
+        top:21,
         right:50,
         bottom:2,
-        left:85
+        left:89
       },
       r:15,
       c:15,
@@ -70,6 +70,7 @@ export default {
      },
 
      Scale(){
+      //const gap = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
       const g = d3.select('#Epoch').append('g').attr('id', 'epochview')
                   .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
       const xscale = d3.scaleLinear()
@@ -159,7 +160,7 @@ export default {
         }
       })
       .attr("transform", function(d, i) {
-        return `translate(${xscale(Math.floor((i)%c))+2.5},${yscale(Math.floor((i)/c))+2.5})`;
+        return `translate(${xscale(Math.ceil((i)%c))+that.innerWidth/30+2.5},${yscale(Math.floor((i)/c))+that.innerHeight/30+1})`;
       })
       .on("mouseup", function(){ 
         d3.select(this)
@@ -176,7 +177,7 @@ export default {
         d3.selectAll('.tooltip')
           .html(str)
                .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
-               .style("top", (2+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
+               .style("top", (7+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
                .style("opacity",1.0);
     })
       .on("mouseleave",function(){
@@ -189,7 +190,7 @@ export default {
     d3.select("#Epoch")
       .append("g").attr("id","legend")
       .call(that.colorbox,[10,150],d3.scaleDiverging([a, med, b], function (t){return d3.interpolateBlues(t);}))
-      .attr("transform",`translate(${10+that.width - that.margin.right},${25})`)
+      .attr("transform",`translate(${20+that.width - that.margin.right},${25})`)
 
     d3.select("#legend")
        .append("g")
@@ -198,7 +199,7 @@ export default {
     d3.select("#legend") 
       .append("text")
       .text("Effective Balance(gwei)")
-      .attr("transform","translate(0,-8)")
+      .attr("transform","translate(-6,-8)")
       .attr("font-size","10px")
   },
 
@@ -246,7 +247,7 @@ export default {
                     }
                   })
                   .attr("transform", function(d, i) {
-            return `translate(${xscale(Math.floor((i)%c))+2.5},${yscale(Math.floor((i)/c))+2.5})`;
+            return `translate(${xscale(Math.ceil((i)%c))+that.innerWidth/30+2.5},${yscale(Math.floor((i)/c))+that.innerHeight/30+1})`;
                   })
                   .on("mouseup", function(){ 
                     d3.select(this)
@@ -263,7 +264,7 @@ export default {
                     d3.selectAll('.tooltip')
                       .html(str)
                           .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
-                          .style("top", (2+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
+                          .style("top", (7+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
                           .style("opacity",1.0);
                 })
                   .on("mouseleave",function(){
@@ -276,7 +277,7 @@ export default {
     d3.select("#Epoch")
       .append("g").attr("id","legend")
       .call(that.colorbox,[10,150],d3.scaleDiverging([a, med, b], function (t){return d3.interpolatePurples(t);}))
-      .attr("transform",`translate(${10+that.width - that.margin.right},${20})`)
+      .attr("transform",`translate(${20+that.width - that.margin.right},${20})`)
 
     d3.select("#legend")
        .append("g")
@@ -285,7 +286,7 @@ export default {
     d3.select("#legend") 
       .append("text")
       .text("Effective Balance(gwei)")
-      .attr("transform","translate(0,-8)")
+      .attr("transform","translate(-6,-8)")
       .attr("font-size","10px")
    },
 
@@ -338,7 +339,7 @@ export default {
     padding: 5px 5px;
     position: absolute;
     top:190px;
-    left:1140px;
+    left:1150px;
     text-align: center;
     text-decoration: none;
     user-select: none;
@@ -364,7 +365,7 @@ export default {
     padding: 5px 5px;
     position: absolute;
     top:215px;
-    left:1140px;
+    left:1150px;
     text-align: center;
     text-decoration: none;
     user-select: none;
