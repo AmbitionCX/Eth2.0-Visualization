@@ -36,6 +36,11 @@ export default {
     //this.Scale();
   },
   computed:{
+    time(){
+      var t = new Date();
+      var m = t.getTime();
+      return m;
+    },
     all_data(){
       return this.all
     },
@@ -257,6 +262,9 @@ export default {
         this.Draw(i);
       }
       this.Legend();
+    },
+    time(){
+      console.log(1)
     }
   }
 };

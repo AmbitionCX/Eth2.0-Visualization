@@ -79,7 +79,7 @@ class Validator(db.Model):
     val = db.Column('f_validator_index', db.Integer, primary_key = True)
     epoch = db.Column('f_epoch', db.Integer)
 
-class Vote(db.Model):
+class Vote1(db.Model):
     __tablename__ = 'c_main_table'
     slot = db.Column('f_slot', db.Integer, primary_key = True)
     epoch = db.Column('f_epoch', db.Integer)
@@ -91,6 +91,29 @@ class Vote(db.Model):
     not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
     ghost_selection = db.Column('f_ghost_selection', db.String)
 
+class Vote2(db.Model):
+    __tablename__ = 'c_main_table_2'
+    slot = db.Column('f_slot', db.Integer, primary_key = True)
+    epoch = db.Column('f_epoch', db.Integer)
+    casper_y = db.Column('f_casper_y', db.String)
+    casper_y_balance = db.Column('f_casper_y_balance', db.BigInteger)
+    casper_n = db.Column('f_casper_n', db.String)
+    casper_n_balance = db.Column('f_casper_n_balance', db.BigInteger)
+    not_vote = db.Column('f_not_vote', db.String)
+    not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
+    ghost_selection = db.Column('f_ghost_selection', db.String)
+
+class Vote3(db.Model):
+    __tablename__ = 'c_main_table_3'
+    slot = db.Column('f_slot', db.Integer, primary_key = True)
+    epoch = db.Column('f_epoch', db.Integer)
+    casper_y = db.Column('f_casper_y', db.String)
+    casper_y_balance = db.Column('f_casper_y_balance', db.BigInteger)
+    casper_n = db.Column('f_casper_n', db.String)
+    casper_n_balance = db.Column('f_casper_n_balance', db.BigInteger)
+    not_vote = db.Column('f_not_vote', db.String)
+    not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
+    ghost_selection = db.Column('f_ghost_selection', db.String)
 
 @app.route('/Overview')
 def Overview():
@@ -124,6 +147,11 @@ def EpochView(index):
 
 @app.route('/validator/<int:index>', methods=['GET'])
 def validator(index):
+    if index >= 62500:
+        Vote = Vote1
+    else:
+        Vote = Vote2
+
     ats = Vote.query.filter(Vote.epoch == index).order_by(Vote.slot).all()
     val = []
     for a in ats:
@@ -183,6 +211,10 @@ def validator(index):
 
 @app.route('/slot/<int:index>',methods=['GET'])
 def slot(index):
+    if index >= 62500:
+        Vote = Vote2
+    else:
+        Vote = Vote1
     slots = []
     links_temp = []
     for s in range(index*32,(index+1)*32):

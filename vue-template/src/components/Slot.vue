@@ -30,11 +30,12 @@ export default {
       extent_m:0,
       extent_M:0,
       h:0,
-      q:0
+      q:0,
+      timer:""
     };
   },
   mounted(){
-    this.xScale();
+    //this.timer = setInterval(this.getSlot(),6000);
   },
   computed:{
     slot(){
@@ -57,6 +58,11 @@ export default {
     }
   },
   methods:{
+    //  useEffect(){
+    //   const interval = setInterval(getSlot(), 1000);
+    //  return clearInterval(interval);
+    // }, 
+
      getSlot(){
        const path = 'http://127.0.0.1:5000/slot/' + eval(this.msg);
        console.log(path);
@@ -125,6 +131,14 @@ export default {
       return color(num)
     },
 
+    ColorCasper(num){
+      let that = this;
+      var [h,q] = d3.extent(d3.filter(that.slots, x=>x.block_header !=0), function(d){return d.casper_balance;})
+      //var cas_opa = d3.scaleLinear().domain([h,q]).range([0.2, 1]);
+      const color =d3.scaleDivergingSymlog([h/1.2,0.2*h+0.8*q,q], function(t){return t;})
+      return color(num)
+    },
+
      drawBlockheader(){
       let that = this;
       console.log(that.Color(20))
@@ -159,7 +173,7 @@ export default {
       console.log([a,b]);
       var distribute = d3.scaleLinear().domain([a,b]).range([10, this.innerWidth/34]);
       var [h,q] = d3.extent(d3.filter(that.slots, x=>x.block_header !=0), function(d){return d.casper_balance;})
-      var cas_opa = d3.scaleLinear().domain([h,q]).range([0.2, 1]);
+      //var cas_opa = d3.scaleLinear().domain([h,q]).range([0.2, 1]);
       that.h = h;
       that.q = q;
 
@@ -174,8 +188,8 @@ export default {
         .attr('height', function(d){
           let hei = d.at_number == 0? 0 : distribute(d.at_number)
           return hei/2;})
-        .attr('fill', function(d){return d3.interpolatePurples(d.block_header == 0? 0.1:cas_opa(d.casper_balance))})
-        .attr('opacity', 0.9)
+        .attr('fill', "#6B3593")//function(d){return d3.interpolatePurples(d.block_header == 0? 0.1:cas_opa(d.casper_balance))})
+        .attr('opacity', function(d){return that.ColorCasper(d.casper_balance);})
      },
 
      drawExBlocks(){
@@ -224,7 +238,7 @@ export default {
           .selectAll("path")
           .data(that.links).enter()
           .append("path").attr("d",that.arc).attr("stroke-width",function(d){return thickness(d.value);})
-          .attr("stroke", function(d){return d.correct ? "#88EB52":"#DB366A";})
+          .attr("stroke", function(d){return d.correct ? "#55A674":"#C64D6B";})
 
      },
      colorbox(sel, size, colors){
@@ -256,7 +270,7 @@ export default {
          .attr('width',that.innerWidth/35)
          .attr('height', that.innerWidth/70)
          .attr('transform', `translate(${55},${35+that.innerWidth/70})`)
-         .attr('fill','lightgrey')
+         .attr('fill','#AF7AC5')
 
        lg.append('text')
          .text(' — GHOST balance')
