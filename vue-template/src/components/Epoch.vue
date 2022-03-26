@@ -223,11 +223,11 @@ export default {
                   .attr('width', this.innerWidth/15-5)
                   .attr('height', this.innerHeight/15-5)
                   .attr('stroke',function(d){
-                    if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.5){
-                        console.log(d['head_correct_balance'])
+                    if ((d['active_balance'] - d['target_correct_balance']) > d['active_balance'] * 0.5){
+                        console.log(d['target_correct_balance'])
                         return '#E53935'
                     }else{
-                      if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.25){
+                      if((d['active_balance'] - d['target_correct_balance']) > d['active_balance'] * 0.25){
                         return '#FBC02D'
                       }else{
                           return ''
@@ -235,11 +235,11 @@ export default {
                     }
                   })
                   .attr('stroke-width',function(d){
-                    if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.5){
-                        console.log(d['head_correct_balance'])
+                    if ((d['active_balance'] - d['target_correct_balance']) > d['active_balance'] * 0.5){
+                        console.log(d['target_correct_balance'])
                         return '1.5px'
                     }else{
-                      if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.25){
+                      if((d['active_balance'] - d['target_correct_balance']) > d['active_balance'] * 0.25){
                         return '1px'
                       }else{
                           return ''
@@ -258,7 +258,7 @@ export default {
                   .on("mouseover",function(){
                     let d =d3.select(this).data();
 
-                    var str =" head_error_balance/active_balance: " + (100*(1 - d[0]['head_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% ";
+                    var str =" target_error_balance/active_balance: " + (100*(1 - d[0]['target_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% ";
                   
                     
                     d3.selectAll('.tooltip')

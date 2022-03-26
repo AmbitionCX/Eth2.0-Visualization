@@ -35,7 +35,7 @@ export default {
     };
   },
   mounted(){
-    //this.timer = setInterval(this.getSlot(),6000);
+      this.timer = setInterval(this.getSlot,20000);
   },
   computed:{
     slot(){
@@ -58,11 +58,6 @@ export default {
     }
   },
   methods:{
-    //  useEffect(){
-    //   const interval = setInterval(getSlot(), 1000);
-    //  return clearInterval(interval);
-    // }, 
-
      getSlot(){
        const path = 'http://127.0.0.1:5000/slot/' + eval(this.msg);
        console.log(path);
@@ -388,11 +383,15 @@ export default {
   },
 
   created(){
-    this.getSlot();
+    //this.xScale();
   },
+  beforeUnmount() {
+      clearInterval(this.timer);
+    },
   watch:{
     slot(){
       console.log('slot changed')
+      d3.select('#Slot').selectAll('g').remove()
         this.xScale();
         this.drawArc();
         this.drawBlockheader();

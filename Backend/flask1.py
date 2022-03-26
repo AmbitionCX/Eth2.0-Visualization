@@ -12,6 +12,7 @@ import json
 import simplejson
 import datetime
 import copy
+import random
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:ChenXuan46@10.192.9.11'
@@ -115,6 +116,19 @@ class Vote3(db.Model):
     not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
     ghost_selection = db.Column('f_ghost_selection', db.String)
 
+class Vote4(db.Model):
+    __tablename__ = 'c_main_table_4'
+    slot = db.Column('f_slot', db.Integer, primary_key = True)
+    epoch = db.Column('f_epoch', db.Integer)
+    casper_y = db.Column('f_casper_y', db.String)
+    casper_y_balance = db.Column('f_casper_y_balance', db.BigInteger)
+    casper_n = db.Column('f_casper_n', db.String)
+    casper_n_balance = db.Column('f_casper_n_balance', db.BigInteger)
+    not_vote = db.Column('f_not_vote', db.String)
+    not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
+    ghost_selection = db.Column('f_ghost_selection', db.String)
+
+
 @app.route('/Overview')
 def Overview():
     data= c_overview.query.order_by(c_overview.days).all()
@@ -147,10 +161,16 @@ def EpochView(index):
 
 @app.route('/validator/<int:index>', methods=['GET'])
 def validator(index):
-    if index >= 62500:
-        Vote = Vote1
+    if index >= 93750:
+        Vote = Vote4
     else:
-        Vote = Vote2
+        if index >= 62500:
+            Vote = Vote3
+        else:
+            if index >= 31250:
+                Vote = Vote2
+            else:
+                Vote = Vote1
 
     ats = Vote.query.filter(Vote.epoch == index).order_by(Vote.slot).all()
     val = []
@@ -211,10 +231,16 @@ def validator(index):
 
 @app.route('/slot/<int:index>',methods=['GET'])
 def slot(index):
-    if index >= 62500:
-        Vote = Vote2
+    if index >= 93750:
+        Vote = Vote4
     else:
-        Vote = Vote1
+        if index >= 62500:
+            Vote = Vote3
+        else:
+            if index >= 31250:
+                Vote = Vote2
+            else:
+                Vote = Vote1
     slots = []
     links_temp = []
     for s in range(index*32,(index+1)*32):
@@ -264,6 +290,10 @@ def slot(index):
             temp['ex_blocks'].sort()
             if temp['at_number'] != 0:
                 temp['block_header'] = temp['ex_blocks'].pop()
+        
+        slots.append(temp)
+        if temp['casper_balance'] == 0:
+            continue
 
         if len(links_temp) > 0:
             l = {
@@ -275,6 +305,7 @@ def slot(index):
             counter = 0
             links = []
             for li in links_temp:
+                print(li['target'])
                 if li != l:
                     t = {}
                     t['source'] = l['source']
@@ -294,7 +325,13 @@ def slot(index):
             t['value'] = counter
             links.append(t)
 
-        slots.append(temp)
+
+#    slots[6]['at_number'] *= 200
+#    for l in links:
+#        if l['source'] == 6 and l['target'] > 9 and not l['correct']:
+#            l['value'] *= 200
+#            break
+
     return json.dumps([slots] + [links])
 
 

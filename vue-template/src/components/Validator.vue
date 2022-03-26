@@ -106,7 +106,7 @@ that.proposer.reverse();
 
 
  const SUM=that.val[0].validator.length;
-
+console.log(SUM);
 
 
  var graph = [];
@@ -153,7 +153,7 @@ for(let j = 0; j < SUM; j++){
     v_line[j].node[i].ispro=1;
    }
 }
-
+console.log(v_line);
 
 for(let i=0,j=0;i<slashed.length&&j<v_line.length;){
      if(slashed[i].V_index<v_line[i].index){
@@ -310,14 +310,20 @@ for(let j=0;j<that.val.length-1;j++){
             .style('stroke','#BFC9CA ')
             .style('stroke-width','0.8')//'0.5')
             .style('fill','none')
-            .style('opacity','0.7')
+            .style('opacity',0.7)
+            .style('z-index','-1')
             .on('mouseover',function(){
+             
              this.style.stroke='red';
              this.style.opacity=1;
+             d3.select(this)
+               .style('z-index',999)
+      
             var x='validator_index: '+v_line[i].index;
             d3.selectAll('.tooltip3')
               .html(x)
               .style("opacity",1.0)
+
             //  tooltip.html(x)
             //         .style("opacity",1.0);
             })
@@ -325,6 +331,7 @@ for(let j=0;j<that.val.length-1;j++){
              this.style.stroke='#BFC9CA';
              this.style.opacity=0.7;
              d3.selectAll('.tooltip3').style("opacity",0);
+             d3.select(this).style("z-index",-1)
             })
         }
 
@@ -396,6 +403,11 @@ for(let j=0;j<that.val.length-1;j++){
  .axis text{
   font-family: sans-serif;
   font-size: 11px;
+}
+
+.v_line:hover{
+  z-index:999;
+  stroke-width:5px;
 }
 
 .tooltip3{

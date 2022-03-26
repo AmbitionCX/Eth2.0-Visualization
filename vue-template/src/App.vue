@@ -26,10 +26,17 @@ export default {
     data(){
       return{
       details_display: 0,
-      epoch_index:-1
+      epoch_index:-1,
+      value:0
       }
     },
+    mounted(){
+  },
     methods:{
+      // check(){
+      //   this.value ++;
+      //   console.log(this.value);
+      // },
       Details(data){
         this.details_display = data;
       },
