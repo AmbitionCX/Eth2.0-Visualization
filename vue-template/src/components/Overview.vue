@@ -4,7 +4,8 @@
     <div class="panel-header-end"></div>
     <svg id = "Overview" style = 'width:805px; height:250px'
      @mousedown = 'reColor("down")'>
-    </svg>  
+    </svg> 
+    <div class="tooltip1"></div>
   </div>
 </template>
 
@@ -177,16 +178,21 @@ export default {
      .attr('fill', d => that.Color(d["canonical"]))
      .attr('opacity', 0.9)
      .on("mouseup", function(){
-          d3.select(this)
-            .attr("fill", "#FFFF00")
-            .attr("stroke","#FF8BA0")
-            .attr("stroke-width","1.5px");//d=>that.Color_select(d['canonical']))
+          // d3.select(this)
+          //   .attr("fill", "#FFFF00")
+          //   .attr("stroke","#FF8BA0")
+          //   .attr("stroke-width","1.5px");//d=>that.Color_select(d['canonical']))
           var temp = d3.select(this).data();
           let a = temp[0]['day'];
           let b = "2020-12-01";
-          that.$emit('day_detail',225*(new Date(a) - new Date(b))/(1*24*60*60*1000));
+          const epoch_num = 225*(new Date(a) - new Date(b))/(1*24*60*60*1000)
+          that.$emit('day_detail',epoch_num);
           console.log("highlight")
-          console.log(this.class());
+          var str1 = a + "<br>Epoch " + epoch_num + " ~ " + (epoch_num + 225)
+          console.log(a)
+            d3.selectAll('.tooltip1')
+              .html(str1)
+              .style("opacity",1.0)
 
           })     
 
@@ -271,6 +277,25 @@ export default {
 </script>
 
 <style>
+.tooltip1{
+  position:absolute;
+  stroke:black;
+  left:740px;
+  top:206px;
+  width:auto;
+  height:auto;
+  border:2px solid lightcoral;
+  border-radius:5px;
+  padding-left:1px;
+  padding-right:1px;
+  padding-top:1px;
+  padding:1px;
+  background-color: white;
+  font-size: 1px;
+  text-align: center;
+  opacity:0;
+  z-index:99;
+}
 .panel-header {
   position: absolute;
   left:0px;

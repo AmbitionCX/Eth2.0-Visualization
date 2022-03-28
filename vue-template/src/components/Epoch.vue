@@ -6,8 +6,9 @@
     @mousedown = 'reColor("down")'>
     </svg>
     <div class="tooltip"></div>
-    <button id = 'ghost' @click = 'GHOST()'>Head</button>
-    <button id = 'casper' @click = 'Casper()'>Checkpoint</button>
+    <div class="tooltip2"></div>
+    <button id = 'ghost' @click = 'GHOST()'>GHOST Vote</button>
+    <button id = 'casper' @click = 'Casper()'>Casper Vote</button>
   </div>
 </template>
 
@@ -163,21 +164,23 @@ export default {
         return `translate(${xscale(Math.ceil((i)%c))+that.innerWidth/30+2.5},${yscale(Math.floor((i)/c))+that.innerHeight/30+1})`;
       })
       .on("mouseup", function(){ 
-        d3.select(this)
-          .attr("fill","yellow")                  
+        // d3.select(this)
+        //   .attr("fill","yellow")                  
         var temp = d3.select(this).data();
         that.$emit('details',temp[0].epoch);
+            d3.selectAll('.tooltip2')
+              .html("Current Epoch: " + temp[0].epoch)
+              .style("opacity",1.0)
       })
       .on("mouseover",function(){
         let d =d3.select(this).data();
-
-        var str =" head_error_balance/active_balance: " + (100*(1 - d[0]['head_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% ";
+        var str =" head_error_balance/active_balance: " + (100*(1 - d[0]['head_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% " +"<br>Epoch:"+d[0]['epoch'];
       
         
         d3.selectAll('.tooltip')
           .html(str)
                .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
-               .style("top", (7+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
+               .style("top", (-10+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
                .style("opacity",1.0);
     })
       .on("mouseleave",function(){
@@ -250,21 +253,24 @@ export default {
             return `translate(${xscale(Math.ceil((i)%c))+that.innerWidth/30+2.5},${yscale(Math.floor((i)/c))+that.innerHeight/30+1})`;
                   })
                   .on("mouseup", function(){ 
-                    d3.select(this)
-                      .attr("fill","yellow")                      
+                    // d3.select(this)
+                    //   .attr("fill","yellow")                      
                     var temp = d3.select(this).data();
                     that.$emit('details',temp[0].epoch);
+                    d3.selectAll('.tooltip2')
+                      .html("Current Epoch: " + temp[0].epoch)
+                      .style("opacity",1.0)
                   })
                   .on("mouseover",function(){
                     let d =d3.select(this).data();
 
-                    var str =" target_error_balance/active_balance: " + (100*(1 - d[0]['target_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% ";
+                    var str =" target_error_balance/active_balance: " + (100*(1 - d[0]['target_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% "+"<br>Epoch:"+d[0]['epoch'];
                   
                     
                     d3.selectAll('.tooltip')
                       .html(str)
                           .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
-                          .style("top", (7+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
+                          .style("top", (-10+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
                           .style("opacity",1.0);
                 })
                   .on("mouseleave",function(){
@@ -384,12 +390,30 @@ export default {
     border:1px solid #2ea44f;
     border-radius:5px;
     background-color: white;
-    font-size: 14px;
+    font-size: 8px;
     text-align: center;
     opacity:0;
     z-index:999;
 		}
 
+.tooltip2{
+  position:absolute;
+  left:660px;
+  top:530px;
+  width:auto;
+  height:auto;
+  border:2px solid lightcoral;
+  border-radius:5px;
+  padding-left:1px;
+  padding-right:1px;
+  padding-top:1px;
+  padding:1px;
+  background-color: white;
+  font-size: 1px;
+  text-align: center;
+  opacity:0;
+  z-index:99;
+}
 .panel-header {
   position: absolute;
   left:817px;

@@ -13,6 +13,8 @@ import simplejson
 import datetime
 import copy
 import random
+import pandas as pd
+import numpy as np
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:ChenXuan46@10.192.9.11'
@@ -129,6 +131,17 @@ class Vote4(db.Model):
     ghost_selection = db.Column('f_ghost_selection', db.String)
 
 
+@app.route('/Overview_Attack')
+def Overview_Attack():
+    d=pd.read_csv("./maintable.csv",sep=';')
+
+
+@app.route('/SlotView_Attack')
+def EpochView_Attack():
+    Vote=pd.read_csv("./maintable.csv",sep=';')
+    Attestation_a=pd.read_csv("./maintable.csv",sep=';')
+    
+
 @app.route('/Overview')
 def Overview():
     data= c_overview.query.order_by(c_overview.days).all()
@@ -146,16 +159,44 @@ def Overview():
 
 @app.route('/EpochView/<int:index>')
 def EpochView(index):
-    data = Epoch.query.filter(Epoch.epoch.in_(range(index,index+225))).order_by(-Epoch.epoch).all()
     epochs = []
-    for d in data[::-1]:
-        s = {}
-        s['epoch'] = d.epoch
-        s['active_balance'] = d.active_balance
-        s['attesting_balance'] = d.attesting_balance
-        s['target_correct_balance'] = d.target_correct_balance
-        s['head_correct_balance'] = d.head_correct_balance
-        epochs.append(s)
+    if index < 54225:
+        data = Epoch.query.filter(Epoch.epoch.in_(range(index,index+225))).order_by(-Epoch.epoch).all()
+        for d in data[::-1]:
+            s = {}
+            s['epoch'] = d.epoch
+            s['active_balance'] = d.active_balance
+            s['attesting_balance'] = d.attesting_balance
+            s['target_correct_balance'] = d.target_correct_balance
+            s['head_correct_balance'] = d.head_correct_balance
+            epochs.append(s)
+    else:
+        if index >= 93750:
+            print(4)
+            Vote = Vote4
+        else:
+            if index >= 62500:
+                Vote = Vote3
+                print(3)
+            else:
+                if index >= 54225:
+                    Vote = Vote2
+                    print(2)
+        data = Vote.query.filter(Vote.epoch.in_(range(index,index+225))).order_by(Vote.epoch).all()
+        print(len(data))
+        for d in data:
+            print(d.epoch)
+            s = {}
+            s['epoch'] = d.epoch
+            s['active_balance'] = d.casper_y_balance + d.casper_n_balance + d.not_vote_balance
+            s['target_correct_balance'] = d.casper_y_balance
+            balance = 0
+            for g in d.ghost_selection:
+                if g['canonical']:
+                    balance += g['balance']
+            s['head_correct_balance'] = balance
+            epochs.append(s)
+        print(len(epochs))
     return json.dumps(epochs)
 
 
@@ -229,6 +270,7 @@ def validator(index):
         proposer.append(p)
     return json.dumps([casper]+[proposer])
 
+
 @app.route('/slot/<int:index>',methods=['GET'])
 def slot(index):
     if index >= 93750:
@@ -243,6 +285,7 @@ def slot(index):
                 Vote = Vote1
     slots = []
     links_temp = []
+    links = []
     for s in range(index*32,(index+1)*32):
         ats = Attestation.query.filter_by(inclusion_slot=s).order_by(Attestation.slot, Attestation.committee_index).all()
         print(len(ats))
