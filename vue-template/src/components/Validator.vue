@@ -377,10 +377,29 @@ for(let j=0;j<that.val.length-1;j++){
           }
          }
         }
-    for(let i=0;i< v_line.length;i++){
-      make_line(i);
+     for(let i=0;i< v_line.length;i++){
       make_rect(i);
     }
+    
+    var ISred=[];
+    for(let i=0;i< v_line.length;i++){
+        var isred=0;
+       for(let j=0;j<v_line[i].length-1;j++){
+       if((v_line[i].node[j+1].y==1||v_line[i].node[j+1].y==0)&&(v_line[i].node[j].y==0||v_line[i].node[j].y==1)){
+          isred=isred||v_line[i].node[j].y;
+          if(isred)
+          break;
+       }
+      
+    }
+    if(isred)
+       ISred.push(i);
+       else
+       make_line(i);
+    }
+
+    for(let i=0;i<ISred.length;i++)
+    make_line(ISred[i]);
    
 
   }
