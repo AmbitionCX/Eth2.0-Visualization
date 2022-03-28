@@ -182,20 +182,38 @@ def EpochView(index):
                 if index >= 54225:
                     Vote = Vote2
                     print(2)
-        data = Vote.query.filter(Vote.epoch.in_(range(index,index+225))).order_by(Vote.epoch).all()
+        data = Vote.query.filter(Vote.slot.in_(range(index*32,index+225*32))).all()
         print(len(data))
+
+        prev_epoch = index
+        all_balance = 0
+        casper_correct_balance = 0
+        ghost_correct_balance = 0
         for d in data:
             print(d.epoch)
-            s = {}
-            s['epoch'] = d.epoch
-            s['active_balance'] = d.casper_y_balance + d.casper_n_balance + d.not_vote_balance
-            s['target_correct_balance'] = d.casper_y_balance
-            balance = 0
+            if d.epoch != prev_epoch:
+                s = {}
+                s['epoch'] = prev_epoch
+                s['active_balance'] = all_balance
+                s['head_correct_balance'] = ghost_correct_balance
+                s['target_correct_balance'] = casper_correct_balance
+                epochs.append(s)
+                prev_epoch = d.epoch
+                all_balance = 0
+                casper_correct_balance = 0
+                ghost_correct_balance = 0
+            all_balance += d.casper_y_balance + d.casper_n_balance + d.not_vote_balance
+            casper_correct_balance += d.casper_y_balance
             for g in d.ghost_selection:
                 if g['canonical']:
-                    balance += g['balance']
-            s['head_correct_balance'] = balance
-            epochs.append(s)
+                    ghost_correct_balance += g['balance']
+        s = {}
+        s['epoch'] = prev_epoch
+        s['active_balance'] = all_balance
+        s['head_correct_balance'] = ghost_correct_balance
+        s['target_correct_balance'] = casper_correct_balance
+        epochs.append(s)
+
         print(len(epochs))
     return json.dumps(epochs)
 
@@ -286,9 +304,11 @@ def slot(index):
     slots = []
     links_temp = []
     links = []
+    delays = []
+    delay_temp = []
     for s in range(index*32,(index+1)*32):
         ats = Attestation.query.filter_by(inclusion_slot=s).order_by(Attestation.slot, Attestation.committee_index).all()
-        print(len(ats))
+
         temp = {}
         temp['at_number'] = 0
         if len(ats) > 0:
@@ -308,10 +328,11 @@ def slot(index):
                     committee_prev = a.committee_index
                 ats_no = ats_no|set(a.aggregation_indices)
                 links_temp.append(link)
+
+                delay_temp.append(a.target_epoch - a.source_epoch)
             temp['at_number'] += len(ats_no)
 
         votes = Vote.query.filter_by(slot = s).first()
-        print(votes)
         temp['casper_balance'] = 0
         temp['block_header'] = 0
         temp['ex_blocks'] = []
@@ -348,7 +369,7 @@ def slot(index):
             counter = 0
             links = []
             for li in links_temp:
-                print(li['target'])
+               # print(li['target'])
                 if li != l:
                     t = {}
                     t['source'] = l['source']
@@ -368,14 +389,23 @@ def slot(index):
             t['value'] = counter
             links.append(t)
 
+    # delay_temp.append(2)
+    for b in set(delay_temp):
+        gap = {}
+        gap['gap'] = b
+        gap['count'] = delay_temp.count(b)
+        delays.append(gap)
+    # slots[20]['at_number'] *= 200
+    # slots[20]['ex_blocks'] = []
+    # slots[20]['ex_blocks'].append(slots[20]['block_header'])
+    # slots[20]['ex_blocks'].append(slots[20]['block_header'])
+    # slots[20]['ex_blocks'].append(slots[20]['block_header'])
+    # for l in links:
+    #     if l['source'] < 15 and l['target'] == 20 and not l['correct']:
+    #         l['value'] *= 200
+    #         break
 
-#    slots[6]['at_number'] *= 200
-#    for l in links:
-#        if l['source'] == 6 and l['target'] > 9 and not l['correct']:
-#            l['value'] *= 200
-#            break
-
-    return json.dumps([slots] + [links])
+    return json.dumps([slots] + [links] + [delays])
 
 
 

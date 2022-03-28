@@ -63,6 +63,7 @@ export default {
        axios
          .get(path)
          .then(res => {
+           console.log(res.data);
            this.epochs=res.data;
          })
          .catch(error => {

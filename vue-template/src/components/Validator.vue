@@ -304,20 +304,20 @@ for(let j=0;j<that.val.length-1;j++){
        }
 
     }
+   // console.log(path);
     g.append('path')
-            .attr('class','v_line')
             .attr('d', path.toString())
+            .attr('class', isred?'v_line_r':'v_line_g')
             .style('stroke',isred?'red':'#BFC9CA ')
             .style('stroke-width','0.8')//'0.5')
             .style('fill','none')
             .style('opacity',0.7)
-            .style('z-index','-1')
             .on('mouseover',function(){
              
              this.style.stroke='red';
              this.style.opacity=1;
-             d3.select(this)
-               .style('z-index',999)
+             //d3.select(this)
+              // .style('z-index',999)
       
             var x='validator_index: '+v_line[i].index;
             d3.selectAll('.tooltip3')
@@ -331,7 +331,7 @@ for(let j=0;j<that.val.length-1;j++){
              this.style.stroke=isred?'red':'#BFC9CA ';
              this.style.opacity=0.7;
              d3.selectAll('.tooltip3').style("opacity",0);
-             d3.select(this).style("z-index",-1)
+
             })
         }
 
@@ -387,17 +387,19 @@ for(let j=0;j<that.val.length-1;j++){
        for(let j=0;j<v_line[i].length-1;j++){
        if((v_line[i].node[j+1].y==1||v_line[i].node[j+1].y==0)&&(v_line[i].node[j].y==0||v_line[i].node[j].y==1)){
           isred=isred||v_line[i].node[j].y;
+          console.log(isred);
           if(isred)
           break;
        }
       
     }
-    if(isred)
+    if(isred){
        ISred.push(i);
-       else
+    }else{
        make_line(i);
     }
-
+    }
+  console.log(ISred);
     for(let i=0;i<ISred.length;i++)
     make_line(ISred[i]);
    
@@ -430,9 +432,13 @@ for(let j=0;j<that.val.length-1;j++){
   font-size: 11px;
 }
 
-.v_line:hover{
+.v_line_r{
   z-index:999;
   stroke-width:5px;
+}
+
+.v_line_g{
+  z-index:990;
 }
 
 .tooltip3{

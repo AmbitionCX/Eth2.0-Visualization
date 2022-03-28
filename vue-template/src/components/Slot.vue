@@ -3,6 +3,7 @@
     <div class="panel-header">SlotView</div>
     <div class="panel-header-end"></div>
     <svg id = "Slot" style = 'width:805px; height:315px'></svg>
+    <div class="tooltip_delay"></div>
   </div>
 </template>
 
@@ -18,6 +19,7 @@ export default {
     return {
       slots:[],
       links:[],
+      delays:[],
       width: 650,
       height: 850,
       margin:{
@@ -39,7 +41,6 @@ export default {
   },
   computed:{
     slot(){
-      console.log(this.slots);
       return this.slots
     },
     message(){
@@ -66,7 +67,8 @@ export default {
          .then(res => {
            console.log(res);
            this.slots=res.data[0];
-           this.links = res.data[1]
+           this.links = res.data[1];
+           this.delays = res.data[2];
          })
          .catch(error => {
            console.error(error);
@@ -74,7 +76,7 @@ export default {
      },
 
      xScale(){
-      let that = this;
+      // let that = this;
       const g = d3.select('#Slot').append('g').attr('id', 'slotview')
                    .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
       const xscale = d3.scaleLinear()
@@ -94,11 +96,7 @@ export default {
         .attr('transform',`translate(${this.innerWidth/68},${0})`)
         .attr('font-size', '10px');
       
-      g.append('circle')
-        .attr('cx',xscale(-1)+that.innerWidth/68)
-        .attr('cy',0)
-        .attr('r',6)
-        .attr('fill','#73C6B6')
+
 
       // g.append('circle')
       //   .attr('cx',xscale(32)+that.innerWidth/68)
@@ -186,6 +184,50 @@ export default {
         .attr('fill', "#6B3593")//function(d){return d3.interpolatePurples(d.block_header == 0? 0.1:cas_opa(d.casper_balance))})
         .attr('opacity', function(d){return that.ColorCasper(d.casper_balance);})
      },
+     
+     drawDelay(){
+      console.log("drawBlocks");
+      var ex_block = this.innerWidth/40;  
+      const xscale = d3.scaleLinear()
+                  .domain([-1,this.c])
+                  .range([0, this.innerWidth]);
+      let that = this;
+      var [a,b] = d3.extent(that.delays, function(d){return d.count;})
+      console.log([a,b]);
+      var distribute = d3.scaleLinear().domain([a,b]).range([5, this.innerWidth/80]);
+
+      d3.select('#slotview').append('g').attr('id','delays')
+        .selectAll('circle')
+        .data(that.delays).enter()
+        .append('circle')
+        .attr('cx',xscale(-1)+that.innerWidth/68)
+        .attr('cy',function(d,i){return -i*(ex_block+2);})
+        .attr('r',function(d){
+          return distribute(d.count);
+        })
+        .attr('fill',"#F48FB1")
+        .on("mouseover",function(){
+        let d =d3.select(this).data();
+        var str ="Delay length:" + d[0]['gap'] + "<br>Number of Attestation:"+d[0]['count'];
+      
+        console.log(d3.select(this));
+        d3.selectAll('.tooltip_delay')
+          .html(str)
+               .style("left", (xscale(-1))+"px")
+               .style("top", (300-d[0]['gap']*(ex_block+8))+"px")
+               .style("opacity",1.0);
+    })
+      .on("mouseleave",function(){
+            d3.selectAll('.tooltip_delay')
+              .style("opacity",0.0);
+          })
+      // g.append('circle')
+      //   .attr('cx',xscale(32)+that.innerWidth/68)
+      //   .attr('cy',0)
+      //   .attr('r',8)
+      //   .attr('fill','#6BFF88')
+      
+     },
 
      drawExBlocks(){
       console.log("drawBlocks");
@@ -210,6 +252,8 @@ export default {
           .attr('stroke',"#F8BBD0")
           .attr('opacity',1)
           }
+
+
      },
      arc(lines){
         const xscale = d3.scaleLinear()
@@ -295,11 +339,11 @@ export default {
 
        lg.append('circle')
          .attr('r', 5)
-         .attr('fill', '#73C6B6')
+         .attr('fill', '#F48FB1')
          .attr('transform',`translate(${65},${140+that.innerWidth/50})`)
 
        lg.append('text')
-         .text('Previous Epoch:  '+(that.msg-1))
+         .text('Finalization Delay')
          .attr('transform', `translate(${77},${144+that.innerWidth/50})`)
          .attr('font-size','9px')
 
@@ -316,7 +360,7 @@ export default {
        lg.append('circle')
          .attr('r', 10)
          .attr('fill', 'white')
-         .attr('stroke','#DB366A')
+         .attr('stroke',"#C64D6B")
          .attr('transform',`translate(${60},${180+that.innerWidth/50})`)
 
        lg.append('rect')
@@ -333,7 +377,7 @@ export default {
        lg.append('circle')
          .attr('r', 10)
          .attr('fill', 'white')
-         .attr('stroke','#88EB52')
+         .attr('stroke',"#55A674")
          .attr('transform',`translate(${60},${210+that.innerWidth/50})`)
 
        lg.append('rect')
@@ -397,6 +441,7 @@ export default {
         this.drawBlockheader();
         this.drawCasper();
         this.drawExBlocks();
+        this.drawDelay();
         this.Legend();
     },
     message(){
@@ -410,6 +455,21 @@ export default {
 </script>
 
 <style scoped>
+.tooltip_delay{
+    position: absolute;
+    padding-left:5px;
+    padding-right:5px;
+    width:auto;
+    height:auto;
+    border:1px solid #2ea44f;
+    border-radius:5px;
+    background-color: white;
+    font-size: 8px;
+    text-align: center;
+    opacity:0;
+    z-index:999;
+		}
+
 .panel-header {
   position: absolute;
   left:0px;
