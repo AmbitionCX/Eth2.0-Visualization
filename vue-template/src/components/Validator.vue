@@ -154,21 +154,18 @@ for(let j = 0; j < SUM; j++){
    }
 }
 console.log(v_line);
-
-for(let i=0,j=0;i<slashed.length&&j<v_line.length;){
-     if(slashed[i].V_index<v_line[i].index){
-       i++;
-     }
-     else if(slashed[i].V_index>v_line[i].index){
-       j++;
-     }
-     else{
-         let epoch=Math.floor(slashed[i].slot/32);
-         if(epoch>=epoch_0&&epoch<epoch_0+that.val.length){
-               v_line[j].node[epoch-epoch_0].isslashed=1;
-         }
+var epoch_0=that.val[0].epoch;
+for(let i=0;i<slashed.length;i++){
+     for(let j=0;j<v_line.length;j++){
+        let epoch=Math.floor(slashed[i].slot/32);
+       
+      
+       if(slashed[i].V_index==v_line[j].index&&epoch>=epoch_0&&epoch<epoch_0+that.val.length){
+         v_line[j].node[epoch-epoch_0].isslashed=1;
+       }
      }
 }
+
 // console.log(proposer);
 // console.log(graph);
 // console.log(v_line);
@@ -182,7 +179,7 @@ for(let i=0,j=0;i<slashed.length&&j<v_line.length;){
 
  //设置矩阵的行列
 var c=that.val.length;
-var epoch_0=that.val[0].epoch;
+
 const yValue=['Unvoted validator','Wrong voted validator','Wrong voted proposer','Continuous irregular','Slashed validator'];
 const xValue=[];
 for(let i=0;i<c;i++){
@@ -271,6 +268,7 @@ for(let j=0;j<that.val.length-1;j++){
 
 
   function  make_line(i){
+    var isred=0;
       var Y=[];
       var y1=[];
       var y2=[];
@@ -291,7 +289,9 @@ for(let j=0;j<that.val.length-1;j++){
     }
     var path=d3.path();
     for(let j=0;j<y1.length;j++){
+     
        if((v_line[i].node[j+1].y==1||v_line[i].node[j+1].y==0)&&(v_line[i].node[j].y==0||v_line[i].node[j].y==1)){
+        isred=isred||v_line[i].node[j].y;
         // var dx=(x2[j]-x1[j])/20;
         // var dy=(y2[j]-y1[j])/3;
         // let cpx1 = x1[j] + dx;
@@ -307,7 +307,7 @@ for(let j=0;j<that.val.length-1;j++){
     g.append('path')
             .attr('class','v_line')
             .attr('d', path.toString())
-            .style('stroke','#BFC9CA ')
+            .style('stroke',isred?'red':'#BFC9CA ')
             .style('stroke-width','0.8')//'0.5')
             .style('fill','none')
             .style('opacity',0.7)
@@ -328,7 +328,7 @@ for(let j=0;j<that.val.length-1;j++){
             //         .style("opacity",1.0);
             })
             .on('mouseleave',function(){
-             this.style.stroke='#BFC9CA';
+             this.style.stroke=isred?'red':'#BFC9CA ';
              this.style.opacity=0.7;
              d3.selectAll('.tooltip3').style("opacity",0);
              d3.select(this).style("z-index",-1)
@@ -365,9 +365,15 @@ for(let j=0;j<that.val.length-1;j++){
                 else 
                 return 'red';
             })
-            .attr('opacity',v_line[i].node[j].ispro?1:0.8)
-            .style('stroke',v_line[i].node[j].ispro?'#6E00F5':'none')
-            .style('stroke-width',v_line[i].node[j].ispro?'0.5':'none')
+            .attr('opacity',(v_line[i].node[j].ispro||v_line[i].node[j].isslashed)?1:0.8)
+            .style('stroke',function(){
+                if(v_line[i].node[j].isslashed) 
+                  return 'black';
+               if(v_line[i].node[j].ispro)
+                  return '#6E00F5';
+                return 'none';
+            })
+            .style('stroke-width',v_line[i].node[j].ispro||v_line[i].node[j].isslashed?'0.5':'none')
           }
          }
         }
