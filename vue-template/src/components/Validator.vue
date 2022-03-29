@@ -51,7 +51,13 @@ export default {
   },
   methods:{
     getValidator(){
-      const path = 'http://127.0.0.1:5000/validator/' + eval(this.msg);
+      // const path = 'http://127.0.0.1:5000/validator/' + eval(this.msg);
+      var path = '';
+      if(eval(this.msg) == 32533){
+        path = 'http://127.0.0.1:5000/Validator_Attack/' + eval(this.msg);
+      }else{
+        path = 'http://127.0.0.1:5000/validator/' + eval(this.msg);
+      }
       console.log(path);
       axios
         .get(path)
@@ -314,7 +320,7 @@ for(let j=0;j<that.val.length-1;j++){
             .style('opacity',0.7)
             .on('mouseover',function(){
              
-             this.style.stroke='red';
+             this.style.stroke='#795548';
              this.style.opacity=1;
              //d3.select(this)
               // .style('z-index',999)
@@ -382,23 +388,38 @@ for(let j=0;j<that.val.length-1;j++){
     }
     
     var ISred=[];
-    for(let i=0;i< v_line.length;i++){
-        var isred=0;
-       for(let j=0;j<v_line[i].length-1;j++){
-       if((v_line[i].node[j+1].y==1||v_line[i].node[j+1].y==0)&&(v_line[i].node[j].y==0||v_line[i].node[j].y==1)){
-          isred=isred||v_line[i].node[j].y;
-          console.log(isred);
-          if(isred)
-          break;
-       }
+    // for(let i=0;i< v_line.length;i++){
+    //     var isred=0;
+    //    for(let j=0;j<v_line[i].length-1;j++){
+    //    if((v_line[i].node[j+1].y==1||v_line[i].node[j+1].y==0)&&(v_line[i].node[j].y==0||v_line[i].node[j].y==1)){
+    //       isred=isred||v_line[i].node[j].y;
+    //       console.log(isred);
+    //       if(isred)
+    //       break;
+    //    }
       
+    // }
+    // if(isred){
+    //    ISred.push(i);
+    // }else{
+    //    make_line(i);
+    //   }
+    // }
+
+     for(let i=0;i< v_line.length;i++){
+      let isred=0;
+        for(let j=0;j<v_line[i].node.length-1;j++){
+        if((v_line[i].node[j+1].y==1||v_line[i].node[j+1].y==0)&&(v_line[i].node[j].y==0||v_line[i].node[j].y==1)){
+           isred=isred||v_line[i].node[j].y;
+        if(isred)
+         break;
+      }
     }
-    if(isred){
-       ISred.push(i);
-    }else{
-       make_line(i);
-    }
-    }
+    if(isred)
+      ISred.push(i);
+      else
+        make_line(i);
+}
   console.log(ISred);
     for(let i=0;i<ISred.length;i++)
     make_line(ISred[i]);

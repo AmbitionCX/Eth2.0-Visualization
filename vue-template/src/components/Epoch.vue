@@ -2,8 +2,7 @@
   <div id = "Tip">
     <div class="panel-header">EpochView</div>
     <div class="panel-header-end"></div>
-    <svg id = "Epoch"  class="epoch" style = 'width:435px; height:250px'
-    @mousedown = 'reColor("down")'>
+    <svg id = "Epoch"  class="epoch" style = 'width:435px; height:250px'>
     </svg>
     <div class="tooltip"></div>
     <div class="tooltip2"></div>
@@ -32,11 +31,13 @@ export default {
       },
       r:15,
       c:15,
-      flag:""
+      flag:"",
+      timer:""
     };
   },
   mounted(){
     this.Scale();
+    this.timer = setInterval(this.getEpoch,120000);
   },
   computed:{
     showTip(){
@@ -97,30 +98,30 @@ export default {
 
   },
 
-  reColor(action){
-    let that = this;
-    var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['head_correct_balance'];})
+  // reColor(action){
+  //   let that = this;
+  //   var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['head_correct_balance'];})
 
-    if(action=="down"){
-      if(that.flag=="GHOST"){
-        d3.select('#epochview').selectAll('rect')
-          .attr("fill", function(d){return d3.interpolateBlues((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
-      }
-      if(that.flag == "Casper"){
-        d3.select('#epochview').selectAll('rect')
-          .attr("fill", function(d){return d3.interpolatePurples((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
-      }
-      console.log("recolor")
-    }
+  //   if(action=="down"){
+  //     if(that.flag=="GHOST"){
+  //       d3.select('#epochview').selectAll('rect')
+  //         .attr("fill", function(d){return d3.interpolateBlues((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
+  //     }
+  //     if(that.flag == "Casper"){
+  //       d3.select('#epochview').selectAll('rect')
+  //         .attr("fill", function(d){return d3.interpolatePurples((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
+  //     }
+  //     console.log("recolor")
+  //   }
 
-  },
+  // },
   GHOST(){
     let that = this;
     that.flag="GHOST";
     d3.select('#epochview').selectAll('rect').remove()
     d3.select('#Epoch').selectAll('#legend').remove()
     const c = this.c;
-    var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['head_correct_balance'];})
+    var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance_g'] - d['head_correct_balance'];})
 
     const xscale = d3.scaleLinear()
                        .domain([0,this.c])
@@ -134,15 +135,15 @@ export default {
     d3.select('#epochview')
       .selectAll('rect').data(this.epochs).enter()
       .append('rect')
-      .attr('fill', function(d){return d3.interpolateBlues((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
+      .attr('fill', function(d){return d3.interpolateBlues((d['active_balance_g'] - d['head_correct_balance']-a)/(b-a) )})
       .attr('width', this.innerWidth/15-5)
       .attr('height', this.innerHeight/15-5)
       .attr('stroke',function(d){
-        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.67){
+        if ((d['active_balance_g'] - d['head_correct_balance']) > d['active_balance_g'] * 0.67){
             console.log(d['head_correct_balance'])
             return '#E53935 '
         }else{
-          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+          if((d['active_balance_g'] - d['head_correct_balance']) > d['active_balance_g'] * 0.33){
             return '#FBC02D'
           }else{
            return ''
@@ -150,11 +151,11 @@ export default {
         }
       })
       .attr('stroke-width',function(d){
-        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.67){
+        if ((d['active_balance_g'] - d['head_correct_balance']) > d['active_balance_g'] * 0.67){
             console.log(d['head_correct_balance'])
             return '1.5px'
         }else{
-          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+          if((d['active_balance_g'] - d['head_correct_balance']) > d['active_balance_g'] * 0.33){
             return '1px'
           }else{
               return ''
@@ -164,7 +165,7 @@ export default {
       .attr("transform", function(d, i) {
         return `translate(${xscale(Math.ceil((i)%c))+that.innerWidth/30+2.5},${yscale(Math.floor((i)/c))+that.innerHeight/30+1})`;
       })
-      .on("mouseup", function(){ 
+      .on("click", function(){ 
         // d3.select(this)
         //   .attr("fill","yellow")                  
         var temp = d3.select(this).data();
@@ -175,7 +176,7 @@ export default {
       })
       .on("mouseover",function(){
         let d =d3.select(this).data();
-        var str =" head_error_balance/active_balance: " + (100*(1 - d[0]['head_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% " +"<br>Epoch:"+d[0]['epoch'];
+        var str =" head_error_balance/active_balance: " + (100*(1 - d[0]['head_correct_balance']/d[0]['active_balance_g'])).toFixed(2) + "% " +"<br>Epoch:"+d[0]['epoch'];
       
         
         d3.selectAll('.tooltip')
@@ -253,7 +254,7 @@ export default {
                   .attr("transform", function(d, i) {
             return `translate(${xscale(Math.ceil((i)%c))+that.innerWidth/30+2.5},${yscale(Math.floor((i)/c))+that.innerHeight/30+1})`;
                   })
-                  .on("mouseup", function(){ 
+                  .on("click", function(){ 
                     // d3.select(this)
                     //   .attr("fill","yellow")                      
                     var temp = d3.select(this).data();
@@ -314,6 +315,9 @@ export default {
   },
   created(){
     this.getEpoch();
+  },
+  beforeUnmount() {
+    clearInterval(this.timer);
   },
   watch:{
     epoch(){
