@@ -12,9 +12,12 @@ import json
 import simplejson
 import datetime
 import copy
+import random
+import pandas as pd
+import numpy as np
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@10.192.9.11'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:ChenXuan46@10.192.9.11'
 db = SQLAlchemy(app)
 CORS(app)
 
@@ -79,7 +82,7 @@ class Validator(db.Model):
     val = db.Column('f_validator_index', db.Integer, primary_key = True)
     epoch = db.Column('f_epoch', db.Integer)
 
-class Vote(db.Model):
+class Vote1(db.Model):
     __tablename__ = 'c_main_table'
     slot = db.Column('f_slot', db.Integer, primary_key = True)
     epoch = db.Column('f_epoch', db.Integer)
@@ -91,10 +94,57 @@ class Vote(db.Model):
     not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
     ghost_selection = db.Column('f_ghost_selection', db.String)
 
+class Vote2(db.Model):
+    __tablename__ = 'c_main_table_2'
+    slot = db.Column('f_slot', db.Integer, primary_key = True)
+    epoch = db.Column('f_epoch', db.Integer)
+    casper_y = db.Column('f_casper_y', db.String)
+    casper_y_balance = db.Column('f_casper_y_balance', db.BigInteger)
+    casper_n = db.Column('f_casper_n', db.String)
+    casper_n_balance = db.Column('f_casper_n_balance', db.BigInteger)
+    not_vote = db.Column('f_not_vote', db.String)
+    not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
+    ghost_selection = db.Column('f_ghost_selection', db.String)
+
+class Vote3(db.Model):
+    __tablename__ = 'c_main_table_3'
+    slot = db.Column('f_slot', db.Integer, primary_key = True)
+    epoch = db.Column('f_epoch', db.Integer)
+    casper_y = db.Column('f_casper_y', db.String)
+    casper_y_balance = db.Column('f_casper_y_balance', db.BigInteger)
+    casper_n = db.Column('f_casper_n', db.String)
+    casper_n_balance = db.Column('f_casper_n_balance', db.BigInteger)
+    not_vote = db.Column('f_not_vote', db.String)
+    not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
+    ghost_selection = db.Column('f_ghost_selection', db.String)
+
+class Vote4(db.Model):
+    __tablename__ = 'c_main_table_4'
+    slot = db.Column('f_slot', db.Integer, primary_key = True)
+    epoch = db.Column('f_epoch', db.Integer)
+    casper_y = db.Column('f_casper_y', db.String)
+    casper_y_balance = db.Column('f_casper_y_balance', db.BigInteger)
+    casper_n = db.Column('f_casper_n', db.String)
+    casper_n_balance = db.Column('f_casper_n_balance', db.BigInteger)
+    not_vote = db.Column('f_not_vote', db.String)
+    not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
+    ghost_selection = db.Column('f_ghost_selection', db.String)
+
+
+@app.route('/Overview_Attack')
+def Overview_Attack():
+    d=pd.read_csv("./maintable.csv",sep=';')
+
+
+@app.route('/SlotView_Attack')
+def EpochView_Attack():
+    Vote=pd.read_csv("./maintable.csv",sep=';')
+    Attestation_a=pd.read_csv("./maintable.csv",sep=';')
+    
 
 @app.route('/Overview')
 def Overview():
-    data= c_overview.query.order_by(c_overview.days).limit(230).all()
+    data= c_overview.query.order_by(c_overview.days).all()
     dayData = []
     for i in data:
         s = {}
@@ -109,21 +159,78 @@ def Overview():
 
 @app.route('/EpochView/<int:index>')
 def EpochView(index):
-    data = Epoch.query.filter(Epoch.epoch.in_(range(index,index+225))).order_by(-Epoch.epoch).all()
     epochs = []
-    for d in data[::-1]:
+    if index < 54225:
+        data = Epoch.query.filter(Epoch.epoch.in_(range(index,index+225))).order_by(-Epoch.epoch).all()
+        for d in data[::-1]:
+            s = {}
+            s['epoch'] = d.epoch
+            s['active_balance'] = d.active_balance
+            s['attesting_balance'] = d.attesting_balance
+            s['target_correct_balance'] = d.target_correct_balance
+            s['head_correct_balance'] = d.head_correct_balance
+            epochs.append(s)
+    else:
+        if index >= 93750:
+            print(4)
+            Vote = Vote4
+        else:
+            if index >= 62500:
+                Vote = Vote3
+                print(3)
+            else:
+                if index >= 54225:
+                    Vote = Vote2
+                    print(2)
+        data = Vote.query.filter(Vote.slot.in_(range(index*32,index+225*32))).all()
+        print(len(data))
+
+        prev_epoch = index
+        all_balance = 0
+        casper_correct_balance = 0
+        ghost_correct_balance = 0
+        for d in data:
+            print(d.epoch)
+            if d.epoch != prev_epoch:
+                s = {}
+                s['epoch'] = prev_epoch
+                s['active_balance'] = all_balance
+                s['head_correct_balance'] = ghost_correct_balance
+                s['target_correct_balance'] = casper_correct_balance
+                epochs.append(s)
+                prev_epoch = d.epoch
+                all_balance = 0
+                casper_correct_balance = 0
+                ghost_correct_balance = 0
+            all_balance += d.casper_y_balance + d.casper_n_balance + d.not_vote_balance
+            casper_correct_balance += d.casper_y_balance
+            for g in d.ghost_selection:
+                if g['canonical']:
+                    ghost_correct_balance += g['balance']
         s = {}
-        s['epoch'] = d.epoch
-        s['active_balance'] = d.active_balance
-        s['attesting_balance'] = d.attesting_balance
-        s['target_correct_balance'] = d.target_correct_balance
-        s['head_correct_balance'] = d.head_correct_balance
+        s['epoch'] = prev_epoch
+        s['active_balance'] = all_balance
+        s['head_correct_balance'] = ghost_correct_balance
+        s['target_correct_balance'] = casper_correct_balance
         epochs.append(s)
+
+        print(len(epochs))
     return json.dumps(epochs)
 
 
 @app.route('/validator/<int:index>', methods=['GET'])
 def validator(index):
+    if index >= 93750:
+        Vote = Vote4
+    else:
+        if index >= 62500:
+            Vote = Vote3
+        else:
+            if index >= 31250:
+                Vote = Vote2
+            else:
+                Vote = Vote1
+
     ats = Vote.query.filter(Vote.epoch == index).order_by(Vote.slot).all()
     print(ats)
     val = []
@@ -141,7 +248,7 @@ def validator(index):
     #print(len(val_error))
 
     casper = []
-    for s in range(index, index - 8 ,-1):
+    for s in range(index, index - 7 ,-1):
         #print(s)
         cas = {}
         cas['epoch'] = s
@@ -173,7 +280,7 @@ def validator(index):
         casper.append(cas)
     
     proposer = []
-    for i in range(index, index-8, -1):
+    for i in range(index, index-7, -1):
         p = []
         for s in range(i*32, (i+1)*32):
             data = Proposer.query.filter_by(slot=s).first()
@@ -182,13 +289,27 @@ def validator(index):
         proposer.append(p)
     return json.dumps([casper]+[proposer])
 
+
 @app.route('/slot/<int:index>',methods=['GET'])
 def slot(index):
+    if index >= 93750:
+        Vote = Vote4
+    else:
+        if index >= 62500:
+            Vote = Vote3
+        else:
+            if index >= 31250:
+                Vote = Vote2
+            else:
+                Vote = Vote1
     slots = []
     links_temp = []
+    links = []
+    delays = []
+    delay_temp = []
     for s in range(index*32,(index+1)*32):
         ats = Attestation.query.filter_by(inclusion_slot=s).order_by(Attestation.slot, Attestation.committee_index).all()
-        print(len(ats))
+
         temp = {}
         temp['at_number'] = 0
         if len(ats) > 0:
@@ -208,10 +329,11 @@ def slot(index):
                     committee_prev = a.committee_index
                 ats_no = ats_no|set(a.aggregation_indices)
                 links_temp.append(link)
+
+                delay_temp.append(a.target_epoch - a.source_epoch)
             temp['at_number'] += len(ats_no)
 
         votes = Vote.query.filter_by(slot = s).first()
-        print(votes)
         temp['casper_balance'] = 0
         temp['block_header'] = 0
         temp['ex_blocks'] = []
@@ -233,6 +355,10 @@ def slot(index):
             temp['ex_blocks'].sort()
             if temp['at_number'] != 0:
                 temp['block_header'] = temp['ex_blocks'].pop()
+        
+        slots.append(temp)
+        if temp['casper_balance'] == 0:
+            continue
 
         if len(links_temp) > 0:
             l = {
@@ -244,6 +370,7 @@ def slot(index):
             counter = 0
             links = []
             for li in links_temp:
+               # print(li['target'])
                 if li != l:
                     t = {}
                     t['source'] = l['source']
@@ -263,8 +390,23 @@ def slot(index):
             t['value'] = counter
             links.append(t)
 
-        slots.append(temp)
-    return json.dumps([slots] + [links])
+    # delay_temp.append(2)
+    for b in set(delay_temp):
+        gap = {}
+        gap['gap'] = b
+        gap['count'] = delay_temp.count(b)
+        delays.append(gap)
+    # slots[20]['at_number'] *= 200
+    # slots[20]['ex_blocks'] = []
+    # slots[20]['ex_blocks'].append(slots[20]['block_header'])
+    # slots[20]['ex_blocks'].append(slots[20]['block_header'])
+    # slots[20]['ex_blocks'].append(slots[20]['block_header'])
+    # for l in links:
+    #     if l['source'] < 15 and l['target'] == 20 and not l['correct']:
+    #         l['value'] *= 200
+    #         break
+
+    return json.dumps([slots] + [links] + [delays])
 
 
 

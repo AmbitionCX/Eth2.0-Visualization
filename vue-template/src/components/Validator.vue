@@ -1,9 +1,10 @@
 <template>
   <div>
-    <svg id = "Validator" style = 'width:700px; height:340px'>
-
+    <div class="panel-header_val">ValidatorView</div>
+    <div class="panel-header-end_val"></div>
+    <svg id = "Validator" style = 'width:435px; height:315px'>
     </svg>
-    <!-- <text>This is the Validator View</text> -->
+    <div class="tooltip3"></div>
   </div>
 </template>
 
@@ -16,15 +17,16 @@ export default {
   props:["msg"],
   data(){
     return {
-      casper:[],
+      val:[],
       proposer:[],
-      width: 700,
-      height: 340,
+      width: 435,
+      height: 321,
       margin:{
-        top:30,
-        right:130,
-        bottom:40,
-        left:30
+        top:5,
+        right:0,
+        bottom:45,
+        left:0
+        
       }
     
     };
@@ -37,9 +39,8 @@ export default {
       console.log(this.msg);
       return this.msg;
     },
-    val(){
-      console.log(this.casper);
-      return this.casper.reverse()
+    vali(){
+      return this.val;
     },
     innerWidth(){
       return this.width - this.margin.left - this.margin.right
@@ -56,7 +57,7 @@ export default {
         .get(path)
         .then(res => {
           console.log(res);
-          this.casper=res.data[0];
+          this.val=res.data[0];
           this.proposer = res.data[1]
         })
         .catch(error => {
@@ -66,53 +67,74 @@ export default {
     },
 
     data_processing(){
-      
+   const     slashed_slot=[1036608,6668,22373,40771,138163,138730,140312,140558,140810,140844,140894,141173,248185,343132,476903,1510278
+  ,1856962,3339590,17090,17090,17090,17091,17091,17092,17090,17091,17091,17091,43917,102388,118135,138163,138163,138163,138730,
+  140894,140894,138163,138730,456995,457540,231180,256809,296752,357059,421394,456865,456873,456869,456875,456930,456931,456929,
+  456928,457443,457540,457537,457537,457538,457541,457542,457541,457537,457540,457537,457536,457539,457540,457536,457539,457541,
+  457536,457537,457542,457541,457536,457536,457536,457541,457536,457539,457536,457539,457536,475779,457537,457538,457537,457537,
+  457540,2755552,457538,457539,457541,457538,457540,2812800,2813960,457536,457536,457542,457539,457540,457537,457539,457537,457540,
+  457536,457542,457536,457539,457536,457540,457541,457541,457537,457538,457542,457536,457542,457536,457541,457542,475780,475778,475777,
+  475776,475780,475779,475776,475776,475780,475780,475776,475779,475776,475777,475778,475776,906880,1003553,1130720,1224987,1232591,1322720,
+  1322969,1348326,1376000,1376000,1379970,1381593,1899680,1956769,1956779,1978690,2008347,2029832,2043488,2176001,2176737,2176801,2332096,
+  2535250,2624390,2638205,2724283,2814144,2814432,2834208,2872459,3065149,3360800];
+  const  slashed_V=[27440,20075,18177,25645,38069,38089,38130,38129,38065,38128,38117,38114,45871,40892,63338,169440,21613,19299,21574,4259,
+    4100,4390,4086,4102,4110,13869,18249,4451,7635,1644,23241,38105,38061,38061,38091,38148,38106,38058,38116,14415,71603,43843,52866,
+    57976,38038,9143,8320,8275,8250,8239,16509,16491,16523,16479,17377,71676,71654,69812,71401,69884,71665,68648,69358,69895,71614,75715,
+    71690,75162,69391,69817,69716,71664,69732,71671,69772,69841,71673,71708,69866,71699,71663,69809,69388,69756,17189,71593,71646,69786,
+    68593,72074,203983,72499,69717,70044,71672,71709,88656,88655,71718,72084,71714,71734,71744,72081,72082,72421,72491,72493,72496,72503,
+    72508,72511,72674,72807,75045,75172,75204,75212,75711,75723,71743,75699,69873,17395,18989,19001,24696,26278,26201,17164,17228,17304,
+    17140,24703,23179,17291,24528,19017,17232,73292,66420,8776,3206,100190,67319,119315,26447,25895,25894,25893,12981,78678,161751,161752,
+    9230,27442,45276,26945,26988,26989,26987,42708,261,1859,12697,12954,88632,88657,39710,62830,270651,66065];
     const g = d3.select("#Validator").append('g')
       .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
       
-    var tooltip= d3.select("#Validator").append("text")
-     .attr('transform', `translate(${this.innerWidth/3},${20})`)
-     .text('')
-     .style('opacity',0);
-		                
       
 
 
 let that = this;
 
-console.log("WZH",that.casper[0]);
+// console.log("WZH",that.val[0]);
 
-for(var j=that.casper[that.casper.length-1].validator.length-1;j>0&&that.casper[that.casper.length-1].validator[j].vote==-2;j--)
+for(let j=that.val[that.val.length-1].validator.length-1;j>0&&that.val[that.val.length-1].validator[j].vote==-2;j--)
 
-for(var i=0;i<that.casper.length;i++){
-    that.casper[i].validator.splice(j,1);
+for(let i=0;i<that.val.length;i++){
+    that.val[i].validator.splice(j,1);
 }
 
-
-that.proposer=that.proposer.reverse();
+that.val.reverse();
+that.proposer.reverse();
 
 
  const SUM=that.val[0].validator.length;
-
+console.log(SUM);
 
 
  var graph = [];
  var v_line = [];
- for(var i=0; i < SUM; i++)
+ for(let i=0; i < SUM; i++)
    v_line.push({index:that.val[0].validator[i].validator_index,node:[]});
- for(var i=0;i<that.val.length;i++){
+ for(let i=0;i<that.val.length;i++){
     graph.push([]);
-    for( var j=0;j<2;j++){
+    for(let j=0;j<2;j++){
         graph[i].push(0);
     }
  }
+//处理 被slashed的数据
+var slashed=[];
 
+for(let i=0;i<slashed_slot.length;i++){
+  slashed.push({slot:slashed_slot[i],V_index:slashed_V[i]});
+}
+slashed.sort((x,y)=>{
+  return x.V_index-y.V_index;
+})
+// console.log(slashed);
  //graph保留数量信息
 var k = []
-for(var i = 0;i < that.proposer.length; i++)
+for(let i = 0;i < that.proposer.length; i++)
  k.push(0);
-for(var j = 0; j < SUM; j++){
-  for(var i = 0; i < that.val.length; i++){
+for(let j = 0; j < SUM; j++){
+  for(let i = 0; i < that.val.length; i++){
    while(k[i] < that.proposer[i].length && that.val[i].validator[j].validator_index>that.proposer[i][k[i]])
         k[i]++;
     var Y=that.val[i].validator[j].vote+1;
@@ -122,32 +144,46 @@ for(var j = 0; j < SUM; j++){
     if(Y<0)
         Y=0;
     var X= ++graph[i][Y];
-    v_line[j].node.push( {dy:X,y:Y,ispro:0});
+    v_line[j].node.push( {dy:X,y:Y,ispro:0,isslashed:0});
     }
     else{
-     v_line[j].node.push( {dy:0,y:2,ispro:0})
+     v_line[j].node.push( {dy:0,y:2,ispro:0,isslashed:0})
     }
     if(k[i]<that.proposer[i].length&&that.val[i].validator[j].validator_index==that.proposer[i][k[i]])
     v_line[j].node[i].ispro=1;
    }
 }
+console.log(v_line);
+var epoch_0=that.val[0].epoch;
+for(let i=0;i<slashed.length;i++){
+     for(let j=0;j<v_line.length;j++){
+        let epoch=Math.floor(slashed[i].slot/32);
+       
+      
+       if(slashed[i].V_index==v_line[j].index&&epoch>=epoch_0&&epoch<epoch_0+that.val.length){
+         v_line[j].node[epoch-epoch_0].isslashed=1;
+       }
+     }
+}
+
 // console.log(proposer);
 // console.log(graph);
-// console.log(v_line);
+console.log(v_line);
 
     var data_rect=[];
-   for(var i=0;i<graph.length;i++){
-       for(var j=0;j<graph[i].length;j++){
+   for(let i=0;i<graph.length;i++){
+       for(let j=0;j<graph[i].length;j++){
         data_rect.push({i:i,j:j,size:graph[i][j]})
        }
    }
 
  //设置矩阵的行列
-var r=2,c=that.val.length;
-const yValue=['Unvoted validator','Wrong voted validator','Incorrect voted proposer','Serial incorrect voting'];
+var c=that.val.length;
+
+const yValue=['Unvoted validator','Incorrect voted validator','Incorrect voted proposer','Continuous irregular','Slashed validator'];
 const xValue=[];
 for(let i=0;i<c;i++){
-    xValue.push('epoch:'+ that.val[i].epoch);
+    xValue.push(i == 0?'epoch:'+ that.val[i].epoch:that.val[i].epoch);
 }
 
 
@@ -155,34 +191,40 @@ var legend = g.selectAll(".legend")
         .data(yValue)
         .enter().append("g")
         .attr("class", "legend")
-        .attr("transform", function (d, i) { return "translate(" + (that.innerWidth) + "," + (i *25) + ")"; });
+        .attr("transform", function (d, i) { return "translate(" + (4+i *95) + "," +(that.margin.top+that.innerHeight+20) + ")"; });
       legend.append("rect")
         .data(yValue)
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("width", 30)
-        .attr("height", d=>d=='Serial incorrect voting'?8:20)
-        .style("fill",function(d,i){
+        .attr("x", function(d,i){return i?-20:0})
+        .attr("y", d=>d=='Continuous irregular'?5:3)
+        .attr("width", 10)
+        .attr("height", d=>d=='Continuous irregular'?1:4)
+        .style("fill",function(d){
             switch (d){
-                case 'Wrong voted validator':return 'red';
+                case 'Incorrect voted validator':return 'red';
                 case 'Unvoted validator':return 'grey';
                 case 'Incorrect voted proposer':return '#6E00F5';
-                case 'Serial incorrect voting':return 'blue';
+                case 'Continuous irregular':return '#BFC9CA';
+                case 'Slashed validator':return 'black';
             }
         })
-        .attr('opacity',d=>d=='Serial incorrect voting'?0.7:0.8)
-        ;
+        .attr('opacity',d=>d=='Continuous irregular'?0.7:0.8);
 
       legend.append("text")
         .data(yValue)
         .attr('class', 'legend_text')
-        .attr("x", 30)
-        .attr("y", d=>d=='Serial incorrect voting'?2:8)
+        .attr("x", function(d,i){return i?-8:12})
+        .attr("y", d=>d=='Continuous irregular'?-2:3)
         .attr("dy", ".5em")
         .attr("fill", 'black')
         .style("text-anchor", "start")
         .text(d => d )
-         .attr('font-size','10px');
+         .attr('font-size','6px');
+        
+      g.append('text')
+        .text('voting')
+        .attr('transform', `translate(${300},${308})`)
+        .attr('font-size','6px')
+
 //设置坐标轴
 const xscale = d3.scaleBand()
         .domain(xValue)
@@ -191,10 +233,7 @@ const xscale = d3.scaleBand()
  const xscale2 = d3.scaleLinear()
         .domain([0,c])
         .range([0, that.innerWidth]);
-const yscale = d3.scalePoint() 
-        .domain(yValue)
-        .range([that.innerHeight,0])
-        
+
 const yscale2 = d3.scaleLinear() 
         .domain([0,1])
         .range([0,that.innerHeight])
@@ -222,17 +261,18 @@ const   rect_height_I=that.innerHeight/SUM;
 
 var x1=[];
 var x2=[];
-for(j=0;j<that.val.length-1;j++){
+for(let j=0;j<that.val.length-1;j++){
        x1.push((j+1)*rect_width+j*sub_width+sub_width/2);
        x2.push((j+1)*rect_width+(j+1)*sub_width+sub_width/2);
   }
 
 
   function  make_line(i){
+    var isred=0;
       var Y=[];
       var y1=[];
       var y2=[];
-      for(j=0;j<that.val.length;j++){
+      for(let j=0;j<that.val.length;j++){
         var h;
         rect_height_I*v_line[i].node[j].dy+yscale2(v_line[i].node[j].y);
         if(v_line[i].node[j].y==2)
@@ -248,8 +288,10 @@ for(j=0;j<that.val.length-1;j++){
         y2.push(h);
     }
     var path=d3.path();
-    for(j=0;j<y1.length;j++){
+    for(let j=0;j<y1.length;j++){
+     
        if((v_line[i].node[j+1].y==1||v_line[i].node[j+1].y==0)&&(v_line[i].node[j].y==0||v_line[i].node[j].y==1)){
+        isred=isred||v_line[i].node[j].y;
         // var dx=(x2[j]-x1[j])/20;
         // var dy=(y2[j]-y1[j])/3;
         // let cpx1 = x1[j] + dx;
@@ -262,32 +304,41 @@ for(j=0;j<that.val.length-1;j++){
        }
 
     }
+   // console.log(path);
     g.append('path')
-            .attr('class','v_line')
             .attr('d', path.toString())
-            .style('stroke','blue')
-            .style('stroke-width','0.5')
+            .attr('class', isred?'v_line_r':'v_line_g')
+            .style('stroke',isred?'red':'#BFC9CA ')
+            .style('stroke-width','0.8')//'0.5')
             .style('fill','none')
-            .style('opacity','0.7')
+            .style('opacity',0.7)
             .on('mouseover',function(){
+             
              this.style.stroke='red';
              this.style.opacity=1;
+             //d3.select(this)
+              // .style('z-index',999)
+      
             var x='validator_index: '+v_line[i].index;
-             tooltip.html(x)
-			     	.style("opacity",1.0);
+            d3.selectAll('.tooltip3')
+              .html(x)
+              .style("opacity",1.0)
+
+            //  tooltip.html(x)
+            //         .style("opacity",1.0);
             })
             .on('mouseleave',function(){
-             this.style.stroke='blue';
+             this.style.stroke=isred?'red':'#BFC9CA ';
              this.style.opacity=0.7;
-             tooltip
-				.style("opacity",0);
+             d3.selectAll('.tooltip3').style("opacity",0);
+
             })
         }
 
 
 
       function  make_rect(i){
-        for(j=0;j<v_line[i].node.length;j++){
+        for(let j=0;j<v_line[i].node.length;j++){
           if(v_line[i].node[j].y!=2){
             var y=v_line[i].node[j].y;
             var dy=v_line[i].node[j].dy;
@@ -305,23 +356,52 @@ for(j=0;j<that.val.length-1;j++){
             })
             .attr('x',xscale2(j)+sub_width/2)
             .attr('fill',function(){
-                if(v_line[i].node[j].ispro)
+                if(v_line[i].node[j].isslashed)
+                return 'yellow';
+                else if(v_line[i].node[j].ispro)
                 return '#6E00F5'
                 else if(!y)
-                return 'grey';
+                return '#4D5656';
                 else 
                 return 'red';
             })
-            .attr('opacity',v_line[i].node[j].ispro?1:0.8)
-            .style('stroke',v_line[i].node[j].ispro?'#6E00F5':'none')
-            .style('stroke-width',v_line[i].node[j].ispro?'0.5':'none')
+            .attr('opacity',(v_line[i].node[j].ispro||v_line[i].node[j].isslashed)?1:0.8)
+            .style('stroke',function(){
+              if(v_line[i].node[j].isslashed) 
+                  return 'black';
+              if(v_line[i].node[j].ispro)
+               return '#9900CC ';//#6E00F5';
+              return 'none';
+            })
+            .style('stroke-width',v_line[i].node[j].ispro||v_line[i].node[j].isslashed?'0.5':'none')
           }
          }
         }
-    for(let i=0;i< v_line.length;i++){
-      make_line(i);
+     for(let i=0;i< v_line.length;i++){
       make_rect(i);
     }
+    
+    var ISred=[];
+    for(let i=0;i< v_line.length;i++){
+        var isred=0;
+       for(let j=0;j<v_line[i].length-1;j++){
+       if((v_line[i].node[j+1].y==1||v_line[i].node[j+1].y==0)&&(v_line[i].node[j].y==0||v_line[i].node[j].y==1)){
+          isred=isred||v_line[i].node[j].y;
+          console.log(isred);
+          if(isred)
+          break;
+       }
+      
+    }
+    if(isred){
+       ISred.push(i);
+    }else{
+       make_line(i);
+    }
+    }
+  console.log(ISred);
+    for(let i=0;i<ISred.length;i++)
+    make_line(ISred[i]);
    
 
   }
@@ -331,13 +411,12 @@ for(j=0;j<that.val.length-1;j++){
   },
   watch:{
     message(){
-        this.getValidator();
         d3.select('#Validator').selectAll('g').remove()
+        this.getValidator();
         console.log("draw");
         
-      }
-
-    ,val(){
+      },
+      vali(){
       // for(let i=0;i< v_line.length;i++){
       //  this.make_line(i);
       //  this.make_rect(i);
@@ -347,30 +426,67 @@ for(j=0;j<that.val.length-1;j++){
     }
 }
 </script>
-<style scoped>
+<style>
  .axis text{
-            font-family: sans-serif;
-            font-size: 11px;
-        }
-        .tooltip1{
-		   stroke:blue;
-		   stroke-width:1;
-		   fill:none;
-           opacity: 1;
-	   }
-       .tooltip2{
-		   stroke:blue;
-		   stroke-width:0.5;
-		   fill:none;
-           opacity: 0.7;
-	   }
-       .tooltip3{
-			position:absolute;
-		    width:100;
-			height:100;
-			background-color: white;
-			font-size: 50px;
-			text-align: center;
-			
-		}
+  font-family: sans-serif;
+  font-size: 11px;
+}
+
+.v_line_r{
+  z-index:999;
+  stroke-width:5px;
+}
+
+.v_line_g{
+  z-index:990;
+}
+
+.tooltip3{
+  position:absolute;
+  stroke:black;
+  left:850px;
+  top:280px;
+  width:auto;
+  height:auto;
+  border:1px solid lightcoral;
+  border-radius:5px;
+  padding-left:5px;
+  padding-right:5px;
+  padding-top:5px;
+  padding:5px;
+  background-color: white;
+  font-size: 12px;
+  text-align: center;
+  opacity:0;
+}
+
+.panel-header_val {
+  position: absolute;
+  left:818px;
+  top:250px;
+  padding: 0px 5px;
+  width: 75px;
+  height: 18px;
+  line-height: 18px;
+  font-size: 8px;
+  text-align: left;
+  background: #415c68;
+  color: #fcfcfc;
+  display: flex;
+  font-weight: bold;
+  border-radius: 1px;
+  box-shadow: 0 1px 2px rgba(26 26 26 0.2);
+  z-index:99;
+
+}
+
+.panel-header-end_val {
+  position: absolute;
+  top: 250px;
+  left: 903px;
+  border-top: 18px solid #455a64;
+  border-right: 18px solid #ffffff;
+  border-bottom: 0px solid #ffffff;
+  z-index:98;
+}
 </style>

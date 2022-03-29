@@ -1,6 +1,9 @@
 <template>
   <div>
-    <svg id = "Slot" style = 'width:1200px; height:860px'></svg>
+    <div class="panel-header">SlotView</div>
+    <div class="panel-header-end"></div>
+    <svg id = "Slot" style = 'width:805px; height:315px'></svg>
+    <div class="tooltip_delay"></div>
   </div>
 </template>
 
@@ -16,25 +19,28 @@ export default {
     return {
       slots:[],
       links:[],
-      width: 1200,
+      delays:[],
+      width: 650,
       height: 850,
       margin:{
-        top:160,
-        right:40,
-        bottom:500,
-        left:5
+        top:72,
+        right:85,
+        bottom:0,
+        left:25
       },
       c:32,
       extent_m:0,
-      extent_M:0
+      extent_M:0,
+      h:0,
+      q:0,
+      timer:""
     };
   },
   mounted(){
-    this.xScale();
+      this.timer = setInterval(this.getSlot,20000);
   },
   computed:{
     slot(){
-      console.log(this.slots);
       return this.slots
     },
     message(){
@@ -61,7 +67,8 @@ export default {
          .then(res => {
            console.log(res);
            this.slots=res.data[0];
-           this.links = res.data[1]
+           this.links = res.data[1];
+           this.delays = res.data[2];
          })
          .catch(error => {
            console.error(error);
@@ -69,7 +76,7 @@ export default {
      },
 
      xScale(){
-      let that = this;
+      // let that = this;
       const g = d3.select('#Slot').append('g').attr('id', 'slotview')
                    .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
       const xscale = d3.scaleLinear()
@@ -78,8 +85,8 @@ export default {
 
       const xaxis = d3.axisBottom(xscale)
                       .ticks(34)
-                      .tickSize(-10)
-                      .tickPadding(20)
+                      .tickSize(-5)
+                      .tickPadding(10)
                       .tickFormat(function(d,i){console.log(i==0?0:1)
                       return (i < 33 && i > 0) ? (i-1): "";});
         
@@ -87,13 +94,9 @@ export default {
         .attr('id', 'xaxis')
         .selectAll('text')
         .attr('transform',`translate(${this.innerWidth/68},${0})`)
-        .attr('font-size', '11px');
+        .attr('font-size', '10px');
       
-      g.append('circle')
-        .attr('cx',xscale(-1)+that.innerWidth/68)
-        .attr('cy',0)
-        .attr('r',8)
-        .attr('fill','#B768FF')
+
 
       // g.append('circle')
       //   .attr('cx',xscale(32)+that.innerWidth/68)
@@ -118,6 +121,14 @@ export default {
       that.extent_m = prev;
       that.extent_M = n
       const color =d3.scaleDivergingSymlog([prev,0.8*prev+0.2*n,n], function(t){return d3.interpolateBlues(t);})
+      return color(num)
+    },
+
+    ColorCasper(num){
+      let that = this;
+      var [h,q] = d3.extent(d3.filter(that.slots, x=>x.block_header !=0), function(d){return d.casper_balance;})
+      //var cas_opa = d3.scaleLinear().domain([h,q]).range([0.2, 1]);
+      const color =d3.scaleDivergingSymlog([h/1.2,0.2*h+0.8*q,q], function(t){return t;})
       return color(num)
     },
 
@@ -155,7 +166,9 @@ export default {
       console.log([a,b]);
       var distribute = d3.scaleLinear().domain([a,b]).range([10, this.innerWidth/34]);
       var [h,q] = d3.extent(d3.filter(that.slots, x=>x.block_header !=0), function(d){return d.casper_balance;})
-      var cas_opa = d3.scaleLinear().domain([h,q]).range([0.2, 1]);
+      //var cas_opa = d3.scaleLinear().domain([h,q]).range([0.2, 1]);
+      that.h = h;
+      that.q = q;
 
       d3.select('#slotview').append('g').attr('id','casper_balance')
         .selectAll('rect').data(that.slots).enter()
@@ -168,8 +181,52 @@ export default {
         .attr('height', function(d){
           let hei = d.at_number == 0? 0 : distribute(d.at_number)
           return hei/2;})
-        .attr('fill', function(d){return d3.interpolateGreys(d.block_header == 0? 0.1:cas_opa(d.casper_balance))})
-        .attr('opacity', 0.9)
+        .attr('fill', "#6B3593")//function(d){return d3.interpolatePurples(d.block_header == 0? 0.1:cas_opa(d.casper_balance))})
+        .attr('opacity', function(d){return that.ColorCasper(d.casper_balance);})
+     },
+     
+     drawDelay(){
+      console.log("drawBlocks");
+      var ex_block = this.innerWidth/40;  
+      const xscale = d3.scaleLinear()
+                  .domain([-1,this.c])
+                  .range([0, this.innerWidth]);
+      let that = this;
+      var [a,b] = d3.extent(that.delays, function(d){return d.count;})
+      console.log([a,b]);
+      var distribute = d3.scaleLinear().domain([a,b]).range([5, this.innerWidth/80]);
+
+      d3.select('#slotview').append('g').attr('id','delays')
+        .selectAll('circle')
+        .data(that.delays).enter()
+        .append('circle')
+        .attr('cx',xscale(-1)+that.innerWidth/68)
+        .attr('cy',function(d,i){return -i*(ex_block+2);})
+        .attr('r',function(d){
+          return distribute(d.count);
+        })
+        .attr('fill',"#F48FB1")
+        .on("mouseover",function(){
+        let d =d3.select(this).data();
+        var str ="Delay length:" + d[0]['gap'] + "<br>Number of Attestation:"+d[0]['count'];
+      
+        console.log(d3.select(this));
+        d3.selectAll('.tooltip_delay')
+          .html(str)
+               .style("left", (xscale(-1))+"px")
+               .style("top", (300-d[0]['gap']*(ex_block+8))+"px")
+               .style("opacity",1.0);
+    })
+      .on("mouseleave",function(){
+            d3.selectAll('.tooltip_delay')
+              .style("opacity",0.0);
+          })
+      // g.append('circle')
+      //   .attr('cx',xscale(32)+that.innerWidth/68)
+      //   .attr('cy',0)
+      //   .attr('r',8)
+      //   .attr('fill','#6BFF88')
+      
      },
 
      drawExBlocks(){
@@ -187,13 +244,16 @@ export default {
           .data(that.slots[j]['ex_blocks']).enter()
               .append('rect')
           .attr('transform',function(d,i){
-              return `translate(${xscale(j)+that.innerWidth/68-ex_block/2},${-i*(ex_block+10)-that.innerWidth/34-20})`;
+              return `translate(${xscale(j)+that.innerWidth/68-ex_block/2},${-i*(ex_block+2)-that.innerWidth/34-4})`;
               })
           .attr('width', ex_block)
           .attr('height', ex_block)
           .attr('fill',function(d){return that.Color(d);})
-          .attr('opacity',0.9)
+          .attr('stroke',"#F8BBD0")
+          .attr('opacity',1)
           }
+
+
      },
      arc(lines){
         const xscale = d3.scaleLinear()
@@ -202,8 +262,8 @@ export default {
 
         const x1 = xscale(lines.source)+this.innerWidth/68;
         const x2 = xscale(lines.target)+this.innerWidth/68;
-        const r = Math.abs(x2 - x1) / 2;
-      return `m${x1},${this.innerWidth/34}A${r},${r} 0,1,0 ${x2},${this.innerWidth/34}`;
+        const r = Math.abs(x2 - x1) / 2 ;
+      return `m${x1},${this.innerWidth/30+3}A${r},${r/1.17} 0,0,0 ${x2},${this.innerWidth/30+3}`;
      },
 
      drawArc(){
@@ -217,17 +277,17 @@ export default {
           .selectAll("path")
           .data(that.links).enter()
           .append("path").attr("d",that.arc).attr("stroke-width",function(d){return thickness(d.value);})
-          .attr("stroke", function(d){return d.correct ? "#88EB52":"#DB366A";})
+          .attr("stroke", function(d){return d.correct ? "#55A674":"#C64D6B";})
 
      },
      colorbox(sel, size, colors){
     var [x0,x1] = d3.extent( colors.domain());
-    var bars = d3.range( x0, x1, (x1-x0)/size[1]);
+    var bars = d3.range( x0, x1, (x1-x0)/size[0]);
     var sc = d3.scaleLinear()
-        .domain([x0,x1]).range([0, size[1]]);
+        .domain([x0,x1]).range([0, size[0]]);
     sel.selectAll("line").data(bars).enter().append("line")
-      .attr("x1", 0).attr("x2",size[0])
-      .attr("y1", sc).attr("y2",sc)
+      .attr("x1", sc).attr("x2",sc)
+      .attr("y1", 0).attr("y2",size[1])
       .attr("stroke",colors);
     
     sel.append("rect")
@@ -238,54 +298,54 @@ export default {
      Legend(){
        let that = this;
        var lg = d3.select('#Slot').append('g').attr('id','legend')
-                  .attr('transform', `translate(${10},${0})`)
+                  .attr('transform', `translate(${600},${30})`)
        lg.append('rect')
-         .attr('width',that.innerWidth/50)
-         .attr('height', that.innerWidth/100)
-         .attr('transform', `translate(${10},${0})`)
+         .attr('width',that.innerWidth/35)
+         .attr('height', that.innerWidth/70)
+         .attr('transform', `translate(${55},${35})`)
          .attr('fill','#2665A5')
 
        lg.append('rect')
-         .attr('width',that.innerWidth/50)
-         .attr('height', that.innerWidth/100)
-         .attr('transform', `translate(${10},${that.innerWidth/100})`)
-         .attr('fill','lightgrey')
+         .attr('width',that.innerWidth/35)
+         .attr('height', that.innerWidth/70)
+         .attr('transform', `translate(${55},${35+that.innerWidth/70})`)
+         .attr('fill','#AF7AC5')
 
        lg.append('text')
-         .text('—Effective balance of GHOST selection')
-         .attr('transform', `translate(${16+that.innerWidth/50},${8})`)
-         .attr('font-size','10px')
+         .text(' — GHOST balance')
+         .attr('transform', `translate(${77},${41})`)
+         .attr('font-size','9px')
 
        lg.append('text')
-         .text('—Effective balance of Casper voting')
-         .attr('transform', `translate(${16+that.innerWidth/50},${9+that.innerWidth/100})`)
-         .attr('font-size','10px')
+         .text(' — Casper balance')
+         .attr('transform', `translate(${77},${44+that.innerWidth/70})`)
+         .attr('font-size','9px')
        
        lg.append('text')
          .text('Block size: number of attestations inside')
-         .attr('transform', `translate(${16+that.innerWidth/50},${20+that.innerWidth/100})`)
-         .attr('font-size','10px')
+         .attr('transform', `translate(${25},${60+that.innerWidth/70})`)
+         .attr('font-size','9px')
 
        lg.append('rect')
          .attr('width',that.innerWidth/50)
          .attr('height', that.innerWidth/50)
-         .attr('transform', `translate(${250},${0})`)
+         .attr('transform', `translate(${60},${18})`)
          .attr('fill','lightblue')
 
        lg.append('text')
-         .text('—Competing block in the slot')
-         .attr('transform', `translate(${260+that.innerWidth/50},${3+that.innerWidth/100})`)
-         .attr('font-size','10px')
+         .text(' — Competing blocks')
+         .attr('transform', `translate(${77},${18+that.innerWidth/100})`)
+         .attr('font-size','9px')
 
        lg.append('circle')
-         .attr('r', 8)
-         .attr('fill', '#B768FF')
-         .attr('transform',`translate(${460+that.innerWidth/50},${11})`)
+         .attr('r', 5)
+         .attr('fill', '#F48FB1')
+         .attr('transform',`translate(${65},${140+that.innerWidth/50})`)
 
        lg.append('text')
-         .text('Previous Epoch')
-         .attr('transform', `translate(${470+that.innerWidth/50},${3+that.innerWidth/100})`)
-         .attr('font-size','10px')
+         .text('Finalization Delay')
+         .attr('transform', `translate(${77},${144+that.innerWidth/50})`)
+         .attr('font-size','9px')
 
       //  lg.append('circle')
       //    .attr('r', 8)
@@ -300,70 +360,88 @@ export default {
        lg.append('circle')
          .attr('r', 10)
          .attr('fill', 'white')
-         .attr('stroke','#DB366A')
-         .attr('transform',`translate(${620+that.innerWidth/50},${6})`)
+         .attr('stroke',"#C64D6B")
+         .attr('transform',`translate(${60},${180+that.innerWidth/50})`)
 
        lg.append('rect')
-         .attr('width',20)
-         .attr('height', 10)
-         .attr('transform', `translate(${610+that.innerWidth/50},${-4})`)
+         .attr('width',22)
+         .attr('height', 12)
+         .attr('transform', `translate(${49},${168+that.innerWidth/50})`)
          .attr('fill','white')
        
        lg.append('text')
          .text('Target wrong attestations')
-         .attr('transform', `translate(${640+that.innerWidth/50},${3+that.innerWidth/100})`)
-         .attr('font-size','10px')
+         .attr('transform', `translate(${75},${190+that.innerWidth/50})`)
+         .attr('font-size','9px')
 
        lg.append('circle')
          .attr('r', 10)
          .attr('fill', 'white')
-         .attr('stroke','#88EB52')
-         .attr('transform',`translate(${810+that.innerWidth/50},${6})`)
+         .attr('stroke',"#55A674")
+         .attr('transform',`translate(${60},${210+that.innerWidth/50})`)
 
        lg.append('rect')
-         .attr('width',20)
-         .attr('height', 10)
-         .attr('transform', `translate(${800+that.innerWidth/50},${-4})`)
+         .attr('width',22)
+         .attr('height', 12)
+         .attr('transform', `translate(${49},${198+that.innerWidth/50})`)
          .attr('fill','white')
        
        lg.append('text')
          .text('Target correct attestations')
-         .attr('transform', `translate(${830+that.innerWidth/50},${3+that.innerWidth/100})`)
-         .attr('font-size','10px')
+         .attr('transform', `translate(${75},${220+that.innerWidth/50})`)
+         .attr('font-size','9px')
 
        lg.append("g").attr("id","legend_blocks")
-         .call(that.colorbox,[10,100],d3.scaleDivergingSymlog([that.extent_m,0.7*that.extent_m+0.3*that.extent_M,that.extent_M], function(t){return d3.interpolateBlues(t);}))
-         .attr("transform",`translate(${1170},${30})`)
+         .call(that.colorbox,[150,8],d3.scaleDivergingSymlog([that.extent_m,0.7*that.extent_m+0.3*that.extent_M,that.extent_M], function(t){return d3.interpolateBlues(t);}))
+         .attr("transform",`translate(${35},${-10})`)
 
         d3.select("#legend_blocks")
           .append("g")
-          .call(d3.axisLeft(d3.scaleLinear().domain([that.extent_M/1000000000000,that.extent_m/10000000000]).range([100,0])).ticks(5))
+          .call(d3.axisBottom(d3.scaleLinear().domain([that.extent_M/1000000000000,that.extent_m/10000000000]).range([150,0])).ticks(5).tickSize(3))
+          .attr("transform","translate(0,8)")
+
+
+        d3.select("#legend_blocks") 
+          .append("text")
+          .text("Effective Balance(gwei)")
+          .attr("transform","translate(60,-5)")
+          .attr("font-size","9px")
+
+       lg.append("g").attr("id","legend_casper")
+         .call(that.colorbox,[150,8],d3.scaleDiverging([that.h,0.5*that.h+0.5*that.q,that.q], function(t){return d3.interpolatePurples(t);}))
+         .attr("transform",`translate(${35},${100})`)
+
+        d3.select("#legend_casper")
+          .append("g")
+          .call(d3.axisTop(d3.scaleLinear().domain([that.extent_M/1000000000000,that.extent_m/10000000000]).range([150,0])).ticks(5).tickSize(3))
           .attr("transform","translate(0,0)")
-        d3.select("#legend_blocks") 
+
+
+        d3.select("#legend_casper") 
           .append("text")
-          .text("Obtained Effective")
-          .attr("transform","translate(-70,-20)")
-          .attr("font-size","10px")
-        d3.select("#legend_blocks") 
-          .append("text")
-          .text("Balance/*10e12")
-          .attr("transform","translate(-60,-10)")
-          .attr("font-size","10px")
+          .text("Effective Balance(gwei)")
+          .attr("transform","translate(60,20)")
+          .attr("font-size","9px")
      
      }
   },
 
   created(){
-    this.getSlot();
+    //this.xScale();
   },
+  beforeUnmount() {
+      clearInterval(this.timer);
+    },
   watch:{
     slot(){
       console.log('slot changed')
+      d3.select('#Slot').selectAll('g').remove()
         this.xScale();
         this.drawArc();
         this.drawBlockheader();
         this.drawCasper();
         this.drawExBlocks();
+        this.drawDelay();
         this.Legend();
     },
     message(){
@@ -377,31 +455,49 @@ export default {
 </script>
 
 <style scoped>
+.tooltip_delay{
+    position: absolute;
+    padding-left:5px;
+    padding-right:5px;
+    width:auto;
+    height:auto;
+    border:1px solid #2ea44f;
+    border-radius:5px;
+    background-color: white;
+    font-size: 8px;
+    text-align: center;
+    opacity:0;
+    z-index:999;
+		}
+
 .panel-header {
-  position: relative;
-  padding: 0 8px;
-  width: 250px;
-  height: 40px;
-  line-height: 40px;
-  font-size: 24px;
-  background: #455a64;
+  position: absolute;
+  left:0px;
+  top:250px;
+  padding: -10px 20px;
+  width: 45px;
+  height: 18px;
+  line-height: 18px;
+  font-size: 8px;
+  text-align: left;
+  background: #415c68;
   color: #fcfcfc;
   display: flex;
   font-weight: bold;
-  border-radius: 2px;
+  border-radius: 1px;
   box-shadow: 0 1px 2px rgba(26 26 26 0.2);
+  z-index:99;
+
 }
 
 .panel-header-end {
   position: absolute;
-  top: 0px;
-  left: 250px;
-  border-top: 40px solid #455a64;
-  border-right: 45px solid #ffffff;
-  border-bottom: 3px solid #ffffff;
+  top: 250px;
+  left: 61px;
+  border-top: 18px solid #455a64;
+  border-right: 18px solid #ffffff;
+  border-bottom: 0px solid #ffffff;
+  z-index:98;
 }
 
-.ant-table-selected :deep(.table-selected) td {
-  background-color: #fafafa;
-}
 </style>

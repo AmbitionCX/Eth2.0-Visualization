@@ -1,5 +1,6 @@
 <template>
   <div>
+    <svg id = "botteomLayer" style = 'width:1260px; height:570px; background-color:lightgrey'></svg>
     <Overview @day_detail = 'DayDetail'></Overview>
     <Epoch v-if = 'epoch_index >= 0' v-bind:day = "epoch_index"
              @details='Details'>
@@ -25,10 +26,17 @@ export default {
     data(){
       return{
       details_display: 0,
-      epoch_index:-1
+      epoch_index:-1,
+      value:0
       }
     },
+    mounted(){
+  },
     methods:{
+      // check(){
+      //   this.value ++;
+      //   console.log(this.value);
+      // },
       Details(data){
         this.details_display = data;
       },
@@ -39,31 +47,39 @@ export default {
   }
 </script>
 <style lang="scss">
+#bottomLayer{
+  z-index: -1;
+}
 #Overview{
   position: absolute;
-  top:10px;
-  left:10px;
+  top:0px;
+  left:3px;
+  background: #ffffff;
+  z-index:0;
 }
 
 #Epoch {
   position: absolute;
-  top:615px;
-  left:10px;
+  top:0px;
+  left:823px;
   background: #ffffff;
   border-radius: 2px;
   border-color: blueviolet;
+  z-index:0;
 }
 
 #Validator {
   position: absolute;
-  top: 615px;
-  left: 500px;
+  top: 252px;
+  left: 823px;
+  background: #ffffff;
 }
 
 #Slot {
   position:absolute;
-  top:1000px;
-  left:10px;
+  top:252px;
+  left:3px;
+  background: #ffffff;
 }
 
 

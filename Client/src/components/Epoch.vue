@@ -1,35 +1,6 @@
   <template>
   <div id='text'>
-    <button id = 'ghost' style = 'appearance: none;
-    background-color: #2ea44f;
-    border: 1px solid rgba(27, 31, 35, .15);
-    border-radius: 6px;
-    box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
-    box-sizing: border-box;
-    color: #fff;
-    cursor: pointer;
-    display: inline-block;
-    font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
-    font-size: 56px;
-    font-weight: 1200;
-    line-height: 80px;
-    padding: 24px 64px;
-    position: relative;
-    text-align: center;
-    text-decoration: none;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-    vertical-align: middle;
-    white-space: nowrap'
-    @click = 'GHOST(epochs)'>Head</button><br/>
     <text>text:{{msg}}</text>
-  <svg id = "mainsvg" style = 'width:4200px; height:3600px'>
-  
-    <text>test:{{msg}}</text>
-   
-    <button @click = 'Casper(epochs)'>Checkpoint</button>
-</svg>
 </div>
 
 
@@ -42,32 +13,34 @@ export default {
   name:'Epoch',
   data(){
     return {
-      msg:''
+      msg:100
     };
   },
   mounted(){
 
   },
   computed:{
-
+    time(){
+      
+      // var d = new Date();
+      // console.log(d.getTime());
+      return this.msg;
+    }
   },
   methods:{
-    getMessage(){
-       const path = 'http://127.0.0.1:5000/';
-      //  axios.get(path)
-      //    .then(function(res) {
-      //       this.msg = res.data;
-      //    })
-      //    .catch(error => {
-      //      console.error(error);
-      //    })
+
      }
 
    },
    created(){
-     this.getMessage();
+    //  var d = new Date();
+    //   console.log(d.getTime());
    },
   watch:{
+    time(){
+      console.log(this.time)
+      this.msg = this.time;
+    }
 
   }
 };

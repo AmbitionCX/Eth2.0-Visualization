@@ -1,9 +1,14 @@
 <template>
   <div id = "Tip">
-    <svg id = "Epoch"  class="epoch" style = 'width:500px; height:340px'>
+    <div class="panel-header">EpochView</div>
+    <div class="panel-header-end"></div>
+    <svg id = "Epoch"  class="epoch" style = 'width:435px; height:250px'
+    @mousedown = 'reColor("down")'>
     </svg>
-    <button id = 'ghost' @click = 'GHOST()'>Head</button>
-    <button id = 'casper' @click = 'Casper()'>Checkpoint</button>
+    <div class="tooltip"></div>
+    <div class="tooltip2"></div>
+    <button id = 'ghost' @click = 'GHOST()'>GHOST Vote</button>
+    <button id = 'casper' @click = 'Casper()'>Casper Vote</button>
   </div>
 </template>
 
@@ -17,22 +22,21 @@ export default {
   data(){
     return {
       epochs:[],
-      width: 500,
-      height: 340,
+      width: 360,
+      height: 245,
       margin:{
-        top:30,
-        right:130,
-        bottom:30,
-        left:30
+        top:21,
+        right:50,
+        bottom:2,
+        left:89
       },
       r:15,
       c:15,
-      flag:0,
-      information:{}
+      flag:""
     };
   },
   mounted(){
-
+    this.Scale();
   },
   computed:{
     showTip(){
@@ -59,6 +63,7 @@ export default {
        axios
          .get(path)
          .then(res => {
+           console.log(res.data);
            this.epochs=res.data;
          })
          .catch(error => {
@@ -67,6 +72,7 @@ export default {
      },
 
      Scale(){
+      //const gap = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
       const g = d3.select('#Epoch').append('g').attr('id', 'epochview')
                   .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
       const xscale = d3.scaleLinear()
@@ -79,19 +85,38 @@ export default {
       const yaxis = d3.axisLeft(yscale)
                       .ticks(this.r)
                       .tickSize(5)
-                      .tickPadding(10);
+                      .tickPadding(5);
       const xaxis = d3.axisBottom(xscale)
                       .ticks(this.c)
                       .tickSize(-5)
-                      .tickPadding(-20);
+                      .tickPadding(-15);
                      g.append('g').call(yaxis)
                       .attr('id' ,'yaxis');
                      g.append('g').call(xaxis)
                       .attr('id', 'xaxis');
+
   },
 
+  reColor(action){
+    let that = this;
+    var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['head_correct_balance'];})
+
+    if(action=="down"){
+      if(that.flag=="GHOST"){
+        d3.select('#epochview').selectAll('rect')
+          .attr("fill", function(d){return d3.interpolateBlues((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
+      }
+      if(that.flag == "Casper"){
+        d3.select('#epochview').selectAll('rect')
+          .attr("fill", function(d){return d3.interpolatePurples((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
+      }
+      console.log("recolor")
+    }
+
+  },
   GHOST(){
     let that = this;
+    that.flag="GHOST";
     d3.select('#epochview').selectAll('rect').remove()
     d3.select('#Epoch').selectAll('#legend').remove()
     const c = this.c;
@@ -104,76 +129,72 @@ export default {
           .domain([0,this.r])
           .range([0, this.innerHeight]);
 
+    
+
     d3.select('#epochview')
       .selectAll('rect').data(this.epochs).enter()
       .append('rect')
-      .attr('fill', function(d){return d3.interpolateReds((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
+      .attr('fill', function(d){return d3.interpolateBlues((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
       .attr('width', this.innerWidth/15-5)
       .attr('height', this.innerHeight/15-5)
       .attr('stroke',function(d){
-        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.67){
             console.log(d['head_correct_balance'])
-            return '#7E00C4'
+            return '#E53935 '
         }else{
-          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.22){
-            return '#7510EB'
+          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+            return '#FBC02D'
           }else{
-            if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.11){
-              return '#759FEB'
-            }else{
-              return ''
-            }
+           return ''
           }
         }
       })
       .attr('stroke-width',function(d){
-        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.67){
             console.log(d['head_correct_balance'])
-            return '2.5px'
+            return '1.5px'
         }else{
-          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.22){
-            return '2px'
+          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+            return '1px'
           }else{
-            if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.11){
-              return '1.5px'
-            }else{
               return ''
-            }
           }
         }
       })
       .attr("transform", function(d, i) {
-        return `translate(${xscale(Math.floor((i)%c))+2.5},${yscale(Math.floor((i)/c))+2.5})`;
+        return `translate(${xscale(Math.ceil((i)%c))+that.innerWidth/30+2.5},${yscale(Math.floor((i)/c))+that.innerHeight/30+1})`;
       })
-      .on("click", function(){                   
+      .on("mouseup", function(){ 
+        // d3.select(this)
+        //   .attr("fill","yellow")                  
         var temp = d3.select(this).data();
         that.$emit('details',temp[0].epoch);
+            d3.selectAll('.tooltip2')
+              .html("Current Epoch: " + temp[0].epoch)
+              .style("opacity",1.0)
       })
       .on("mouseover",function(){
         let d =d3.select(this).data();
-
-        var str ="head_error_balance/active_balance:" + (1 - d[0]['head_correct_balance']/d[0]['active_balance']);
+        var str =" head_error_balance/active_balance: " + (100*(1 - d[0]['head_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% " +"<br>Epoch:"+d[0]['epoch'];
       
-        var tooltip = d3.select("#Tip")
-                  .append("div")
-                  .attr("class","tooltip")
-
-        tooltip.html(str)
-               .style("left", (615+xscale(Math.floor((d[0].epoch%225)%c)))+"px")
-               .style("top", (10+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
+        
+        d3.selectAll('.tooltip')
+          .html(str)
+               .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
+               .style("top", (-10+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
                .style("opacity",1.0);
     })
       .on("mouseleave",function(){
             d3.select('#Tip')
               .selectAll('.tooltip')
-              .remove()
+              .style("opacity",0.0);
           })
     
     var med = d3.median([a,b]);
     d3.select("#Epoch")
       .append("g").attr("id","legend")
-      .call(that.colorbox,[10,150],d3.scaleDiverging([a, med, b], function (t){return d3.interpolateReds(t);}))
-      .attr("transform",`translate(${10+that.width - that.margin.right},${20})`)
+      .call(that.colorbox,[10,150],d3.scaleDiverging([a, med, b], function (t){return d3.interpolateBlues(t);}))
+      .attr("transform",`translate(${20+that.width - that.margin.right},${25})`)
 
     d3.select("#legend")
        .append("g")
@@ -181,14 +202,15 @@ export default {
        .attr("transform","translate(10,0)")
     d3.select("#legend") 
       .append("text")
-      .text("/x10e12")
-      .attr("transform","translate(20,0)")
+      .text("Effective Balance(gwei)")
+      .attr("transform","translate(-6,-8)")
       .attr("font-size","10px")
   },
 
 
   Casper(){
     let that = this;
+    that.flag="Casper";
     d3.select('#epochview').selectAll('rect').remove()
     d3.select('#Epoch').selectAll('#legend').remove()
     const c = this.c;
@@ -201,54 +223,68 @@ export default {
           .range([0, this.innerHeight]);
     d3.select('#epochview').selectAll('rect').data(this.epochs).enter()
                   .append('rect')
-                  .attr('fill', function(d){return d3.interpolateReds((d['active_balance'] - d['target_correct_balance']-a)/(b-a) )})
+                  .attr('fill', function(d){return d3.interpolatePurples((d['active_balance'] - d['target_correct_balance']-a)/(b-a) )})
                   .attr('width', this.innerWidth/15-5)
                   .attr('height', this.innerHeight/15-5)
                   .attr('stroke',function(d){
-                    if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
-                        console.log(d['head_correct_balance'])
-                        return '#7E00C4'
+                    if ((d['active_balance'] - d['target_correct_balance']) > d['active_balance'] * 0.5){
+                        console.log(d['target_correct_balance'])
+                        return '#E53935'
                     }else{
-                      if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.22){
-                        return '#7510EB'
+                      if((d['active_balance'] - d['target_correct_balance']) > d['active_balance'] * 0.25){
+                        return '#FBC02D'
                       }else{
-                        if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.11){
-                          return '#759FEB'
-                        }else{
                           return ''
-                        }
                       }
                     }
                   })
                   .attr('stroke-width',function(d){
-                    if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
-                        console.log(d['head_correct_balance'])
-                        return '2.5px'
+                    if ((d['active_balance'] - d['target_correct_balance']) > d['active_balance'] * 0.5){
+                        console.log(d['target_correct_balance'])
+                        return '1.5px'
                     }else{
-                      if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.22){
-                        return '2px'
+                      if((d['active_balance'] - d['target_correct_balance']) > d['active_balance'] * 0.25){
+                        return '1px'
                       }else{
-                        if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.11){
-                          return '1.5px'
-                        }else{
                           return ''
-                        }
                       }
                     }
                   })
                   .attr("transform", function(d, i) {
-            return `translate(${xscale(Math.floor((i)%c))+2.5},${yscale(Math.floor((i)/c))+2.5})`;
+            return `translate(${xscale(Math.ceil((i)%c))+that.innerWidth/30+2.5},${yscale(Math.floor((i)/c))+that.innerHeight/30+1})`;
                   })
-                  .on("click", function(){                   
+                  .on("mouseup", function(){ 
+                    // d3.select(this)
+                    //   .attr("fill","yellow")                      
                     var temp = d3.select(this).data();
                     that.$emit('details',temp[0].epoch);
+                    d3.selectAll('.tooltip2')
+                      .html("Current Epoch: " + temp[0].epoch)
+                      .style("opacity",1.0)
                   })
+                  .on("mouseover",function(){
+                    let d =d3.select(this).data();
+
+                    var str =" target_error_balance/active_balance: " + (100*(1 - d[0]['target_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% "+"<br>Epoch:"+d[0]['epoch'];
+                  
+                    
+                    d3.selectAll('.tooltip')
+                      .html(str)
+                          .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
+                          .style("top", (-10+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
+                          .style("opacity",1.0);
+                })
+                  .on("mouseleave",function(){
+                        d3.select('#Tip')
+                          .selectAll('.tooltip')
+                          .style("opacity",0.0);
+                      })
 
     var med = d3.median([a,b]);
     d3.select("#Epoch")
       .append("g").attr("id","legend")
-      .call(that.colorbox,[10,150],d3.scaleDiverging([a, med, b], function (t){return d3.interpolateReds(t);}))
-      .attr("transform",`translate(${10+that.width - that.margin.right},${20})`)
+      .call(that.colorbox,[10,150],d3.scaleDiverging([a, med, b], function (t){return d3.interpolatePurples(t);}))
+      .attr("transform",`translate(${20+that.width - that.margin.right},${20})`)
 
     d3.select("#legend")
        .append("g")
@@ -256,8 +292,8 @@ export default {
        .attr("transform","translate(10,0)")
     d3.select("#legend") 
       .append("text")
-      .text("/x10e12")
-      .attr("transform","translate(20,0)")
+      .text("Effective Balance(gwei)")
+      .attr("transform","translate(-6,-8)")
       .attr("font-size","10px")
    },
 
@@ -281,15 +317,12 @@ export default {
   },
   watch:{
     epoch(){
-      this.Scale();
       this.GHOST();
     },
     index(){
       this.getEpoch();
       console.log("day changed")
       console.log(this.epochs)
-      this.Scale();
-      this.GHOST();
     }
   }
 };
@@ -298,9 +331,9 @@ export default {
 <style scoped>
 #ghost {
     appearance: none;
-    background-color: #2ea44f;
+    background-color: #39c561;
     border: 1px solid rgba(27, 31, 35, .15);
-    border-radius: 1px;
+    border-radius: 5px;
     box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
     box-sizing: border-box;
     color: #fff;
@@ -312,8 +345,8 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:600px;
-    left:285px;
+    top:190px;
+    left:1150px;
     text-align: center;
     text-decoration: none;
     user-select: none;
@@ -324,9 +357,9 @@ export default {
 }
 #casper{
     appearance: none;
-    background-color: #2ea44f;
+    background-color: #39c561;
     border: 1px solid rgba(27, 31, 35, .15);
-    border-radius: 1px;
+    border-radius: 5px;
     box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
     box-sizing: border-box;
     color: #fff;
@@ -338,8 +371,8 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:600px;
-    left:330px;
+    top:215px;
+    left:1150px;
     text-align: center;
     text-decoration: none;
     user-select: none;
@@ -351,11 +384,64 @@ export default {
 
 .tooltip{
     position: absolute;
+    padding-left:5px;
+    padding-right:5px;
     width:auto;
     height:auto;
-    background-color: rgb(216, 18, 18);
-    font-size: 14px;
+    border:1px solid #2ea44f;
+    border-radius:5px;
+    background-color: white;
+    font-size: 8px;
     text-align: center;
+    opacity:0;
+    z-index:999;
 		}
 
+.tooltip2{
+  position:absolute;
+  left:660px;
+  top:530px;
+  width:auto;
+  height:auto;
+  border:2px solid lightcoral;
+  border-radius:5px;
+  padding-left:1px;
+  padding-right:1px;
+  padding-top:1px;
+  padding:1px;
+  background-color: white;
+  font-size: 1px;
+  text-align: center;
+  opacity:0;
+  z-index:99;
+}
+.panel-header {
+  position: absolute;
+  left:817px;
+  top:0px;
+  padding: -10px 20px;
+  width: 53px;
+  height: 18px;
+  line-height: 18px;
+  font-size: 8px;
+  text-align: left;
+  background: #415c68;
+  color: #fcfcfc;
+  display: flex;
+  font-weight: bold;
+  border-radius: 1px;
+  box-shadow: 0 1px 2px rgba(26 26 26 0.2);
+  z-index:99;
+
+}
+
+.panel-header-end {
+  position: absolute;
+  top: 0px;
+  left: 886px;
+  border-top: 18px solid #455a64;
+  border-right: 18px solid #ffffff;
+  border-bottom: 0px solid #ffffff;
+  z-index:98;
+}
 </style>
