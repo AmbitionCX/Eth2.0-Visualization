@@ -26,7 +26,7 @@ class c_overview(db.Model):
     __tablename__ = 'c_overview'
     days = db.Column('f_days',db.Integer,primary_key = True)
     blocks = db.Column('f_blocks',db.Integer)
-    deposits = db.Column('f_deposits',db.Integer)
+    deposits = db.Column('f_justification_delay',db.Integer)
 
 class Epoch(db.Model):
     __tablename__='t_epoch_summaries'
@@ -428,6 +428,7 @@ def Epoch_Attack(index):
 
     prev_epoch = index
     all_balance = 0
+    al_balance = 0
     casper_correct_balance = 0
     ghost_correct_balance = 0
     for d in data:
@@ -436,21 +437,25 @@ def Epoch_Attack(index):
             s = {}
             s['epoch'] = prev_epoch
             s['active_balance'] = all_balance
+            s['active_balance_g'] = al_balance
             s['head_correct_balance'] = ghost_correct_balance
             s['target_correct_balance'] = casper_correct_balance
             epochs.append(s)
             prev_epoch = d.epoch
             all_balance = 0
+            al_balance = 0
             casper_correct_balance = 0
             ghost_correct_balance = 0
         all_balance += d.casper_y_balance + d.casper_n_balance + d.not_vote_balance
         casper_correct_balance += d.casper_y_balance
         for g in d.ghost_selection:
+            al_balance += g['balance']
             if g['canonical']:
                 ghost_correct_balance += g['balance']
     s = {}
     s['epoch'] = prev_epoch
     s['active_balance'] = all_balance
+    s['active_balance_g'] = al_balance
     s['head_correct_balance'] = ghost_correct_balance
     s['target_correct_balance'] = casper_correct_balance
     epochs.append(s)
@@ -463,6 +468,9 @@ def Epoch_Attack(index):
                 e = st
                 break
             
+    delays = c_overview.query.filter_by(days = int(index/225)).first()
+    for i in range(225):
+        epochs[i]['delay'] = delays.deposits[i] 
     return json.dumps(epochs)
 
 @app.route('/Overview')
@@ -552,6 +560,10 @@ def EpochView(index):
     s['target_correct_balance'] = casper_correct_balance
     epochs.append(s)
 
+
+    delays = c_overview.query.filter_by(days = int(index/225)).first()
+    for i in range(len(epochs)):
+        epochs[i]['delay'] = delays.deposits[i] 
     print(len(epochs))
     return json.dumps(epochs)
 
@@ -698,35 +710,35 @@ def slot(index):
         if temp['casper_balance'] == 0:
             continue
 
-    if len(links_temp) > 0:
-        l = {
-            'source': links_temp[0]['source'],
-            'target': links_temp[0]['target'],
-            'correct': links_temp[0]['correct']
-        }
-    
-        counter = 0
-        links = []
-        for li in links_temp:
-            # print(li['target'])
-            if li != l:
-                t = {}
-                t['source'] = l['source']
-                t['target'] = l['target']
-                t['correct'] = l['correct']
-                t['value'] = counter
-                links.append(t)
-                counter = 1
-                l = li
-            else:
-                counter += 1
+        if len(links_temp) > 0:
+            l = {
+                'source': links_temp[0]['source'],
+                'target': links_temp[0]['target'],
+                'correct': links_temp[0]['correct']
+            }
+        
+            counter = 0
+            links = []
+            for li in links_temp:
+                # print(li['target'])
+                if li != l:
+                    t = {}
+                    t['source'] = l['source']
+                    t['target'] = l['target']
+                    t['correct'] = l['correct']
+                    t['value'] = counter
+                    links.append(t)
+                    counter = 1
+                    l = li
+                else:
+                    counter += 1
 
-        t = {}
-        t['source'] = li['source']
-        t['target'] = li['target']
-        t['correct'] = li['correct']
-        t['value'] = counter
-        links.append(t)
+            t = {}
+            t['source'] = li['source']
+            t['target'] = li['target']
+            t['correct'] = li['correct']
+            t['value'] = counter
+            links.append(t)
 
     # delay_temp.append(2)
     for b in set(delay_temp):

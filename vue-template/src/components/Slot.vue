@@ -37,7 +37,7 @@ export default {
     };
   },
   mounted(){
-      this.timer = setInterval(this.getSlot,20000);
+      this.timer = setInterval(this.getSlot,10000);
   },
   computed:{
     slot(){
@@ -66,7 +66,7 @@ export default {
       if(eval(this.msg) == 32533){
         path = 'http://127.0.0.1:5000/SlotView_Attack/' + eval(this.msg);
       }else{
-        path = 'http://127.0.0.1:5000/slot/' + eval(this.msg);
+        path = 'http://127.0.0.1:5000/slot/' + eval(this.msg+1);
       }
        console.log(path);
        axios

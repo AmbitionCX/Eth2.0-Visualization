@@ -196,66 +196,65 @@ export default {
 
           })     
 
-    // for (let i = 0; i < deposits.length; i++) {
-    //   for (let j = 0; j < deposits[i].length; j++) {
-    //     const xscale20 = d3.scaleLinear()
-    //                        .domain([0,254])
-    //                        .range([0, rectwid]);
-
-    //     const yscale20 = d3.scaleLinear()
-    //                        .domain([300,0])
-    //                       //  .domain([d3.max(deposits[i][j],function(d){return d}),d3.min(deposits[i][j],function(d){return d})])
-    //                        .range([0, rectheight]);
-
-    //     var [h,q] = d3.extent(d3.filter(deposits[i][j],x=>x>1),function(d){return d})
-    //     const z = d3.scaleLinear()
-    //       //.domain([d3.min(deposits[i][j],function(d){return d}),d3.max(deposits[i][j],function(d){return d})])
-    //        //.domain([0,400])
-    //                 .domain([h,q])
-    //                 .range([1,4]);
-
-
-    //       d3.select('#overview'+k).append('g')
-    //         .attr('transform', function () {
-    //             return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectheight/2})`;
-    //             })
-    //         .selectAll("dot")
-    //         .data(deposits[i][j])
-    //         .enter()
-    //         .append("circle")
-    //         .attr("cx", function (d,i) {return xscale20(i);} )
-    //         .attr("cy", yscale20(150))
-    //         .attr("r", function (d) { return d==1?0:z(d); } )
-    //         .style("fill", "#014040")
-    //         .style("opacity", 0.6 )
-    //       //.attr("stroke", "black")
-    //     }
-    //   }
-
     for (let i = 0; i < deposits.length; i++) {
       for (let j = 0; j < deposits[i].length; j++) {
         const xscale20 = d3.scaleLinear()
                            .domain([0,254])
                            .range([0, rectwid]);
+
         const yscale20 = d3.scaleLinear()
-                           .domain([d3.max(deposits[i][j],function(d){return d}),d3.min(deposits[i][j],function(d){return d})])
+                           .domain([300,0])
+                          //  .domain([d3.max(deposits[i][j],function(d){return d}),d3.min(deposits[i][j],function(d){return d})])
                            .range([0, rectheight]);
-        const line0 = d3.line()
-                        .x(function (d,i) {return xscale20(i);})
-                        .y(function (d) {return yscale20(d);});
-        d3.select('#overview'+k).append('g')
-          .attr('transform', function () {
-          return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectheight/2})`;
-          })
-          .append('path')
-          .datum(deposits[i][j])
-          .attr('class', 'linestyle')
-          .attr("fill", "none")
-          .attr("stroke", "brown")
-          .attr("stroke-width", 0.5)
-          .attr("d", line0)
+
+        var [h,q] = d3.extent(d3.filter(deposits[i][j],x=>x>1),function(d){return d})
+        const z = d3.scaleLinear()
+          //.domain([d3.min(deposits[i][j],function(d){return d}),d3.max(deposits[i][j],function(d){return d})])
+           //.domain([0,400])
+                    .domain([h,q])
+                    .range([1,4]);
+
+
+          d3.select('#overview'+k).append('g')
+            .attr('transform', function () {
+                return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectheight/2})`;
+                })
+            .selectAll("dot")
+            .data(deposits[i][j])
+            .enter()
+            .append("circle")
+            .attr("cx", function (d,i) {return xscale20(i);} )
+            .attr("cy", yscale20(150))
+            .attr("r", function (d) { return d==1?0:z(d); } )
+            .style("fill", "#014040")
+            .style("opacity", 0.6 )
         }
       }
+
+    // for (let i = 0; i < deposits.length; i++) {
+    //   for (let j = 0; j < deposits[i].length; j++) {
+    //     const xscale20 = d3.scaleLinear()
+    //                        .domain([0,254])
+    //                        .range([0, rectwid]);
+    //     const yscale20 = d3.scaleLinear()
+    //                        .domain([d3.max(deposits[i][j],function(d){return d}),d3.min(deposits[i][j],function(d){return d})])
+    //                        .range([0, rectheight]);
+    //     const line0 = d3.line()
+    //                     .x(function (d,i) {return xscale20(i);})
+    //                     .y(function (d) {return yscale20(d);});
+    //     d3.select('#overview'+k).append('g')
+    //       .attr('transform', function () {
+    //       return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectheight/2})`;
+    //       })
+    //       .append('path')
+    //       .datum(deposits[i][j])
+    //       .attr('class', 'linestyle')
+    //       .attr("fill", "none")
+    //       .attr("stroke", "brown")
+    //       .attr("stroke-width", 0.5)
+    //       .attr("d", line0)
+    //     }
+    //   }
 
       
     },

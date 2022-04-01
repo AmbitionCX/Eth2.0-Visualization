@@ -6,8 +6,8 @@
     </svg>
     <div class="tooltip"></div>
     <div class="tooltip2"></div>
-    <button id = 'ghost' @click = 'GHOST()'>GHOST Vote</button>
-    <button id = 'casper' @click = 'Casper()'>Casper Vote</button>
+    <button id = 'ghost' @click = 'GHOST(), drawDelay()'>GHOST Vote</button>
+    <button id = 'casper' @click = 'Casper(), drawDelay()'>Casper Vote</button>
   </div>
 </template>
 
@@ -37,7 +37,7 @@ export default {
   },
   mounted(){
     this.Scale();
-    this.timer = setInterval(this.getEpoch,120000);
+    this.timer = setInterval(this.getEpoch,40000);
   },
   computed:{
     showTip(){
@@ -60,7 +60,13 @@ export default {
   },
   methods:{
      getEpoch(){
-       const path = 'http://127.0.0.1:5000/EpochView/' + eval(this.day);
+      //  const path = 'http://127.0.0.1:5000/EpochView/' + eval(this.day);
+      var path = '';
+      if(eval(this.day) < 32533 && eval(this.day)+225 > 32533){
+        path = 'http://127.0.0.1:5000/Epoch_Attack/' + eval(this.day);
+      }else{
+        path = 'http://127.0.0.1:5000/EpochView/' + eval(this.day);
+      }
        axios
          .get(path)
          .then(res => {
@@ -95,6 +101,38 @@ export default {
                       .attr('id' ,'yaxis');
                      g.append('g').call(xaxis)
                       .attr('id', 'xaxis');
+
+  },
+
+     drawDelay(){
+      let that = this;
+      const xscale = d3.scaleLinear()
+                       .domain([0,this.c])
+                       .range([0, this.innerWidth]);
+      const yscale = d3.scaleLinear()
+                       .domain([0,this.r])
+                       .range([0, this.innerHeight]);
+
+      var [h,q] = d3.extent(d3.filter(that.epochs,x=>x['delay']>1),function(d){return d['delay']})
+      const z = d3.scaleLinear()
+                  .domain([h,q])
+                  .range([1,d3.min([that.innerWidth,that.innerHeight])/15-10]);
+
+
+      d3.select('#epochview').append('g').attr('id','delay')
+        // .attr('transform', function () {
+        //     return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectheight/2})`;
+        //     })
+        .selectAll("circle")
+        .data(that.epochs)
+        .enter()
+        .append("circle")
+        .attr("cx", function (d,i) {return xscale(Math.ceil((i)%that.c + 1));} )
+        .attr("cy", function (d,i) {return yscale(Math.floor((i)/that.c) + 1)-2;})
+        .attr("r", function (d) { return d['delay']==1?0:z(d['delay']); } )
+             .style("fill", "#014040")
+            .style("opacity", 0.6 )
+      //.attr("stroke", "black")
 
   },
 
@@ -176,13 +214,18 @@ export default {
       })
       .on("mouseover",function(){
         let d =d3.select(this).data();
-        var str =" head_error_balance/active_balance: " + (100*(1 - d[0]['head_correct_balance']/d[0]['active_balance_g'])).toFixed(2) + "% " +"<br>Epoch:"+d[0]['epoch'];
-      
+        var str =" Head_error_balance/active_balance: " + (100*(1 - d[0]['head_correct_balance']/d[0]['active_balance_g'])).toFixed(2) + "% " +"<br>Epoch:"+d[0]['epoch'];
+        var t = -10+yscale(Math.floor((d[0].epoch%225)/c))
+        if (d[0]['delay'] > 1){
+          str += '<br>Justification Delay: ' + d[0]['delay']
+          t -= 10;
+        }      
+        
         
         d3.selectAll('.tooltip')
           .html(str)
                .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
-               .style("top", (-10+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
+               .style("top", (t)+"px")
                .style("opacity",1.0);
     })
       .on("mouseleave",function(){
@@ -266,14 +309,20 @@ export default {
                   .on("mouseover",function(){
                     let d =d3.select(this).data();
 
-                    var str =" target_error_balance/active_balance: " + (100*(1 - d[0]['target_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% "+"<br>Epoch:"+d[0]['epoch'];
-                  
+                    var str =" Target_error_balance/active_balance: " + (100*(1 - d[0]['target_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% "+"<br>Epoch:"+d[0]['epoch'];
+                    
+                    var t = -10+yscale(Math.floor((d[0].epoch%225)/c))
+                    if (d[0]['delay'] > 1){
+                      str += '<br>Justification Delay: ' + d[0]['delay']
+                      t -= 10;
+                    }      
+                    
                     
                     d3.selectAll('.tooltip')
                       .html(str)
-                          .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
-                          .style("top", (-10+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
-                          .style("opacity",1.0);
+                      .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
+                      .style("top", (t)+"px")
+                      .style("opacity",1.0);
                 })
                   .on("mouseleave",function(){
                         d3.select('#Tip')
@@ -322,6 +371,7 @@ export default {
   watch:{
     epoch(){
       this.GHOST();
+      this.drawDelay();
     },
     index(){
       this.getEpoch();
