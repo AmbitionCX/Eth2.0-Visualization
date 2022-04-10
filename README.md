@@ -72,6 +72,3 @@ $ npm run dev
 # Compiles and minifies for production
 $ npm run build
 ```
-
-# Open Source
-This project is licensed under the terms of the MIT license.
