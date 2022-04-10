@@ -73,5 +73,5 @@ $ npm run dev
 $ npm run build
 ```
 
-### Open Source
+# Open Source
 This project is licensed under the terms of the MIT license.
