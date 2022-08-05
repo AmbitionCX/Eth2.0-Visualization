@@ -416,8 +416,4 @@ def index():
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     app.run(host='0.0.0.0', port=12346, debug=True)
-=======
-    app.run(debug=True)
->>>>>>> 9831c7184a1185e1ddbd1c55b83171dc5c598c64
