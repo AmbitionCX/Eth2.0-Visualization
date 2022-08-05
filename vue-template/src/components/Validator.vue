@@ -51,7 +51,13 @@ export default {
   },
   methods:{
     getValidator(){
-      const path = 'http://127.0.0.1:5000/validator/' + eval(this.msg);
+      // const path = 'http://127.0.0.1:5000/validator/' + eval(this.msg);
+      var path = '';
+      if(eval(this.msg) == 32533){
+        path = 'http://127.0.0.1:5000/Validator_Attack/' + eval(this.msg);
+      }else{
+        path = 'http://127.0.0.1:5000/validator/' + eval(this.msg);
+      }
       console.log(path);
       axios
         .get(path)
@@ -67,7 +73,7 @@ export default {
     },
 
     data_processing(){
-   const     slashed_slot=[1036608,6668,22373,40771,138163,138730,140312,140558,140810,140844,140894,141173,248185,343132,476903,1510278
+   const     slashed_slot=[6668,22373,40771,138163,138730,140312,140558,140810,140844,140894,141173,248185,343132,476903,1510278
   ,1856962,3339590,17090,17090,17090,17091,17091,17092,17090,17091,17091,17091,43917,102388,118135,138163,138163,138163,138730,
   140894,140894,138163,138730,456995,457540,231180,256809,296752,357059,421394,456865,456873,456869,456875,456930,456931,456929,
   456928,457443,457540,457537,457537,457538,457541,457542,457541,457537,457540,457537,457536,457539,457540,457536,457539,457541,
@@ -77,7 +83,7 @@ export default {
   475776,475780,475779,475776,475776,475780,475780,475776,475779,475776,475777,475778,475776,906880,1003553,1130720,1224987,1232591,1322720,
   1322969,1348326,1376000,1376000,1379970,1381593,1899680,1956769,1956779,1978690,2008347,2029832,2043488,2176001,2176737,2176801,2332096,
   2535250,2624390,2638205,2724283,2814144,2814432,2834208,2872459,3065149,3360800];
-  const  slashed_V=[27440,20075,18177,25645,38069,38089,38130,38129,38065,38128,38117,38114,45871,40892,63338,169440,21613,19299,21574,4259,
+  const  slashed_V=[20075,18177,25645,38069,38089,38130,38129,38065,38128,38117,38114,45871,40892,63338,169440,21613,19299,21574,4259,
     4100,4390,4086,4102,4110,13869,18249,4451,7635,1644,23241,38105,38061,38061,38091,38148,38106,38058,38116,14415,71603,43843,52866,
     57976,38038,9143,8320,8275,8250,8239,16509,16491,16523,16479,17377,71676,71654,69812,71401,69884,71665,68648,69358,69895,71614,75715,
     71690,75162,69391,69817,69716,71664,69732,71671,69772,69841,71673,71708,69866,71699,71663,69809,69388,69756,17189,71593,71646,69786,
@@ -314,7 +320,8 @@ for(let j=0;j<that.val.length-1;j++){
             .style('opacity',0.7)
             .on('mouseover',function(){
              
-             this.style.stroke='red';
+             this.style.stroke='#FF66CC';
+             d3.select(this).style("stroke-width",'1.5')
              this.style.opacity=1;
              //d3.select(this)
               // .style('z-index',999)
@@ -357,7 +364,7 @@ for(let j=0;j<that.val.length-1;j++){
             .attr('x',xscale2(j)+sub_width/2)
             .attr('fill',function(){
                 if(v_line[i].node[j].isslashed)
-                return 'yellow';
+                return 'black';
                 else if(v_line[i].node[j].ispro)
                 return '#6E00F5'
                 else if(!y)
@@ -370,7 +377,7 @@ for(let j=0;j<that.val.length-1;j++){
               if(v_line[i].node[j].isslashed) 
                   return 'black';
               if(v_line[i].node[j].ispro)
-               return '#9900CC ';//#6E00F5';
+               return '#9900CC';//#6E00F5';
               return 'none';
             })
             .style('stroke-width',v_line[i].node[j].ispro||v_line[i].node[j].isslashed?'0.5':'none')
@@ -382,23 +389,38 @@ for(let j=0;j<that.val.length-1;j++){
     }
     
     var ISred=[];
-    for(let i=0;i< v_line.length;i++){
-        var isred=0;
-       for(let j=0;j<v_line[i].length-1;j++){
-       if((v_line[i].node[j+1].y==1||v_line[i].node[j+1].y==0)&&(v_line[i].node[j].y==0||v_line[i].node[j].y==1)){
-          isred=isred||v_line[i].node[j].y;
-          console.log(isred);
-          if(isred)
-          break;
-       }
+    // for(let i=0;i< v_line.length;i++){
+    //     var isred=0;
+    //    for(let j=0;j<v_line[i].length-1;j++){
+    //    if((v_line[i].node[j+1].y==1||v_line[i].node[j+1].y==0)&&(v_line[i].node[j].y==0||v_line[i].node[j].y==1)){
+    //       isred=isred||v_line[i].node[j].y;
+    //       console.log(isred);
+    //       if(isred)
+    //       break;
+    //    }
       
+    // }
+    // if(isred){
+    //    ISred.push(i);
+    // }else{
+    //    make_line(i);
+    //   }
+    // }
+
+     for(let i=0;i< v_line.length;i++){
+      let isred=0;
+        for(let j=0;j<v_line[i].node.length-1;j++){
+        if((v_line[i].node[j+1].y==1||v_line[i].node[j+1].y==0)&&(v_line[i].node[j].y==0||v_line[i].node[j].y==1)){
+           isred=isred||v_line[i].node[j].y;
+        if(isred)
+         break;
+      }
     }
-    if(isred){
-       ISred.push(i);
-    }else{
-       make_line(i);
-    }
-    }
+    if(isred)
+      ISred.push(i);
+      else
+        make_line(i);
+}
   console.log(ISred);
     for(let i=0;i<ISred.length;i++)
     make_line(ISred[i]);

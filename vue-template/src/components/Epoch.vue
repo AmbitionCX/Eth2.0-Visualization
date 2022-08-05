@@ -2,13 +2,12 @@
   <div id = "Tip">
     <div class="panel-header">EpochView</div>
     <div class="panel-header-end"></div>
-    <svg id = "Epoch"  class="epoch" style = 'width:435px; height:250px'
-    @mousedown = 'reColor("down")'>
+    <svg id = "Epoch"  class="epoch" style = 'width:435px; height:250px'>
     </svg>
     <div class="tooltip"></div>
     <div class="tooltip2"></div>
-    <button id = 'ghost' @click = 'GHOST()'>GHOST Vote</button>
-    <button id = 'casper' @click = 'Casper()'>Casper Vote</button>
+    <button id = 'ghost' @click = 'GHOST(), drawDelay()'>GHOST Vote</button>
+    <button id = 'casper' @click = 'Casper(), drawDelay()'>Casper Vote</button>
   </div>
 </template>
 
@@ -32,11 +31,13 @@ export default {
       },
       r:15,
       c:15,
-      flag:""
+      flag:"",
+      timer:""
     };
   },
   mounted(){
     this.Scale();
+    this.timer = setInterval(this.getEpoch,40000);
   },
   computed:{
     showTip(){
@@ -59,7 +60,13 @@ export default {
   },
   methods:{
      getEpoch(){
-       const path = 'http://127.0.0.1:5000/EpochView/' + eval(this.day);
+      //  const path = 'http://127.0.0.1:5000/EpochView/' + eval(this.day);
+      var path = '';
+      if(eval(this.day) < 32533 && eval(this.day)+225 > 32533){
+        path = 'http://127.0.0.1:5000/Epoch_Attack/' + eval(this.day);
+      }else{
+        path = 'http://127.0.0.1:5000/EpochView/' + eval(this.day);
+      }
        axios
          .get(path)
          .then(res => {
@@ -97,30 +104,62 @@ export default {
 
   },
 
-  reColor(action){
-    let that = this;
-    var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['head_correct_balance'];})
+     drawDelay(){
+      let that = this;
+      const xscale = d3.scaleLinear()
+                       .domain([0,this.c])
+                       .range([0, this.innerWidth]);
+      const yscale = d3.scaleLinear()
+                       .domain([0,this.r])
+                       .range([0, this.innerHeight]);
 
-    if(action=="down"){
-      if(that.flag=="GHOST"){
-        d3.select('#epochview').selectAll('rect')
-          .attr("fill", function(d){return d3.interpolateBlues((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
-      }
-      if(that.flag == "Casper"){
-        d3.select('#epochview').selectAll('rect')
-          .attr("fill", function(d){return d3.interpolatePurples((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
-      }
-      console.log("recolor")
-    }
+      var [h,q] = d3.extent(d3.filter(that.epochs,x=>x['delay']>1),function(d){return d['delay']})
+      const z = d3.scaleLinear()
+                  .domain([h,q])
+                  .range([1,d3.min([that.innerWidth,that.innerHeight])/15-10]);
+
+
+      d3.select('#epochview').append('g').attr('id','delay')
+        // .attr('transform', function () {
+        //     return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectheight/2})`;
+        //     })
+        .selectAll("circle")
+        .data(that.epochs)
+        .enter()
+        .append("circle")
+        .attr("cx", function (d,i) {return xscale(Math.ceil((i)%that.c + 1));} )
+        .attr("cy", function (d,i) {return yscale(Math.floor((i)/that.c) + 1)-2;})
+        .attr("r", function (d) { return d['delay']==1?0:z(d['delay']); } )
+             .style("fill", "#014040")
+            .style("opacity", 0.6 )
+      //.attr("stroke", "black")
 
   },
+
+  // reColor(action){
+  //   let that = this;
+  //   var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['head_correct_balance'];})
+
+  //   if(action=="down"){
+  //     if(that.flag=="GHOST"){
+  //       d3.select('#epochview').selectAll('rect')
+  //         .attr("fill", function(d){return d3.interpolateBlues((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
+  //     }
+  //     if(that.flag == "Casper"){
+  //       d3.select('#epochview').selectAll('rect')
+  //         .attr("fill", function(d){return d3.interpolatePurples((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
+  //     }
+  //     console.log("recolor")
+  //   }
+
+  // },
   GHOST(){
     let that = this;
     that.flag="GHOST";
     d3.select('#epochview').selectAll('rect').remove()
     d3.select('#Epoch').selectAll('#legend').remove()
     const c = this.c;
-    var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['head_correct_balance'];})
+    var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance_g'] - d['head_correct_balance'];})
 
     const xscale = d3.scaleLinear()
                        .domain([0,this.c])
@@ -134,15 +173,15 @@ export default {
     d3.select('#epochview')
       .selectAll('rect').data(this.epochs).enter()
       .append('rect')
-      .attr('fill', function(d){return d3.interpolateBlues((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
+      .attr('fill', function(d){return d3.interpolateBlues((d['active_balance_g'] - d['head_correct_balance']-a)/(b-a) )})
       .attr('width', this.innerWidth/15-5)
       .attr('height', this.innerHeight/15-5)
       .attr('stroke',function(d){
-        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.67){
+        if ((d['active_balance_g'] - d['head_correct_balance']) > d['active_balance_g'] * 0.67){
             console.log(d['head_correct_balance'])
             return '#E53935 '
         }else{
-          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+          if((d['active_balance_g'] - d['head_correct_balance']) > d['active_balance_g'] * 0.33){
             return '#FBC02D'
           }else{
            return ''
@@ -150,11 +189,11 @@ export default {
         }
       })
       .attr('stroke-width',function(d){
-        if ((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.67){
+        if ((d['active_balance_g'] - d['head_correct_balance']) > d['active_balance_g'] * 0.67){
             console.log(d['head_correct_balance'])
             return '1.5px'
         }else{
-          if((d['active_balance'] - d['head_correct_balance']) > d['active_balance'] * 0.33){
+          if((d['active_balance_g'] - d['head_correct_balance']) > d['active_balance_g'] * 0.33){
             return '1px'
           }else{
               return ''
@@ -164,7 +203,7 @@ export default {
       .attr("transform", function(d, i) {
         return `translate(${xscale(Math.ceil((i)%c))+that.innerWidth/30+2.5},${yscale(Math.floor((i)/c))+that.innerHeight/30+1})`;
       })
-      .on("mouseup", function(){ 
+      .on("click", function(){ 
         // d3.select(this)
         //   .attr("fill","yellow")                  
         var temp = d3.select(this).data();
@@ -175,13 +214,18 @@ export default {
       })
       .on("mouseover",function(){
         let d =d3.select(this).data();
-        var str =" head_error_balance/active_balance: " + (100*(1 - d[0]['head_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% " +"<br>Epoch:"+d[0]['epoch'];
-      
+        var str =" Head_error_balance/active_balance: " + (100*(1 - d[0]['head_correct_balance']/d[0]['active_balance_g'])).toFixed(2) + "% " +"<br>Epoch:"+d[0]['epoch'];
+        var t = -10+yscale(Math.floor((d[0].epoch%225)/c))
+        if (d[0]['delay'] > 1){
+          str += '<br>Justification Delay: ' + d[0]['delay']
+          t -= 10;
+        }      
+        
         
         d3.selectAll('.tooltip')
           .html(str)
                .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
-               .style("top", (-10+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
+               .style("top", (t)+"px")
                .style("opacity",1.0);
     })
       .on("mouseleave",function(){
@@ -253,7 +297,7 @@ export default {
                   .attr("transform", function(d, i) {
             return `translate(${xscale(Math.ceil((i)%c))+that.innerWidth/30+2.5},${yscale(Math.floor((i)/c))+that.innerHeight/30+1})`;
                   })
-                  .on("mouseup", function(){ 
+                  .on("click", function(){ 
                     // d3.select(this)
                     //   .attr("fill","yellow")                      
                     var temp = d3.select(this).data();
@@ -265,14 +309,20 @@ export default {
                   .on("mouseover",function(){
                     let d =d3.select(this).data();
 
-                    var str =" target_error_balance/active_balance: " + (100*(1 - d[0]['target_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% "+"<br>Epoch:"+d[0]['epoch'];
-                  
+                    var str =" Target_error_balance/active_balance: " + (100*(1 - d[0]['target_correct_balance']/d[0]['active_balance'])).toFixed(2) + "% "+"<br>Epoch:"+d[0]['epoch'];
+                    
+                    var t = -10+yscale(Math.floor((d[0].epoch%225)/c))
+                    if (d[0]['delay'] > 1){
+                      str += '<br>Justification Delay: ' + d[0]['delay']
+                      t -= 10;
+                    }      
+                    
                     
                     d3.selectAll('.tooltip')
                       .html(str)
-                          .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
-                          .style("top", (-10+yscale(Math.floor((d[0].epoch%225)/c)))+"px")
-                          .style("opacity",1.0);
+                      .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
+                      .style("top", (t)+"px")
+                      .style("opacity",1.0);
                 })
                   .on("mouseleave",function(){
                         d3.select('#Tip')
@@ -315,9 +365,13 @@ export default {
   created(){
     this.getEpoch();
   },
+  beforeUnmount() {
+    clearInterval(this.timer);
+  },
   watch:{
     epoch(){
       this.GHOST();
+      this.drawDelay();
     },
     index(){
       this.getEpoch();
