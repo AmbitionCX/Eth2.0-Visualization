@@ -2,12 +2,12 @@
   <div id = "Tip">
     <div class="panel-header">EpochView</div>
     <div class="panel-header-end"></div>
-    <svg id = "Epoch"  class="epoch" style = 'width:435px; height:250px'>
+    <svg id = "Epoch"  class="epoch" style = 'width:435px; height:330px'>
     </svg>
     <div class="tooltip"></div>
     <div class="tooltip2"></div>
-    <button id = 'ghost' @click = 'GHOST(), drawDelay()'>GHOST Vote</button>
-    <button id = 'casper' @click = 'Casper(), drawDelay()'>Casper Vote</button>
+    <button id = 'ghost' @click = 'GHOST(), showNote(),drawDelay()'>GHOST Vote</button>
+    <button id = 'casper' @click = 'Casper(), showNote(),drawDelay()'>Casper Vote</button>
   </div>
 </template>
 
@@ -22,24 +22,37 @@ export default {
     return {
       epochs:[],
       width: 360,
-      height: 245,
+      height: 285,
       margin:{
-        top:21,
+        top:40,
         right:50,
-        bottom:2,
+        bottom:10,
         left:89
       },
       r:15,
       c:15,
       flag:"",
-      timer:""
+      timer:"",
+      timer2:"",
+      timer3:"",
+      current_justified_epoch: 0,
+      current_finalized_epoch: 0,
+      total_reorgs: 0,
+      record_reorgs:0,
+      last_reorgs:'',
+      current_slot: 0
     };
   },
   mounted(){
     this.Scale();
-    this.timer = setInterval(this.getEpoch,40000);
+    this.timer = setInterval(this.getEpoch, 80000);
+    this.timer2 = setInterval(this.getTotalReorgs,40000);
+    this.timer3 = setInterval(this.getCurrentSlot,40000);
   },
   computed:{
+    reorg(){
+      return this.total_reorgs;
+    },
     showTip(){
       return this.flag;
     },
@@ -59,27 +72,63 @@ export default {
     }
   },
   methods:{
-     getEpoch(){
-      //  const path = 'http://127.0.0.1:5000/EpochView/' + eval(this.day);
-      var path = '';
-      if(eval(this.day) < 32533 && eval(this.day)+225 > 32533){
-        path = 'http://127.0.0.1:5000/Epoch_Attack/' + eval(this.day);
-      }else{
-        path = 'http://127.0.0.1:5000/EpochView/' + eval(this.day);
-      }
-       axios
-         .get(path)
-         .then(res => {
-           console.log(res.data);
-           this.epochs=res.data;
-         })
-         .catch(error => {
-           console.error(error);
-         });
+    getEpoch(){
+      const path = 'http://10.192.9.11:5000/EpochView/' + eval(this.day);
+      axios
+        .get(path)
+        .then(res => {
+          this.epochs = res.data;
+        })
+        .catch(error => {
+          console.error(error);
+        });
+      console.log("getEpoch")
      },
-
-     Scale(){
-      //const gap = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    getCurrentJustifiedEpoch(){
+      const path_justified_epoch = 'http://localhost:9093/api/v1/query?query=beacon_current_justified_epoch';
+      axios
+        .get(path_justified_epoch)
+        .then(results => {
+          this.current_justified_epoch = results.data.data.result[0].value[1];
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    },
+    getCurrentFinalizedEpoch(){
+      const path_finalized_epoch = 'http://localhost:9093/api/v1/query?query=beacon_finalized_epoch';
+      axios
+        .get(path_finalized_epoch)
+        .then(results => {
+          this.current_finalized_epoch = results.data.data.result[0].value[1];
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    },
+    getTotalReorgs(){
+      const path_total_reorgs = 'http://10.192.9.11:9093/api/v1/query?query=beacon_reorgs_total';
+      axios
+        .get(path_total_reorgs)
+        .then(results => {
+          this.total_reorgs = results.data.data.result[0].value[1];
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    },
+    getCurrentSlot(){
+      const path_total_reorgs = 'http://10.192.9.11:9093/api/v1/query?query=beacon_slot';
+      axios
+        .get(path_total_reorgs)
+        .then(results => {
+          this.current_slot = results.data.data.result[0].value[1];
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    },
+    Scale(){
       const g = d3.select('#Epoch').append('g').attr('id', 'epochview')
                   .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
       const xscale = d3.scaleLinear()
@@ -88,7 +137,6 @@ export default {
       const yscale = d3.scaleLinear()
                        .domain([0,this.r])
                        .range([0, this.innerHeight]);
-
       const yaxis = d3.axisLeft(yscale)
                       .ticks(this.r)
                       .tickSize(5)
@@ -97,15 +145,15 @@ export default {
                       .ticks(this.c)
                       .tickSize(-5)
                       .tickPadding(-15);
-                     g.append('g').call(yaxis)
-                      .attr('id' ,'yaxis');
-                     g.append('g').call(xaxis)
-                      .attr('id', 'xaxis');
+        g.append('g').call(yaxis)
+         .attr('id' ,'yaxis');
+        g.append('g').call(xaxis)
+         .attr('id', 'xaxis');
+    },
 
-  },
-
-     drawDelay(){
+    drawDelay(){
       let that = this;
+      d3.select('#epochview').selectAll('#delay').remove()
       const xscale = d3.scaleLinear()
                        .domain([0,this.c])
                        .range([0, this.innerWidth]);
@@ -118,11 +166,7 @@ export default {
                   .domain([h,q])
                   .range([1,d3.min([that.innerWidth,that.innerHeight])/15-10]);
 
-
       d3.select('#epochview').append('g').attr('id','delay')
-        // .attr('transform', function () {
-        //     return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectheight/2})`;
-        //     })
         .selectAll("circle")
         .data(that.epochs)
         .enter()
@@ -130,29 +174,23 @@ export default {
         .attr("cx", function (d,i) {return xscale(Math.ceil((i)%that.c + 1));} )
         .attr("cy", function (d,i) {return yscale(Math.floor((i)/that.c) + 1)-2;})
         .attr("r", function (d) { return d['delay']==1?0:z(d['delay']); } )
-             .style("fill", "#014040")
-            .style("opacity", 0.6 )
-      //.attr("stroke", "black")
-
+        .style("fill", "#014040")
+        .style("opacity", 0.6 );
+    },
+  
+  showNote(){
+    let that = this;
+    d3.select('#epochview')
+      .selectAll('rect')
+      .on("click", function(){               
+        var temp = d3.select(this).data();
+        that.$emit('details',temp[0].epoch);
+            d3.selectAll('.tooltip2')
+              .html("Current Epoch: " + temp[0].epoch + "<br>Total Reorgs in Unfinalized Epochs: " + that.total_reorgs + "<br>Last Reorg: Num:" + that.last_reorgs + " slot:" + that.current_slot)
+              .style("opacity",1.0)
+      })
   },
 
-  // reColor(action){
-  //   let that = this;
-  //   var [a,b] = d3.extent(this.epochs, function(d){return d['active_balance'] - d['head_correct_balance'];})
-
-  //   if(action=="down"){
-  //     if(that.flag=="GHOST"){
-  //       d3.select('#epochview').selectAll('rect')
-  //         .attr("fill", function(d){return d3.interpolateBlues((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
-  //     }
-  //     if(that.flag == "Casper"){
-  //       d3.select('#epochview').selectAll('rect')
-  //         .attr("fill", function(d){return d3.interpolatePurples((d['active_balance'] - d['head_correct_balance']-a)/(b-a) )})
-  //     }
-  //     console.log("recolor")
-  //   }
-
-  // },
   GHOST(){
     let that = this;
     that.flag="GHOST";
@@ -167,8 +205,6 @@ export default {
     const yscale = d3.scaleLinear()
           .domain([0,this.r])
           .range([0, this.innerHeight]);
-
-    
 
     d3.select('#epochview')
       .selectAll('rect').data(this.epochs).enter()
@@ -203,30 +239,20 @@ export default {
       .attr("transform", function(d, i) {
         return `translate(${xscale(Math.ceil((i)%c))+that.innerWidth/30+2.5},${yscale(Math.floor((i)/c))+that.innerHeight/30+1})`;
       })
-      .on("click", function(){ 
-        // d3.select(this)
-        //   .attr("fill","yellow")                  
-        var temp = d3.select(this).data();
-        that.$emit('details',temp[0].epoch);
-            d3.selectAll('.tooltip2')
-              .html("Current Epoch: " + temp[0].epoch)
-              .style("opacity",1.0)
-      })
       .on("mouseover",function(){
         let d =d3.select(this).data();
         var str =" Head_error_balance/active_balance: " + (100*(1 - d[0]['head_correct_balance']/d[0]['active_balance_g'])).toFixed(2) + "% " +"<br>Epoch:"+d[0]['epoch'];
-        var t = -10+yscale(Math.floor((d[0].epoch%225)/c))
+        var t = yscale(Math.floor((d[0].epoch%225)/c))
         if (d[0]['delay'] > 1){
           str += '<br>Justification Delay: ' + d[0]['delay']
           t -= 10;
         }      
         
-        
         d3.selectAll('.tooltip')
           .html(str)
-               .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
-               .style("top", (t)+"px")
-               .style("opacity",1.0);
+          .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
+          .style("top", (t)+"px")
+          .style("opacity",1.0);
     })
       .on("mouseleave",function(){
             d3.select('#Tip')
@@ -249,8 +275,21 @@ export default {
       .text("Effective Balance(gwei)")
       .attr("transform","translate(-6,-8)")
       .attr("font-size","10px")
-  },
 
+    d3.select("#legend")
+      .append("g")
+      .append("circle")
+      .attr('r',that.innerWidth/50)
+      .attr('transform', `translate(${5},${180})`)
+      .attr('fill','#014040')
+      .attr("opacity", 0.6 );
+    d3.select("#legend") 
+      .append("text")
+      .text("Inclusion Delay")
+      .attr("transform",`translate(${that.innerWidth/50+10},${183})`)
+      .attr("font-size","10px")
+
+  },
 
   Casper(){
     let that = this;
@@ -297,15 +336,6 @@ export default {
                   .attr("transform", function(d, i) {
             return `translate(${xscale(Math.ceil((i)%c))+that.innerWidth/30+2.5},${yscale(Math.floor((i)/c))+that.innerHeight/30+1})`;
                   })
-                  .on("click", function(){ 
-                    // d3.select(this)
-                    //   .attr("fill","yellow")                      
-                    var temp = d3.select(this).data();
-                    that.$emit('details',temp[0].epoch);
-                    d3.selectAll('.tooltip2')
-                      .html("Current Epoch: " + temp[0].epoch)
-                      .style("opacity",1.0)
-                  })
                   .on("mouseover",function(){
                     let d =d3.select(this).data();
 
@@ -316,8 +346,7 @@ export default {
                       str += '<br>Justification Delay: ' + d[0]['delay']
                       t -= 10;
                     }      
-                    
-                    
+
                     d3.selectAll('.tooltip')
                       .html(str)
                       .style("left", (810+xscale(Math.ceil((d[0].epoch%225)%c)))+"px")
@@ -334,7 +363,7 @@ export default {
     d3.select("#Epoch")
       .append("g").attr("id","legend")
       .call(that.colorbox,[10,150],d3.scaleDiverging([a, med, b], function (t){return d3.interpolatePurples(t);}))
-      .attr("transform",`translate(${20+that.width - that.margin.right},${20})`)
+      .attr("transform",`translate(${20+that.width - that.margin.right},${25})`)
 
     d3.select("#legend")
        .append("g")
@@ -345,7 +374,20 @@ export default {
       .text("Effective Balance(gwei)")
       .attr("transform","translate(-6,-8)")
       .attr("font-size","10px")
-   },
+
+    d3.select("#legend")
+      .append("g")
+      .append("circle")
+      .attr('r',that.innerWidth/50)
+      .attr('transform', `translate(${5},${180})`)
+      .attr('fill','#014040')
+      .attr("opacity", 0.6 );
+    d3.select("#legend") 
+      .append("text")
+      .text("Inclusion Delay")
+      .attr("transform",`translate(${that.innerWidth/50+10},${183})`)
+      .attr("font-size","10px")
+  }, // Casper
 
   colorbox(sel, size, colors){
     var [x0,x1] = d3.extent( colors.domain());
@@ -360,23 +402,43 @@ export default {
     sel.append("rect")
         .attr("width",size[0]).attr("height",size[1])
         .attr("fill","none").attr("stroke","black")
-      }
+      },
+    reorg_cal(){
+      this.last_reorgs = this.record_reorgs;
+      this.record_reorgs = this.total_reorgs;
+    }
   },
   created(){
     this.getEpoch();
+    this.getTotalReorgs();
+    this.getCurrentSlot();
   },
   beforeUnmount() {
     clearInterval(this.timer);
+    clearInterval(this.timer2);
+    clearInterval(this.timer3);
   },
   watch:{
     epoch(){
+
       this.GHOST();
+      this.showNote();
       this.drawDelay();
+
     },
     index(){
       this.getEpoch();
-      console.log("day changed")
-      console.log(this.epochs)
+      //console.log("day changed")
+      //console.log(this.epochs)
+    },
+    reorg(){
+      if(this.record_reorgs == 0){
+        this.showNote();
+        this.reorg_cal();
+      }else{
+        this.reorg_cal();
+        this.showNote();
+      }
     }
   }
 };
@@ -399,7 +461,7 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:190px;
+    top:240px;
     left:1150px;
     text-align: center;
     text-decoration: none;
@@ -425,7 +487,7 @@ export default {
     line-height: 10px;
     padding: 5px 5px;
     position: absolute;
-    top:215px;
+    top:265px;
     left:1150px;
     text-align: center;
     text-decoration: none;
@@ -453,8 +515,8 @@ export default {
 
 .tooltip2{
   position:absolute;
-  left:660px;
-  top:530px;
+  left:920px;
+  top:640px;
   width:auto;
   height:auto;
   border:2px solid lightcoral;

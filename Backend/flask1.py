@@ -1,9 +1,10 @@
 from flask import Flask, render_template,request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-import string
+
 from sqlalchemy import ForeignKey, create_engine
 from sqlalchemy.engine import URL
+
 import psycopg2
 import requests
 import string
@@ -17,8 +18,17 @@ import pandas as pd
 import numpy as np
 import csv
 
+# python-dotenv
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
+
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+# SECRET_KEY = os.environ.get("SECRET_KEY")
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:ChenXuan46@10.192.9.11'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_ENDPOINT")
 db = SQLAlchemy(app)
 CORS(app)
 
@@ -26,7 +36,7 @@ class c_overview(db.Model):
     __tablename__ = 'c_overview'
     days = db.Column('f_days',db.Integer,primary_key = True)
     blocks = db.Column('f_blocks',db.Integer)
-    deposits = db.Column('f_justification_delay',db.Integer)
+    deposits = db.Column('f_deposits',db.Integer)
 
 class Epoch(db.Model):
     __tablename__='t_epoch_summaries'
@@ -40,6 +50,7 @@ class Block(db.Model):
     __tablename__ = 't_blocks'
     slot = db.Column('f_slot',db.Integer,primary_key = True)
     deposit = db.Column('f_eth1_deposit_count',db.Integer,primary_key = True)
+    block_root = db.Column('f_root',db.String)
 
 class Committee(db.Model):
     __tablename__ = 't_beacon_committees'
@@ -64,6 +75,7 @@ class Attestation(db.Model):
     source_epoch = db.Column('f_source_epoch', db.Integer)
     head_correct = db.Column('f_head_correct', db.String)
     target_epoch = db.Column('f_target_epoch', db.Integer)
+    target_root = db.Column('f_target_root', db.String)
     target_correct = db.Column('f_target_correct', db.String)
     def bits(self):
         bits = ''
@@ -84,7 +96,7 @@ class Validator(db.Model):
     epoch = db.Column('f_epoch', db.Integer)
 
 class Vote1(db.Model):
-    __tablename__ = 'c_main_table'
+    __tablename__ = 's_main_table'
     slot = db.Column('f_slot', db.Integer, primary_key = True)
     epoch = db.Column('f_epoch', db.Integer)
     casper_y = db.Column('f_casper_y', db.String)
@@ -96,7 +108,7 @@ class Vote1(db.Model):
     ghost_selection = db.Column('f_ghost_selection', db.String)
 
 class Vote2(db.Model):
-    __tablename__ = 'c_main_table_2'
+    __tablename__ = 's_main_table_2'
     slot = db.Column('f_slot', db.Integer, primary_key = True)
     epoch = db.Column('f_epoch', db.Integer)
     casper_y = db.Column('f_casper_y', db.String)
@@ -108,7 +120,7 @@ class Vote2(db.Model):
     ghost_selection = db.Column('f_ghost_selection', db.String)
 
 class Vote3(db.Model):
-    __tablename__ = 'c_main_table_3'
+    __tablename__ = 's_main_table_3'
     slot = db.Column('f_slot', db.Integer, primary_key = True)
     epoch = db.Column('f_epoch', db.Integer)
     casper_y = db.Column('f_casper_y', db.String)
@@ -120,7 +132,7 @@ class Vote3(db.Model):
     ghost_selection = db.Column('f_ghost_selection', db.String)
 
 class Vote4(db.Model):
-    __tablename__ = 'c_main_table_4'
+    __tablename__ = 's_main_table_4'
     slot = db.Column('f_slot', db.Integer, primary_key = True)
     epoch = db.Column('f_epoch', db.Integer)
     casper_y = db.Column('f_casper_y', db.String)
@@ -130,6 +142,31 @@ class Vote4(db.Model):
     not_vote = db.Column('f_not_vote', db.String)
     not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
     ghost_selection = db.Column('f_ghost_selection', db.String)
+
+class Vote5(db.Model):
+    __tablename__ = 's_main_table_5'
+    slot = db.Column('f_slot', db.Integer, primary_key = True)
+    epoch = db.Column('f_epoch', db.Integer)
+    casper_y = db.Column('f_casper_y', db.String)
+    casper_y_balance = db.Column('f_casper_y_balance', db.BigInteger)
+    casper_n = db.Column('f_casper_n', db.String)
+    casper_n_balance = db.Column('f_casper_n_balance', db.BigInteger)
+    not_vote = db.Column('f_not_vote', db.String)
+    not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
+    ghost_selection = db.Column('f_ghost_selection', db.String)
+
+class Vote6(db.Model):
+    __tablename__ = 's_main_table_6'
+    slot = db.Column('f_slot', db.Integer, primary_key = True)
+    epoch = db.Column('f_epoch', db.Integer)
+    casper_y = db.Column('f_casper_y', db.String)
+    casper_y_balance = db.Column('f_casper_y_balance', db.BigInteger)
+    casper_n = db.Column('f_casper_n', db.String)
+    casper_n_balance = db.Column('f_casper_n_balance', db.BigInteger)
+    not_vote = db.Column('f_not_vote', db.String)
+    not_vote_balance = db.Column('f_not_vote_balance', db.BigInteger)
+    ghost_selection = db.Column('f_ghost_selection', db.String)
+
 
 def Attestation_a():
     with open(r"E:\Eth-Vis\Eth2.0-Vis\Backend\ats.csv") as f:
@@ -413,16 +450,18 @@ def Epoch_Attack(index):
     st['target_correct_balance'] = casper_correct_balance
         
     epochs = []
-    if index >= 93750:
+    if index >= 125000: # from slot 4000031 to latest
+        Vote = Vote5
+    elif index < 125000 and index >= 121275: # from slot 3880800 to 4000030
+        Vote = Vote6
+    elif index < 121275 and index >= 93750: # from slot 3000031 to 4000030
         Vote = Vote4
+    elif index < 93750 and index >= 62500: # from slot 2000031 to 3000030
+        Vote = Vote3
+    elif index < 62500 and index >= 31250: # from slot 1000031 to 2000030
+        Vote = Vote2
     else:
-        if index >= 62500:
-            Vote = Vote3
-        else:
-            if index >= 31250:
-                Vote = Vote2
-            else:
-                Vote = Vote1
+        Vote = Vote1 # from slot 0 to 1000030
     data = Vote.query.filter(Vote.slot.in_(range(index*32,(index+225)*32))).all()
     print(len(data))
 
@@ -513,16 +552,18 @@ def EpochView(index):
         #         if index >= 54225:
         #             Vote = Vote2
         #             print(2)
-    if index >= 93750:
+    if index >= 125000: # from slot 4000031 to latest
+        Vote = Vote5
+    elif index < 125000 and index >= 121275: # from slot 3880800 to 4000030
+        Vote = Vote6
+    elif index < 121275 and index >= 93750: # from slot 3000031 to 4000030
         Vote = Vote4
+    elif index < 93750 and index >= 62500: # from slot 2000031 to 3000030
+        Vote = Vote3
+    elif index < 62500 and index >= 31250: # from slot 1000031 to 2000030
+        Vote = Vote2
     else:
-        if index >= 62500:
-            Vote = Vote3
-        else:
-            if index >= 31250:
-                Vote = Vote2
-            else:
-                Vote = Vote1
+        Vote = Vote1 # from slot 0 to 1000030
     data = Vote.query.filter(Vote.slot.in_(range(index*32,(index+225)*32))).all()
     print(len(data))
 
@@ -570,16 +611,18 @@ def EpochView(index):
 
 @app.route('/validator/<int:index>', methods=['GET'])
 def validator(index):
-    if index >= 93750:
+    if index >= 125000: # from slot 4000031 to latest
+        Vote = Vote5
+    elif index < 125000 and index >= 121275: # from slot 3880800 to 4000030
+        Vote = Vote6
+    elif index < 121275 and index >= 93750: # from slot 3000031 to 4000030
         Vote = Vote4
+    elif index < 93750 and index >= 62500: # from slot 2000031 to 3000030
+        Vote = Vote3
+    elif index < 62500 and index >= 31250: # from slot 1000031 to 2000030
+        Vote = Vote2
     else:
-        if index >= 62500:
-            Vote = Vote3
-        else:
-            if index >= 31250:
-                Vote = Vote2
-            else:
-                Vote = Vote1
+        Vote = Vote1 # from slot 0 to 1000030
 
     ats = Vote.query.filter(Vote.epoch == index).order_by(Vote.slot).all()
     print(ats)
@@ -643,16 +686,18 @@ def validator(index):
 
 @app.route('/slot/<int:index>',methods=['GET'])
 def slot(index):
-    if index >= 93750:
+    if index >= 125000: # from slot 4000031 to latest
+        Vote = Vote5
+    elif index < 125000 and index >= 121275: # from slot 3880800 to 4000030
+        Vote = Vote6
+    elif index < 121275 and index >= 93750: # from slot 3000031 to 4000030
         Vote = Vote4
+    elif index < 93750 and index >= 62500: # from slot 2000031 to 3000030
+        Vote = Vote3
+    elif index < 62500 and index >= 31250: # from slot 1000031 to 2000030
+        Vote = Vote2
     else:
-        if index >= 62500:
-            Vote = Vote3
-        else:
-            if index >= 31250:
-                Vote = Vote2
-            else:
-                Vote = Vote1
+        Vote = Vote1 # from slot 0 to 1000030
     slots = []
     links_temp = []
     links = []
@@ -668,12 +713,38 @@ def slot(index):
             ats_no = set()
             for a in ats:
                 link = {}
+                
                 if a.slot < index*32 :
                     link['source'] = -1
                 else:
                     link['source'] = a.slot%32
                 link['target'] = a.inclusion_slot%32
-                link['correct'] = a.target_correct and a.head_correct
+
+                targetCorrect = False
+                headCorrect = False
+                a_slot = a.slot
+                a_target_slot = a.target_epoch*32
+                raw_head = Block.query.filter_by(slot=a_slot).first()
+                raw_target = Block.query.filter_by(slot=a_target_slot).first()
+                selectedHead = bytes(a.beacon_block_root).hex()
+                selectedTarget = bytes(a.target_root).hex()
+
+                if hasattr(raw_head, 'block_root') :
+                    correctHead = bytes(raw_head.block_root).hex()
+                    if correctHead == selectedHead :
+                        headCorrect = True
+                    
+                while not hasattr(raw_target, 'block_root') :
+                    a_target_slot = a_target_slot - 1
+                    raw_target = Block.query.filter_by(slot=a_target_slot).first()
+                
+                correctTarget = bytes(raw_target.block_root).hex()
+                if correctTarget == selectedTarget :
+                    targetCorrect = True
+                
+                link['correct'] = targetCorrect and headCorrect
+                # link['correct'] = a.target_correct and a.head_correct
+
                 if committee_prev != a.committee_index:
                     temp['at_number'] += len(ats_no)
                     ats_no = set()
@@ -757,7 +828,7 @@ def slot(index):
     #         l['value'] *= 200
     #         break
 
-    return json.dumps([slots] + [links] + [delays])
+    return json.dumps([slots] + [links] + [delays]+[list(correctTarget)])
 
 
 
@@ -767,4 +838,8 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=12346, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
+    # temp = Attestation.query.filter_by(inclusion_slot=5000).order_by(Attestation.slot, Attestation.committee_index).all()
+    # for a in temp:
+    #     print(bytes(a.target_root).hex())
+    #     print(Block.query.filter_by(slot=5000).first().block_root)

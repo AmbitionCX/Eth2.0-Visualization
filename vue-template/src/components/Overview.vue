@@ -2,7 +2,7 @@
   <div id="all">
     <div class="panel-header">Overview</div>
     <div class="panel-header-end"></div>
-    <svg id = "Overview" style = 'width:805px; height:250px'
+    <svg id = "Overview" style = 'width:805px; height:330px'
      @mousedown = 'reColor("down")'>
     </svg> 
     <div class="tooltip1"></div>
@@ -16,7 +16,6 @@ import * as d3 from 'd3'
 export default {
   name:'Overview',
   data(){
-
     return {
       all:[],
       width: 800,//1220,
@@ -34,7 +33,6 @@ export default {
     };
   },
   mounted(){
-    //this.Scale();
   },
   computed:{
     time(){
@@ -76,7 +74,7 @@ export default {
   },
   methods:{
      getAll(){
-       const path = 'http://127.0.0.1:5000/Overview';
+       const path = 'http://10.192.9.11:5000/Overview';
        axios
          .get(path)
          .then(res => {
@@ -89,42 +87,34 @@ export default {
  
   Color(num){
     let that = this;
-    const [a,b] = d3.extent(that.day, function(d){return d['canonical'];})
+    const [a,b] = d3.extent(that.day, function(d){ return d['canonical']; })
     const color =d3.scaleDivergingSymlog([a,0.8*a+0.2*b,b], function(t){return d3.interpolateYlOrRd(t);})
     return color(num)
   },
-  // Color_select(num){
-  //   let that = this;
-  //   const [a,b] = d3.extent(that.day, function(d){return d['canonical'];})
-  //   const color =d3.scaleDivergingSymlog([a,0.8*a+0.2*b,b], function(t){return d3.interpolateGreens(t);})
-  //   return color(num)
-  // },
+
   reColor(action){
     let that = this;
     if(action=="down"){
       console.log("recolor")
-      for(let i = 0; i < that.dayData.length;i++){
+      for(let i = 0; i < that.dayData.length; i++){
         d3.select("#Overview").select("#overview"+eval(i))
           .selectAll("rect")
           .attr("fill", d=>that.Color(d['canonical']))
           .attr("stroke","")
-                }
+        }
     }
-
   },
+
   Draw(k){
     let that = this;
-
-   
     var rawdeposits = [];
-
     var allmonths = Array.from(new Set(that.dayData[k].map(d => {
             return d["month"];
           })));
-            
+
     allmonths.forEach(function() {
             let b = [];
-            for(let i =0; i<31;i++){ b.push([]);}
+            for(let i =0; i<31; i++){ b.push([]);}
             rawdeposits.push(b);
             })
     var deposits = rawdeposits
@@ -142,7 +132,6 @@ export default {
     .domain([0,31])
     .range([0, that.innerWidth]);
 
-    //that.height.push(25 * allmonths.length)
     that.height.push(13 * allmonths.length)
 
     const yscale = d3.scaleBand()
@@ -162,9 +151,7 @@ export default {
                     })
 
     g.append('g').call(yaxis).attr('id' ,'yaxis');
-
     g.append('g').call(xaxis).attr('id', 'xaxis');
-
     g.select("#yaxis").selectAll("text").attr("font-size","8px")
 
     let rectwid = 17
@@ -178,10 +165,6 @@ export default {
      .attr('fill', d => that.Color(d["canonical"]))
      .attr('opacity', 0.9)
      .on("mouseup", function(){
-          // d3.select(this)
-          //   .attr("fill", "#FFFF00")
-          //   .attr("stroke","#FF8BA0")
-          //   .attr("stroke-width","1.5px");//d=>that.Color_select(d['canonical']))
           var temp = d3.select(this).data();
           let a = temp[0]['day'];
           let b = "2020-12-01";
@@ -193,7 +176,6 @@ export default {
             d3.selectAll('.tooltip1')
               .html(str1)
               .style("opacity",1.0)
-
           })     
 
     for (let i = 0; i < deposits.length; i++) {
@@ -201,62 +183,25 @@ export default {
         const xscale20 = d3.scaleLinear()
                            .domain([0,254])
                            .range([0, rectwid]);
-
         const yscale20 = d3.scaleLinear()
-                           .domain([300,0])
-                          //  .domain([d3.max(deposits[i][j],function(d){return d}),d3.min(deposits[i][j],function(d){return d})])
+                           .domain([d3.max(deposits[i][j],function(d){return d}),d3.min(deposits[i][j],function(d){return d})])
                            .range([0, rectheight]);
-
-        var [h,q] = d3.extent(d3.filter(deposits[i][j],x=>x>1),function(d){return d})
-        const z = d3.scaleLinear()
-          //.domain([d3.min(deposits[i][j],function(d){return d}),d3.max(deposits[i][j],function(d){return d})])
-           //.domain([0,400])
-                    .domain([h,q])
-                    .range([1,4]);
-
-
-          d3.select('#overview'+k).append('g')
-            .attr('transform', function () {
-                return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectheight/2})`;
-                })
-            .selectAll("dot")
-            .data(deposits[i][j])
-            .enter()
-            .append("circle")
-            .attr("cx", function (d,i) {return xscale20(i);} )
-            .attr("cy", yscale20(150))
-            .attr("r", function (d) { return d==1?0:z(d); } )
-            .style("fill", "#014040")
-            .style("opacity", 0.6 )
+        const line0 = d3.line()
+                        .x(function (d,i) {return xscale20(i);})
+                        .y(function (d) {return yscale20(d);});
+        d3.select('#overview'+k).append('g')
+          .attr('transform', function () {
+          return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectheight/2})`;
+          })
+          .append('path')
+          .datum(deposits[i][j])
+          .attr('class', 'linestyle')
+          .attr("fill", "none")
+          .attr("stroke", "brown")
+          .attr("stroke-width", 0.5)
+          .attr("d", line0)
         }
       }
-
-    // for (let i = 0; i < deposits.length; i++) {
-    //   for (let j = 0; j < deposits[i].length; j++) {
-    //     const xscale20 = d3.scaleLinear()
-    //                        .domain([0,254])
-    //                        .range([0, rectwid]);
-    //     const yscale20 = d3.scaleLinear()
-    //                        .domain([d3.max(deposits[i][j],function(d){return d}),d3.min(deposits[i][j],function(d){return d})])
-    //                        .range([0, rectheight]);
-    //     const line0 = d3.line()
-    //                     .x(function (d,i) {return xscale20(i);})
-    //                     .y(function (d) {return yscale20(d);});
-    //     d3.select('#overview'+k).append('g')
-    //       .attr('transform', function () {
-    //       return `translate(${xscale(j+1)-rectwid/2},${yscale.step()*(i+0.5) - rectheight/2})`;
-    //       })
-    //       .append('path')
-    //       .datum(deposits[i][j])
-    //       .attr('class', 'linestyle')
-    //       .attr("fill", "none")
-    //       .attr("stroke", "brown")
-    //       .attr("stroke-width", 0.5)
-    //       .attr("d", line0)
-    //     }
-    //   }
-
-      
     },
     
   Legend(){
@@ -277,6 +222,26 @@ export default {
       .text("Missed Blocks")
       .attr("transform","translate(-12,-10)")
       .attr("font-size","10px")
+
+    d3.select("#legend_overview")
+      .append("g")
+      .append("rect")
+      .attr('width',that.innerWidth/20)
+      .attr('height', that.innerWidth/220)
+      .attr('transform', `translate(${-3},${180})`)
+      .attr('fill','brown')
+
+    d3.select("#legend_overview") 
+      .append("text")
+      .text("Total Staking")
+      .attr("transform","translate(-12,200)")
+      .attr("font-size","10px")
+    d3.select("#legend_overview") 
+      .append("text")
+      .text("Variation")
+      .attr("transform","translate(-6,215)")
+      .attr("font-size","10px")
+  
   },
   colorbox(sel, size, colors){
     var [x0,x1] = d3.extent( colors.domain());
@@ -314,8 +279,8 @@ export default {
 .tooltip1{
   position:absolute;
   stroke:black;
-  left:740px;
-  top:206px;
+  left:760px;
+  top:266px;
   width:auto;
   height:auto;
   border:2px solid lightcoral;

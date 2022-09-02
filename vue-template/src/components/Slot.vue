@@ -2,7 +2,7 @@
   <div>
     <div class="panel-header">SlotView</div>
     <div class="panel-header-end"></div>
-    <svg id = "Slot" style = 'width:805px; height:315px'></svg>
+    <svg id = "Slot" style = 'width:1250px; height:420px'></svg>
     <div class="tooltip_delay"></div>
   </div>
 </template>
@@ -20,7 +20,7 @@ export default {
       slots:[],
       links:[],
       delays:[],
-      width: 650,
+      width: 950,
       height: 850,
       margin:{
         top:72,
@@ -59,31 +59,21 @@ export default {
     }
   },
   methods:{
-     getSlot(){
-      //  const path = 'http://127.0.0.1:5000/slot/' + eval(this.msg);
-      // const path = 'http://127.0.0.1:5000/SlotView_Attack/' + eval(this.msg);
-      var path = '';
-      if(eval(this.msg) == 32533){
-        path = 'http://127.0.0.1:5000/SlotView_Attack/' + eval(this.msg);
-      }else{
-        path = 'http://127.0.0.1:5000/slot/' + eval(this.msg+1);
-      }
-       console.log(path);
-       axios
-         .get(path)
-         .then(res => {
-           console.log(res);
-           this.slots=res.data[0];
-           this.links = res.data[1];
-           this.delays = res.data[2];
-         })
-         .catch(error => {
-           console.error(error);
-         });
-     },
-
-     xScale(){
-      // let that = this;
+    getSlot(){
+      const path = 'http://10.192.9.11:5000/slot/' + eval(this.msg);
+      axios
+        .get(path)
+        .then(res => {
+          this.slots=res.data[0];
+          this.links = res.data[1];
+          this.delays = res.data[2];
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    },
+    
+    xScale(){
       const g = d3.select('#Slot').append('g').attr('id', 'slotview')
                    .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
       const xscale = d3.scaleLinear()
@@ -102,15 +92,6 @@ export default {
         .selectAll('text')
         .attr('transform',`translate(${this.innerWidth/68},${0})`)
         .attr('font-size', '10px');
-      
-
-
-      // g.append('circle')
-      //   .attr('cx',xscale(32)+that.innerWidth/68)
-      //   .attr('cy',0)
-      //   .attr('r',8)
-      //   .attr('fill','#6BFF88')
-
      },
 
      Color(num){
@@ -123,7 +104,7 @@ export default {
           if(m < prev){
             prev = m;
           }
-         }
+        }
 
       that.extent_m = prev;
       that.extent_M = n
@@ -134,12 +115,11 @@ export default {
     ColorCasper(num){
       let that = this;
       var [h,q] = d3.extent(d3.filter(that.slots, x=>x.block_header !=0), function(d){return d.casper_balance;})
-      //var cas_opa = d3.scaleLinear().domain([h,q]).range([0.2, 1]);
       const color =d3.scaleDivergingSymlog([h/1.2,0.2*h+0.8*q,q], function(t){return t;})
       return color(num)
     },
 
-     drawBlockheader(){
+    drawBlockheader(){
       let that = this;
       console.log(that.Color(20))
       const xscale = d3.scaleLinear()
@@ -149,7 +129,7 @@ export default {
       console.log([a,b]);
       var distribute = d3.scaleLinear().domain([a,b]).range([10, this.innerWidth/34]);
 
-     d3.select('#slotview').append('g').attr('id','block_header')
+    d3.select('#slotview').append('g').attr('id','block_header')
         .selectAll('rect').data(that.slots).enter()
         .append('rect')
         .attr('transform',function(d,i){
@@ -164,7 +144,7 @@ export default {
         .attr('opacity', 0.9)
      },
 
-     drawCasper(){
+    drawCasper(){
       let that=this;
       const xscale = d3.scaleLinear()
                        .domain([-1,this.c])
@@ -173,7 +153,6 @@ export default {
       console.log([a,b]);
       var distribute = d3.scaleLinear().domain([a,b]).range([10, this.innerWidth/34]);
       var [h,q] = d3.extent(d3.filter(that.slots, x=>x.block_header !=0), function(d){return d.casper_balance;})
-      //var cas_opa = d3.scaleLinear().domain([h,q]).range([0.2, 1]);
       that.h = h;
       that.q = q;
 
@@ -188,11 +167,11 @@ export default {
         .attr('height', function(d){
           let hei = d.at_number == 0? 0 : distribute(d.at_number)
           return hei/2;})
-        .attr('fill', "#6B3593")//function(d){return d3.interpolatePurples(d.block_header == 0? 0.1:cas_opa(d.casper_balance))})
+        .attr('fill', "#6B3593")
         .attr('opacity', function(d){return that.ColorCasper(d.casper_balance);})
      },
      
-     drawDelay(){
+    drawDelay(){
       console.log("drawBlocks");
       var ex_block = this.innerWidth/40;  
       const xscale = d3.scaleLinear()
@@ -228,12 +207,6 @@ export default {
             d3.selectAll('.tooltip_delay')
               .style("opacity",0.0);
           })
-      // g.append('circle')
-      //   .attr('cx',xscale(32)+that.innerWidth/68)
-      //   .attr('cy',0)
-      //   .attr('r',8)
-      //   .attr('fill','#6BFF88')
-      
      },
 
      drawExBlocks(){
@@ -245,8 +218,6 @@ export default {
       let that = this;
 
       for(let j = 0; j < that.slots.length; j++){
-          // var [u,v] = d3.extent(that.slots[j]['ex_blocks'])
-          // var dis = d3.scaleLinear().domain([u,v]).range([0.1, 1]);
           d3.select('#slotview').append('g').attr('id','ex_block'+j).selectAll('rect')
           .data(that.slots[j]['ex_blocks']).enter()
               .append('rect')
@@ -309,98 +280,88 @@ export default {
        lg.append('rect')
          .attr('width',that.innerWidth/35)
          .attr('height', that.innerWidth/70)
-         .attr('transform', `translate(${55},${35})`)
+         .attr('transform', `translate(${355},${35})`)
          .attr('fill','#2665A5')
 
        lg.append('rect')
          .attr('width',that.innerWidth/35)
          .attr('height', that.innerWidth/70)
-         .attr('transform', `translate(${55},${35+that.innerWidth/70})`)
+         .attr('transform', `translate(${355},${35+that.innerWidth/70})`)
          .attr('fill','#AF7AC5')
 
        lg.append('text')
          .text(' — GHOST balance')
-         .attr('transform', `translate(${77},${41})`)
+         .attr('transform', `translate(${377},${41})`)
          .attr('font-size','9px')
 
        lg.append('text')
          .text(' — Casper balance')
-         .attr('transform', `translate(${77},${44+that.innerWidth/70})`)
+         .attr('transform', `translate(${377},${44+that.innerWidth/50})`)
          .attr('font-size','9px')
-       
+
        lg.append('text')
          .text('Block size: number of attestations inside')
-         .attr('transform', `translate(${25},${60+that.innerWidth/70})`)
+         .attr('transform', `translate(${325},${60+that.innerWidth/70})`)
          .attr('font-size','9px')
 
        lg.append('rect')
          .attr('width',that.innerWidth/50)
          .attr('height', that.innerWidth/50)
-         .attr('transform', `translate(${60},${18})`)
+         .attr('transform', `translate(${360},${18})`)
          .attr('fill','lightblue')
 
        lg.append('text')
          .text(' — Competing blocks')
-         .attr('transform', `translate(${77},${18+that.innerWidth/100})`)
+         .attr('transform', `translate(${377},${18+that.innerWidth/100})`)
          .attr('font-size','9px')
 
        lg.append('circle')
          .attr('r', 5)
          .attr('fill', '#F48FB1')
-         .attr('transform',`translate(${65},${140+that.innerWidth/50})`)
+         .attr('transform',`translate(${365},${140+that.innerWidth/50})`)
 
        lg.append('text')
          .text('Finalization Delay')
-         .attr('transform', `translate(${77},${144+that.innerWidth/50})`)
+         .attr('transform', `translate(${377},${144+that.innerWidth/50})`)
          .attr('font-size','9px')
-
-      //  lg.append('circle')
-      //    .attr('r', 8)
-      //    .attr('fill', '#6BFF88')
-      //    .attr('transform',`translate(${610+that.innerWidth/50},${11})`)
-
-      //  lg.append('text')
-      //    .text('Next Epoch')
-      //    .attr('transform', `translate(${620+that.innerWidth/50},${3+that.innerWidth/100})`)
-      //    .attr('font-size','10px')
 
        lg.append('circle')
          .attr('r', 10)
          .attr('fill', 'white')
          .attr('stroke',"#C64D6B")
-         .attr('transform',`translate(${60},${180+that.innerWidth/50})`)
+         .attr('transform',`translate(${360},${180+that.innerWidth/50})`)
 
        lg.append('rect')
          .attr('width',22)
          .attr('height', 12)
-         .attr('transform', `translate(${49},${168+that.innerWidth/50})`)
+         .attr('transform', `translate(${349},${168+that.innerWidth/50})`)
          .attr('fill','white')
-       
+
        lg.append('text')
          .text('Target wrong attestations')
-         .attr('transform', `translate(${75},${190+that.innerWidth/50})`)
+         .attr('transform', `translate(${375},${190+that.innerWidth/50})`)
          .attr('font-size','9px')
 
        lg.append('circle')
          .attr('r', 10)
          .attr('fill', 'white')
          .attr('stroke',"#55A674")
-         .attr('transform',`translate(${60},${210+that.innerWidth/50})`)
+         .attr('transform',`translate(${360},${210+that.innerWidth/50})`)
 
        lg.append('rect')
          .attr('width',22)
          .attr('height', 12)
-         .attr('transform', `translate(${49},${198+that.innerWidth/50})`)
+         .attr('transform', `translate(${349},${198+that.innerWidth/50})`)
          .attr('fill','white')
-       
+
        lg.append('text')
          .text('Target correct attestations')
-         .attr('transform', `translate(${75},${220+that.innerWidth/50})`)
+         .attr('transform', `translate(${375},${220+that.innerWidth/50})`)
          .attr('font-size','9px')
 
        lg.append("g").attr("id","legend_blocks")
          .call(that.colorbox,[150,8],d3.scaleDivergingSymlog([that.extent_m,0.7*that.extent_m+0.3*that.extent_M,that.extent_M], function(t){return d3.interpolateBlues(t);}))
-         .attr("transform",`translate(${35},${-10})`)
+         .attr("transform",`translate(${335},${-10})`)
 
         d3.select("#legend_blocks")
           .append("g")
@@ -408,7 +369,7 @@ export default {
           .attr("transform","translate(0,8)")
 
 
-        d3.select("#legend_blocks") 
+        d3.select("#legend_blocks")
           .append("text")
           .text("Effective Balance(gwei)")
           .attr("transform","translate(60,-5)")
@@ -416,7 +377,7 @@ export default {
 
        lg.append("g").attr("id","legend_casper")
          .call(that.colorbox,[150,8],d3.scaleDiverging([that.h,0.5*that.h+0.5*that.q,that.q], function(t){return d3.interpolatePurples(t);}))
-         .attr("transform",`translate(${35},${100})`)
+         .attr("transform",`translate(${335},${100})`)
 
         d3.select("#legend_casper")
           .append("g")
@@ -424,7 +385,7 @@ export default {
           .attr("transform","translate(0,0)")
 
 
-        d3.select("#legend_casper") 
+        d3.select("#legend_casper")
           .append("text")
           .text("Effective Balance(gwei)")
           .attr("transform","translate(60,20)")
@@ -434,14 +395,12 @@ export default {
   },
 
   created(){
-    //this.xScale();
   },
   beforeUnmount() {
       clearInterval(this.timer);
     },
   watch:{
     slot(){
-      console.log('slot changed')
       d3.select('#Slot').selectAll('g').remove()
         this.xScale();
         this.drawArc();
@@ -480,7 +439,7 @@ export default {
 .panel-header {
   position: absolute;
   left:0px;
-  top:250px;
+  top:335px;
   padding: -10px 20px;
   width: 45px;
   height: 18px;
@@ -499,7 +458,7 @@ export default {
 
 .panel-header-end {
   position: absolute;
-  top: 250px;
+  top: 335px;
   left: 61px;
   border-top: 18px solid #455a64;
   border-right: 18px solid #ffffff;
