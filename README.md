@@ -1,4 +1,4 @@
-# Eth2.0-Visualization
+# Eth-Visualization
 
 ## Server
 
