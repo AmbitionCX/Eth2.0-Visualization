@@ -1,8 +1,8 @@
 const createConnectionPool = require('@databases/pg');
 const {sql} = require('@databases/pg');
 const PrometheusQuery = require('prometheus-query');
-const dotenv = require('dotenv').config();
 const axios = require('axios');
+require('dotenv').config();
 
 // template connection to Infura Eth2.0 endpoint
 var infuraEndPoint = `https://${process.env.PROJECT_ID}:${process.env.PROJECT_SECRET}@eth2-beacon-mainnet.infura.io`;

@@ -1,7 +1,7 @@
 const createConnectionPool = require('@databases/pg');
 const {sql} = require('@databases/pg');
 const axios = require('axios');
-const dotenv = require('dotenv').config();
+require('dotenv').config();
 
 async function connect() {
 	const db = createConnectionPool(process.env.POSTGRES_ENDPOINT);

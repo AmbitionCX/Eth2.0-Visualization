@@ -1,7 +1,7 @@
 const createConnectionPool = require('@databases/pg');
 const {sql} = require('@databases/pg');
 const axios = require('axios');
-const dotenv = require('dotenv').config();
+require('dotenv').config();
 
 const endpoint = 'http://localhost:5051/eth/v1/beacon/headers/';
 
