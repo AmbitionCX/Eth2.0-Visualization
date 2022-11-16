@@ -1,9 +1,10 @@
 const createConnectionPool = require('@databases/pg');
 const {sql} = require('@databases/pg');
 const axios = require('axios');
+const dotenv = require('dotenv').config();
 
 async function connect() {
-	const db = createConnectionPool('postgres://postgres:ChenXuan46@localhost:5432');
+	const db = createConnectionPool(process.env.POSTGRES_ENDPOINT);
 	await db.query(sql.file('./main_table.sql'));
 	// let res = await db.query(sql`SELECT f_effective_balance FROM t_validator_balances WHERE f_validator_index=2234 AND f_epoch=80000 LIMIT 10`);
 	// console.log(res);

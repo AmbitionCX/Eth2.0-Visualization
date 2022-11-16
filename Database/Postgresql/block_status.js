@@ -1,11 +1,12 @@
 const createConnectionPool = require('@databases/pg');
 const {sql} = require('@databases/pg');
 const axios = require('axios');
+const dotenv = require('dotenv').config();
 
 const endpoint = 'http://localhost:5051/eth/v1/beacon/headers/';
 
 async function connect() {
-	const db = createConnectionPool('postgres://postgres:password@localhost:5432');
+	const db = createConnectionPool(process.env.POSTGRES_ENDPOINT);
 	// const results = await db.query(sql.file('./createTb.sql'));
 	var canonical, block_root;
 	for (let i = 3435500; i < 3438900; i++ ){

@@ -1,6 +1,7 @@
 const createConnectionPool = require('@databases/pg');
 const {sql} = require('@databases/pg');
 const axios = require('axios');
+const dotenv = require('dotenv').config();
 
 const getDepositCount = async (num) => {
 	const beacon_blocks = 'http://localhost:5051/eth/v2/beacon/blocks/';
@@ -30,7 +31,7 @@ const getInvalidBlocks = async (epoch) => {
 }
 
 async function write_overview() {
-	const db = createConnectionPool('postgres://postgres:ChenXuan46@localhost:5432');
+	const db = createConnectionPool(process.env.POSTGRES_ENDPOINT);
 
 	// const getInvalidBlocks = async (epoch) => {
 	// 	let start_slot = epoch * 32;

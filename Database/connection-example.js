@@ -21,7 +21,7 @@ async function getRestApi(url) {
 getRestApi(infuraUrl);
 
 // template connection to PostgreSQL on local server
-var postgresEndPoint = `https://${process.env.POSTGRES_DATABASE}:${process.env.POSTGRES_PASSWORD}@localhost:5432`;
+var postgresEndPoint = process.env.POSTGRES_ENDPOINT;
 var tempSql = './temp.sql';
 
 async function getPostgreSql(endpoint, action) {
@@ -43,9 +43,9 @@ const prometheusEndPoint = new PrometheusQuery.PrometheusDriver({
 })
 
 const justified_epoch = 'beacon_current_justified_epoch{instance="localhost:8008",job="teku-client"}';
-// const justified_root = 'beacon_current_justified_root{instance="localhost:8008",job="teku-client"}';
-// const finalized_epoch = 'beacon_finalized_epoch{instance="localhost:8008",job="teku-client"}';
-// const finalized_root = 'beacon_finalized_root{instance="localhost:8008",job="teku-client"}';
+const justified_root = 'beacon_current_justified_root{instance="localhost:8008",job="teku-client"}';
+const finalized_epoch = 'beacon_finalized_epoch{instance="localhost:8008",job="teku-client"}';
+const finalized_root = 'beacon_finalized_root{instance="localhost:8008",job="teku-client"}';
 
 async function getPrometheus(task) {
 	try {
