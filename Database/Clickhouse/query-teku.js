@@ -100,8 +100,18 @@ const write_teku_block = async () => {
     }
 }
 
-write_teku_block()
-.then( res => console.log(res) )
+const read_beacon_block = async () => {
+    let query_data = await clickhouse.query({
+        query: 'select * from eth.beacon_block limit 1',
+        format: 'JSONEachRow',
+    });
+    let beacon_block_data = await query_data.json();
+    return beacon_block_data;
+}
+
+
+read_beacon_block()
+.then( result => console.log(result) )
 .catch( (err) => {
 	console.error(err);
 	process.exit(1);

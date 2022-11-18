@@ -39,7 +39,17 @@ const write_eth1_block = async () => {
     }
 }
 
-write_eth1_block()
+const read_eth1_block = async () => {
+    let query_data = await clickhouse.query({
+        query: 'select * from eth.eth1_block limit 1',
+        format: 'JSONEachRow',
+    });
+    let eth1_block_data = await query_data.json();
+    return eth1_block_data;
+}
+
+read_eth1_block()
+.then( result => console.log(result) )
 .catch( (err) => {
 	console.error(err);
 	process.exit(1);
