@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS s_main_table_6 (
+CREATE TABLE IF NOT EXISTS c_main_table_1 (
 f_epoch integer NOT NULL,
 f_slot integer NOT NULL PRIMARY KEY,
 f_casper_y integer[],

@@ -2,6 +2,16 @@
   "dependencies": {
     "@databases/pg": "^5.4.1",
     "axios": "^0.27.2",
+    "dotenv": "^16.3.1",
     "prometheus-query": "^3.2.5"
-  }
+  },
+  "name": "postgresql",
+  "version": "1.0.0",
+  "main": "block_status.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

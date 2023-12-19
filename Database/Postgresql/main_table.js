@@ -93,7 +93,7 @@ const getBalance = async (index, slot) => {
 }
 
 const write_main_table = async () => {
-	for ( let i = 2187; i < 1000030; i++ ){
+	for ( let i = 1; i < 52077; i++ ){
 
 		let slot = i;
 		let epoch = Math.floor(slot/32);
@@ -139,7 +139,10 @@ const write_main_table = async () => {
 				if (validator_balance > 32000000000 ) { validator_balance = 32000000000; }
 				attestation_balance += validator_balance;
 
-				let index0 = committee[committee_index].indexOf(validator);
+				let index0 = -1
+				if (committee[committee_index] != null) {
+					index0 = committee[committee_index].indexOf(validator);
+				}
 				if (index0 > -1) { 
 					committee[committee_index].splice(index0, 1);
 					if (targetCorrect){
@@ -170,7 +173,7 @@ const write_main_table = async () => {
 		}
 
 		await db.query(sql`
-		INSERT INTO s_main_table (f_epoch, f_slot, f_casper_y, f_casper_y_balance, f_casper_n, f_casper_n_balance, f_not_vote, f_not_vote_balance, f_ghost_selection)
+		INSERT INTO c_main_table_1 (f_epoch, f_slot, f_casper_y, f_casper_y_balance, f_casper_n, f_casper_n_balance, f_not_vote, f_not_vote_balance, f_ghost_selection)
 		VALUES (${epoch}, ${slot}, ${casper_y}, ${casper_y_balance}, ${casper_n}, ${casper_n_balance}, ${not_vote}, ${not_vote_balance}, ${JSON.stringify(ghost_selection)})
 		`);
 	} // for
